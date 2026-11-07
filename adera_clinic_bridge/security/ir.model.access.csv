@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_adera_api_config_manager,adera.api.config.manager,model_adera_api_config,base.group_system,1,1,1,1
+access_clinic_encounter_user,clinic.encounter.user,model_clinic_encounter,account.group_account_user,1,1,1,1
+access_clinic_encounter_line_user,clinic.encounter.line.user,model_clinic_encounter_line,account.group_account_user,1,1,1,1

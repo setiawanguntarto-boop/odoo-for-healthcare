@@ -1,0 +1,29 @@
+﻿services:
+  web_adera:
+    image: odoo:19.0
+    container_name: odoo_adera_clinic
+    depends_on:
+      - db_adera
+    ports:
+      - "8070:8069"
+    environment:
+      - HOST=db_adera
+      - USER=odoo
+      - PASSWORD=odoo
+    volumes:
+      - odoo-adera-web-data:/var/lib/odoo
+      - ./my_custom_addons:/mnt/extra-addons
+
+  db_adera:
+    image: postgres:15
+    container_name: postgres_adera_clinic
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_PASSWORD=odoo
+      - POSTGRES_USER=odoo
+    volumes:
+      - odoo-adera-db-data:/var/lib/postgresql/data
+
+volumes:
+  odoo-adera-web-data:
+  odoo-adera-db-data:

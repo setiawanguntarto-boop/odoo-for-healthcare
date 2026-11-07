@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_medical_fee_rule_user,medical.fee.rule.user,model_medical_fee_rule,account.group_account_user,1,1,1,1
+access_medical_fee_accrual_user,medical.fee.accrual.user,model_medical_fee_accrual,account.group_account_user,1,1,1,1
+access_doctor_settlement_user,doctor.settlement.user,model_doctor_settlement,account.group_account_user,1,1,1,1

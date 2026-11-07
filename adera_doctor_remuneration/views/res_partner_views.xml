@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_partner_form_inherit_adera_doctor" model="ir.ui.view">
+        <field name="name">res.partner.form.inherit.adera.doctor</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='internal_notes']" position="after">
+                <page string="Profil &amp; Pajak Dokter" name="doctor_profile">
+                    <group>
+                        <group string="Kredensial &amp; Izin Praktik">
+                            <field name="is_doctor"/>
+                            <field name="doctor_type" invisible="not is_doctor"/>
+                            <field name="sip_number" invisible="not is_doctor"/>
+                        </group>
+                        <group string="Perpajakan (PPh 21 Tenaga Ahli)">
+                            <field name="npwp_nik" invisible="not is_doctor"/>
+                            <field name="has_npwp" invisible="not is_doctor"/>
+                            <field name="pph21_method" invisible="not is_doctor"/>
+                            <field name="ytd_gross_fee" readonly="1" invisible="not is_doctor"/>
+                            <field name="ytd_dpp_cumulative" readonly="1" invisible="not is_doctor"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>
+

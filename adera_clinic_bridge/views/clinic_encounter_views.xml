@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Staging Tree View -->
+    <record id="view_clinic_encounter_tree" model="ir.ui.view">
+        <field name="name">clinic.encounter.tree</field>
+        <field name="model">clinic.encounter</field>
+        <field name="arch" type="xml">
+            <list string="Inbound EHR Encounters"
+                  decoration-danger="state == 'error'"
+                  decoration-success="state == 'posted'"
+                  decoration-info="state in ('received', 'staged')">
+                <field name="name"/>
+                <field name="external_encounter_id"/>
+                <field name="encounter_date"/>
+                <field name="clinic_unit"/>
+                <field name="poli_code"/>
+                <field name="patient_mrn"/>
+                <field name="patient_name"/>
+                <field name="doctor_id"/>
+                <field name="account_move_id"/>
+                <field name="stock_picking_id"/>
+                <field name="state" widget="badge"
+                       decoration-danger="state == 'error'"
+                       decoration-success="state == 'posted'"
+                       decoration-warning="state == 'staged'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Staging Form View -->
+    <record id="view_clinic_encounter_form" model="ir.ui.view">
+        <field name="name">clinic.encounter.form</field>
+        <field name="model">clinic.encounter</field>
+        <field name="arch" type="xml">
+            <form string="Staging Kunjungan Pasien EHR">
+                <header>
+                    <button name="action_process_encounter" string="Proses Ulang Pipeline (Retry)"
+                            type="object" class="oe_highlight" invisible="state == 'posted'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="received,staged,posted"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                        <h4 class="text-muted">
+                            External Ref: <field name="external_encounter_id" readonly="1"/>
+                        </h4>
+                    </div>
+                    <group>
+                        <group string="Informasi Kunjungan Klinis">
+                            <field name="encounter_date" readonly="state == 'posted'"/>
+                            <field name="clinic_unit" readonly="state == 'posted'"/>
+                            <field name="poli_code" readonly="state == 'posted'"/>
+                            <field name="doctor_id" readonly="state == 'posted'"/>
+                            <field name="payer_type" readonly="state == 'posted'"/>
+                            <field name="sep_claim_number" readonly="state == 'posted'" invisible="payer_type not in ('bpjs', 'split')"/>
+                        </group>
+                        <group string="Identitas Pasien">
+                            <field name="patient_mrn" readonly="state == 'posted'"/>
+                            <field name="patient_name" readonly="state == 'posted'"/>
+                            <field name="patient_id" readonly="state == 'posted'"/>
+                        </group>
+                    </group>
+
+                    <group string="Dokumen ERP Odoo Terintegrasi">
+                        <group>
+                            <field name="account_move_id" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="stock_picking_id" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Item Pelayanan &amp; Resep" name="encounter_lines">
+                            <field name="line_ids" readonly="state == 'posted'">
+                                <list editable="bottom">
+                                    <field name="line_type"/>
+                                    <field name="product_id"/>
+                                    <field name="qty"/>
+                                    <field name="unit_price"/>
+                                    <field name="lot_id"/>
+                                    <field name="doctor_id"/>
+                                    <field name="analytic_account_id"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Akrual Jasa Medis Dokter" name="fee_accruals">
+                            <field name="fee_accrual_ids" readonly="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="doctor_id"/>
+                                    <field name="product_id"/>
+                                    <field name="doctor_fee_amount" sum="Total Fee"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Audit Log &amp; Error" name="audit_log" invisible="not error_message">
+                            <field name="error_message" widget="text" readonly="1"/>
+                        </page>
+                        <page string="Raw JSON Inbound Payload" name="payload">
+                            <field name="raw_payload" widget="ace" readonly="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action & Menu -->
+    <record id="action_clinic_encounter" model="ir.actions.act_window">
+        <field name="name">Antrean Kunjungan EHR</field>
+        <field name="res_model">clinic.encounter</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Belum ada antrean kunjungan pasien dari EHR.
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="menu_clinic_bridge_root" name="EHR Bridge" sequence="10" web_icon="adera_clinic_bridge,static/description/icon.png"/>
+    <menuitem id="menu_clinic_encounter_action" name="Antrean Encounter EHR" parent="menu_clinic_bridge_root" action="action_clinic_encounter" sequence="10"/>
+</odoo>

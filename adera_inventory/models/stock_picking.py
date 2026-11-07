@@ -1,0 +1,38 @@
+# -*- coding: utf-8 -*-
+from odoo import models, fields, api
+from odoo.exceptions import UserError
+
+
+class StockPicking(models.Model):
+    _inherit = 'stock.picking'
+
+    def button_validate(self):
+        # Enforce validation: cegah pengeluaran / dispense barang kadaluarsa
+        for picking in self:
+            if picking.picking_type_id.code in ('outgoing', 'internal'):
+                for move_line in picking.move_line_ids:
+                    lot = move_line.lot_id
+                    if lot and (lot.is_quarantined or (lot.expiration_date and fields.Date.to_date(lot.expiration_date) < fields.Date.context_today(self))):
+                        raise UserError(
+                            f"VALIDASI DITOLAK: Lot '{lot.name}' pada produk '{move_line.product_id.display_name}' "
+                            f"telah KADALUARSA ({lot.expiration_date.strftime('%d-%m-%Y') if lot.expiration_date else 'N/A'}). "
+                            f"Produk ini masuk status KARANTINA dan tidak boleh didispense ke pasien/unit!"
+                        )
+
+            # Enforce validation pada Incoming (GRN / PO Receipt): Lot & Expiry WAJIB diisi untuk produk tracking by lot
+            if picking.picking_type_id.code == 'incoming':
+                for move_line in picking.move_line_ids:
+                    if move_line.product_id.tracking in ('lot', 'serial'):
+                        if not move_line.lot_id and not move_line.lot_name:
+                            raise UserError(
+                                f"VALIDASI DITOLAK: Penerimaan produk farmasi/BHP '{move_line.product_id.display_name}' "
+                                f"wajib mencantumkan Nomor Lot / Batch ID!"
+                            )
+                        if move_line.lot_id and not move_line.lot_id.expiration_date:
+                            raise UserError(
+                                f"VALIDASI DITOLAK: Lot '{move_line.lot_id.name}' pada produk '{move_line.product_id.display_name}' "
+                                f"wajib memiliki Tanggal Kadaluarsa (Expiration Date)!"
+                            )
+
+        return super(StockPicking, self).button_validate()
+

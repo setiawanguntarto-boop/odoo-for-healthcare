@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_doctor_settlement_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page" style="font-family: Arial, sans-serif; font-size: 13px;">
+                        <div class="row mb-4">
+                            <div class="col-8">
+                                <h3 style="color: #0d47a1; font-weight: bold;">BUKTI POTONG PPh 21 &amp; SLIP JASA MEDIS</h3>
+                                <p class="mb-0"><strong>Klinik ADERA (PT Adera Medika Utama)</strong></p>
+                                <p class="text-muted">NPWP: 01.234.567.8-012.000</p>
+                            </div>
+                            <div class="col-4 text-end">
+                                <h5 class="text-muted" t-field="o.name"/>
+                                <p><strong>Tanggal:</strong> <span t-field="o.date_settlement"/></p>
+                            </div>
+                        </div>
+
+                        <table class="table table-bordered mb-4">
+                            <tr class="table-light">
+                                <th style="width: 25%;">Nama Dokter</th>
+                                <td style="width: 25%;"><strong t-field="o.doctor_id.name"/></td>
+                                <th style="width: 25%;">NPWP / NIK</th>
+                                <td style="width: 25%;"><span t-field="o.doctor_id.npwp_nik"/></td>
+                            </tr>
+                            <tr>
+                                <th>Kategori</th>
+                                <td><span t-field="o.doctor_id.doctor_type"/></td>
+                                <th>Nomor SIP / STR</th>
+                                <td><span t-field="o.doctor_id.sip_number"/></td>
+                            </tr>
+                            <tr>
+                                <th>Periode Pelayanan</th>
+                                <td colspan="3"><span t-field="o.date_from"/> s/d <span t-field="o.date_to"/></td>
+                            </tr>
+                        </table>
+
+                        <h5 class="mt-4 mb-2" style="color: #0d47a1;">Rincian Tindakan Pelayanan</h5>
+                        <table class="table table-sm table-striped table-bordered">
+                            <thead class="table-primary text-center">
+                                <tr>
+                                    <th>Tanggal</th>
+                                    <th>Pasien</th>
+                                    <th>Tindakan / Layanan</th>
+                                    <th>Tagihan Pasien</th>
+                                    <th>Porsi Jasa Dokter</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="o.fee_line_ids" t-as="line">
+                                    <tr>
+                                        <td><span t-field="line.encounter_date"/></td>
+                                        <td><span t-field="line.patient_id.name"/></td>
+                                        <td><span t-field="line.product_id.name"/></td>
+                                        <td class="text-end"><span t-field="line.billing_amount"/></td>
+                                        <td class="text-end font-weight-bold"><span t-field="line.doctor_fee_amount"/></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+
+                        <div class="row justify-content-end mt-4">
+                            <div class="col-6">
+                                <table class="table table-bordered">
+                                    <tr>
+                                        <th>Total Jasa Medis Bruto:</th>
+                                        <td class="text-end"><strong><span t-field="o.total_gross_fee"/></strong></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Dasar Pengenaan Pajak (DPP = 50%):</th>
+                                        <td class="text-end"><span t-field="o.dpp_amount"/></td>
+                                    </tr>
+                                    <tr class="table-warning">
+                                        <th>Potongan PPh 21 Tenaga Ahli (Pasal 17):</th>
+                                        <td class="text-end text-danger font-weight-bold">(<span t-field="o.pph21_amount"/>)</td>
+                                    </tr>
+                                    <tr class="table-success" style="font-size: 15px;">
+                                        <th>Take Home Pay (Ditransfer ke Rekening):</th>
+                                        <td class="text-end font-weight-bold"><span t-field="o.net_fee_payable"/></td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="row mt-5">
+                            <div class="col-6 text-center">
+                                <p>Penerima Jasa Medis,</p>
+                                <br/><br/><br/>
+                                <p><strong>(<span t-field="o.doctor_id.name"/>)</strong></p>
+                            </div>
+                            <div class="col-6 text-center">
+                                <p>Bagian Keuangan &amp; Perpajakan,</p>
+                                <br/><br/><br/>
+                                <p><strong>(Finance &amp; Tax Officer Klinik ADERA)</strong></p>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>
+

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- 1. POS CONFIG: KASIR KLINIK PRATAMA -->
+        <record id="pos_config_pratama" model="pos.config">
+            <field name="name">Kasir Klinik Pratama (Rawat Jalan)</field>
+            <field name="journal_id" ref="adera_core.journal_inv_out"/>
+            <field name="invoice_journal_id" ref="adera_core.journal_inv_out"/>
+            <field name="payment_method_ids" eval="[
+                (4, ref('pos_pay_cash')),
+                (4, ref('pos_pay_qris')),
+                (4, ref('pos_pay_claim_bpjs')),
+                (4, ref('pos_pay_voucher_deposit')),
+            ]"/>
+        </record>
+
+        <!-- 2. POS CONFIG: KASIR KLINIK UTAMA HEMODIALISIS -->
+        <record id="pos_config_hd" model="pos.config">
+            <field name="name">Kasir Hemodialisis (HD Unit)</field>
+            <field name="journal_id" ref="adera_core.journal_inv_hd"/>
+            <field name="invoice_journal_id" ref="adera_core.journal_inv_hd"/>
+            <field name="payment_method_ids" eval="[
+                (4, ref('pos_pay_cash_hd')),
+                (4, ref('pos_pay_qris')),
+                (4, ref('pos_pay_claim_bpjs')),
+                (4, ref('pos_pay_voucher_deposit')),
+            ]"/>
+        </record>
+    </data>
+</odoo>

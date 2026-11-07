@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_stock_lot_form_inherit_adera" model="ir.ui.view">
+        <field name="name">stock.lot.form.inherit.adera</field>
+        <field name="model">stock.lot</field>
+        <field name="inherit_id" ref="stock.view_production_lot_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='ref']" position="after">
+                <field name="expiry_status" widget="badge"
+                       decoration-success="expiry_status == 'valid'"
+                       decoration-warning="expiry_status == 'near_expiry'"
+                       decoration-danger="expiry_status in ('critical', 'expired')"/>
+                <field name="days_to_expire"/>
+                <field name="is_quarantined" widget="boolean_toggle"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_stock_lot_tree_inherit_adera" model="ir.ui.view">
+        <field name="name">stock.lot.tree.inherit.adera</field>
+        <field name="model">stock.lot</field>
+        <field name="inherit_id" ref="stock.view_production_lot_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='create_date']" position="after">
+                <field name="expiration_date"/>
+                <field name="days_to_expire"/>
+                <field name="expiry_status" widget="badge"
+                       decoration-success="expiry_status == 'valid'"
+                       decoration-warning="expiry_status == 'near_expiry'"
+                       decoration-danger="expiry_status in ('critical', 'expired')"/>
+                <field name="is_quarantined"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
+

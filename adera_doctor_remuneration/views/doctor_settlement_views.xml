@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_doctor_settlement_tree" model="ir.ui.view">
+        <field name="name">doctor.settlement.tree</field>
+        <field name="model">doctor.settlement</field>
+        <field name="arch" type="xml">
+            <list string="Settlement Jasa Medis Dokter">
+                <field name="name"/>
+                <field name="doctor_id"/>
+                <field name="date_settlement"/>
+                <field name="total_gross_fee" sum="Total Bruto"/>
+                <field name="dpp_amount" sum="Total DPP"/>
+                <field name="pph21_amount" sum="Total PPh 21"/>
+                <field name="net_fee_payable" sum="Total Net"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state == 'calculated'"
+                       decoration-success="state == 'paid'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_doctor_settlement_form" model="ir.ui.view">
+        <field name="name">doctor.settlement.form</field>
+        <field name="model">doctor.settlement</field>
+        <field name="arch" type="xml">
+            <form string="Settlement Remunerasi &amp; PPh 21 Dokter">
+                <header>
+                    <button name="action_load_fee_lines" string="Tarik Jasa Medis (Load Accruals)"
+                            type="object" class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_approve" string="Setujui Direksi"
+                            type="object" class="oe_highlight" invisible="state != 'calculated'"/>
+                    <button name="action_post_disbursement" string="Posting Pembayaran &amp; Potong PPh 21"
+                            type="object" class="oe_highlight" invisible="state != 'approved'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,calculated,approved,paid"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Identitas Dokter &amp; Periode">
+                            <field name="doctor_id" readonly="state != 'draft'"/>
+                            <field name="date_settlement" readonly="state in ('paid', 'cancelled')"/>
+                            <label for="date_from" string="Periode Pelayanan"/>
+                            <div class="o_row">
+                                <field name="date_from" readonly="state != 'draft'"/> s/d <field name="date_to" readonly="state != 'draft'"/>
+                            </div>
+                        </group>
+                        <group string="Akun Pengeluaran Kas">
+                            <field name="bank_journal_id" readonly="state in ('paid', 'cancelled')"/>
+                            <field name="payment_move_id" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Rincian Pelayanan Medis" name="fee_lines">
+                            <field name="fee_line_ids" readonly="state in ('paid', 'cancelled')">
+                                <list>
+                                    <field name="encounter_date"/>
+                                    <field name="patient_id"/>
+                                    <field name="product_id"/>
+                                    <field name="billing_amount"/>
+                                    <field name="doctor_fee_amount" sum="Total Jasa"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
+                            <group class="oe_subtotal_footer oe_right">
+                                <field name="total_gross_fee" widget="monetary"/>
+                                <field name="dpp_amount" widget="monetary"/>
+                                <field name="pph21_amount" widget="monetary"/>
+                                <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                    <label for="net_fee_payable" string="Take Home Pay (Net)"/>
+                                </div>
+                                <field name="net_fee_payable" nolabel="1" class="oe_subtotal_footer_separator" widget="monetary"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_doctor_settlement" model="ir.actions.act_window">
+        <field name="name">Settlement &amp; PPh 21 Dokter</field>
+        <field name="res_model">doctor.settlement</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Menuitem Navigation -->
+    <menuitem id="menu_doctor_remuneration_root" name="Remunerasi Dokter" parent="account.menu_finance" sequence="25"/>
+    <menuitem id="menu_doctor_settlement_action" name="Settlement &amp; PPh 21" parent="menu_doctor_remuneration_root" action="action_doctor_settlement" sequence="10"/>
+    <menuitem id="menu_medical_fee_accrual_action" name="Daftar Akrual Jasa Medis" parent="menu_doctor_remuneration_root" action="action_medical_fee_accrual" sequence="20"/>
+    <menuitem id="menu_medical_fee_rule_action" name="Aturan Bagi Hasil" parent="menu_doctor_remuneration_root" action="action_medical_fee_rule" sequence="30"/>
+</odoo>
+

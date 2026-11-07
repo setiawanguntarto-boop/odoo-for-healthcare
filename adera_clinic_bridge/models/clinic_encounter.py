@@ -1,0 +1,256 @@
+# -*- coding: utf-8 -*-
+import json
+import logging
+from odoo import models, fields, api
+from odoo.exceptions import UserError
+
+_logger = logging.getLogger(__name__)
+
+
+class ClinicEncounter(models.Model):
+    _name = 'clinic.encounter'
+    _description = 'Staging Ledger Kunjungan Pasien EHR'
+    _order = 'encounter_date desc, id desc'
+
+    name = fields.Char(string='Nomor Registrasi Odoo', required=True, copy=False, default='/')
+    external_encounter_id = fields.Char(string='External Encounter ID', required=True, copy=False, index=True)
+    patient_mrn = fields.Char(string='Nomor Rekam Medis (MRN)', required=True, index=True)
+    patient_name = fields.Char(string='Nama Pasien', required=True)
+    patient_id = fields.Many2one('res.partner', string='Kontak Pasien (Odoo Partner)')
+
+    encounter_date = fields.Datetime(string='Waktu Kunjungan Pelayanan', required=True, default=fields.Datetime.now)
+    clinic_unit = fields.Selection([
+        ('pratama', 'Klinik Pratama (Rawat Jalan)'),
+        ('hd', 'Klinik Utama Hemodialisis'),
+    ], string='Unit Bisnis', required=True, default='pratama')
+
+    poli_code = fields.Selection([
+        ('umum', 'Poli Umum'),
+        ('gigi', 'Poli Gigi & Mulut'),
+        ('kia', 'Poli KIA & Kebidanan'),
+        ('lab', 'Laboratorium'),
+        ('rad', 'Radiologi'),
+        ('farmasi', 'Farmasi Rawat Jalan'),
+        ('hd_routine', 'Tindakan HD Rutin'),
+        ('hd_special', 'Tindakan HD Khusus / VIP'),
+    ], string='Poli / Sub-Unit', required=True, default='umum')
+
+    doctor_id = fields.Many2one('res.partner', string='Dokter Pemeriksa / Penanggung Jawab', domain="[('is_doctor', '=', True)]")
+    payer_type = fields.Selection([
+        ('cash', 'Tunai'),
+        ('qris', 'QRIS / Non-Tunai'),
+        ('bpjs', 'BPJS Kesehatan'),
+        ('insurance', 'Asuransi Swasta'),
+        ('voucher', 'Voucher / Paket'),
+        ('split', 'Kombinasi / Split-Tender'),
+    ], string='Tipe Penjamin', default='cash', required=True)
+
+    sep_claim_number = fields.Char(string='Nomor SEP / Klaim BPJS', index=True)
+    raw_payload = fields.Text(string='Raw Webhook Payload JSON')
+    error_message = fields.Text(string='Log Catatan Error')
+
+    state = fields.Selection([
+        ('draft', 'Draft'),
+        ('received', 'Diterima Webhook'),
+        ('staged', 'Terverifikasi (Staged)'),
+        ('posted', 'Sukses Diproses (Posted)'),
+        ('error', 'Gagal Validasi (Error)'),
+    ], string='Status Integrasi', default='draft', index=True, required=True)
+
+    line_ids = fields.One2many('clinic.encounter.line', 'encounter_id', string='Rincian Layanan & Resep')
+    account_move_id = fields.Many2one('account.move', string='Faktur Tagihan (Customer Invoice)', readonly=True)
+    stock_picking_id = fields.Many2one('stock.picking', string='Pengeluaran Obat & BHP (Stock Picking)', readonly=True)
+    fee_accrual_ids = fields.One2many('medical.fee.accrual', compute='_compute_fee_accruals', string='Akrual Jasa Medis')
+
+    _sql_constraints = [
+        ('uniq_external_encounter_id', 'unique(external_encounter_id)', 'External Encounter ID sudah pernah diproses sebelumnya!')
+    ]
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get('name', '/') == '/':
+                vals['name'] = self.env['ir.sequence'].next_by_code('clinic.encounter') or '/'
+        return super(ClinicEncounter, self).create(vals_list)
+
+    def _compute_fee_accruals(self):
+        for rec in self:
+            rec.fee_accrual_ids = self.env['medical.fee.accrual'].search([
+                ('encounter_reference', '=', rec.external_encounter_id)
+            ])
+
+    def action_process_encounter(self):
+        """Pipeline utama: Rollback safe dengan savepoint Odoo."""
+        self.ensure_one()
+        try:
+            with self.env.cr.savepoint():
+                self._ensure_patient_partner()
+                self._generate_customer_invoice()
+                self._generate_pharmacy_dispense()
+                self._accrue_doctor_fees()
+                self.write({'state': 'posted', 'error_message': False})
+        except Exception as e:
+            _logger.exception("Gagal memproses encounter %s", self.name)
+            self.write({'state': 'error', 'error_message': str(e)})
+
+    def _ensure_patient_partner(self):
+        if self.patient_id:
+            return
+        partner = self.env['res.partner'].search([('ref', '=', self.patient_mrn)], limit=1)
+        if not partner:
+            partner = self.env['res.partner'].create({
+                'name': self.patient_name,
+                'ref': self.patient_mrn,
+                'customer_rank': 1,
+            })
+        self.patient_id = partner.id
+
+    def _resolve_analytic_account(self, poli_code):
+        analytic_map = {
+            'umum': 'adera_core.analytic_account_prat_umum',
+            'gigi': 'adera_core.analytic_account_prat_gigi',
+            'kia': 'adera_core.analytic_account_prat_kia',
+            'lab': 'adera_core.analytic_account_prat_lab',
+            'rad': 'adera_core.analytic_account_prat_rad',
+            'farmasi': 'adera_core.analytic_account_prat_farm',
+            'hd_routine': 'adera_core.analytic_account_hd_treat',
+            'hd_special': 'adera_core.analytic_account_hd_vip',
+        }
+        xml_id = analytic_map.get(poli_code)
+        if xml_id:
+            return self.env.ref(xml_id, raise_if_not_found=False)
+        return False
+
+    def _generate_customer_invoice(self):
+        if self.account_move_id:
+            return
+
+        journal = self.env.ref('adera_core.journal_inv_hd') if self.clinic_unit == 'hd' else self.env.ref('adera_core.journal_inv_out')
+        inv_lines = []
+
+        for line in self.line_ids:
+            analytic_acc = line.analytic_account_id or self._resolve_analytic_account(self.poli_code)
+            dist = {str(analytic_acc.id): 100.0} if analytic_acc else False
+
+            inv_lines.append((0, 0, {
+                'product_id': line.product_id.id,
+                'name': line.product_id.name,
+                'quantity': line.qty,
+                'price_unit': line.unit_price,
+                'analytic_distribution': dist,
+            }))
+
+        if not inv_lines:
+            return
+
+        inv_vals = {
+            'move_type': 'out_invoice',
+            'partner_id': self.patient_id.id,
+            'journal_id': journal.id,
+            'invoice_date': fields.Date.to_date(self.encounter_date),
+            'ref': f"{self.external_encounter_id} ({self.patient_mrn})",
+            'invoice_line_ids': inv_lines,
+        }
+
+        invoice = self.env['account.move'].create(inv_vals)
+        invoice.action_post()
+        self.account_move_id = invoice.id
+
+    def _generate_pharmacy_dispense(self):
+        if self.stock_picking_id:
+            return
+
+        med_lines = self.line_ids.filtered(lambda l: l.line_type in ('medication', 'bhp') and l.product_id.type == 'consu')
+        if not med_lines:
+            return
+
+        src_location = self.env.ref('adera_inventory.stock_location_hd') if self.clinic_unit == 'hd' else self.env.ref('adera_inventory.stock_location_farmasi')
+        cust_location = self.env.ref('stock.stock_location_customers')
+        picking_type = self.env['stock.picking.type'].search([('code', '=', 'outgoing')], limit=1)
+
+        move_lines = []
+        for line in med_lines:
+            move_lines.append((0, 0, {
+                'name': line.product_id.name,
+                'product_id': line.product_id.id,
+                'product_uom_qty': line.qty,
+                'product_uom': line.product_id.uom_id.id,
+                'location_id': src_location.id,
+                'location_dest_id': cust_location.id,
+            }))
+
+        picking = self.env['stock.picking'].create({
+            'picking_type_id': picking_type.id,
+            'partner_id': self.patient_id.id,
+            'origin': self.external_encounter_id,
+            'location_id': src_location.id,
+            'location_dest_id': cust_location.id,
+            'move_ids_without_package': move_lines,
+        })
+        picking.action_confirm()
+
+        # Alokasi lot jika ditentukan dari resep EHR
+        for ml in picking.move_line_ids:
+            matching_req = med_lines.filtered(lambda l: l.product_id == ml.product_id)[:1]
+            if matching_req and matching_req.lot_id:
+                ml.lot_id = matching_req.lot_id.id
+            ml.quantity = ml.quantity_product_uom
+
+        picking.button_validate()
+        self.stock_picking_id = picking.id
+
+    def _accrue_doctor_fees(self):
+        service_lines = self.line_ids.filtered(lambda l: l.line_type in ('consultation', 'procedure'))
+        for line in service_lines:
+            doc = line.doctor_id or self.doctor_id
+            if not doc:
+                continue
+
+            # Cari fee rule
+            rule = self.env['medical.fee.rule'].search([
+                ('product_id', '=', line.product_id.id),
+                ('doctor_type', '=', doc.doctor_type)
+            ], limit=1)
+
+            if rule:
+                fee = (line.unit_price * line.qty * (rule.doctor_share_rate / 100.0)) if rule.doctor_share_type == 'percentage' else rule.fixed_amount
+            else:
+                fee = line.unit_price * line.qty * 0.70  # Default 70% jika belum diatur
+
+            analytic_acc = line.analytic_account_id or self._resolve_analytic_account(self.poli_code)
+            dist = {str(analytic_acc.id): 100.0} if analytic_acc else False
+
+            self.env['medical.fee.accrual'].create({
+                'doctor_id': doc.id,
+                'patient_id': self.patient_id.id,
+                'encounter_reference': self.external_encounter_id,
+                'encounter_date': fields.Date.to_date(self.encounter_date),
+                'product_id': line.product_id.id,
+                'billing_amount': line.unit_price * line.qty,
+                'doctor_fee_amount': fee,
+                'analytic_distribution': dist,
+            })
+
+
+class ClinicEncounterLine(models.Model):
+    _name = 'clinic.encounter.line'
+    _description = 'Rincian Layanan & Obat Kunjungan EHR'
+
+    encounter_id = fields.Many2one('clinic.encounter', string='Encounter', ondelete='cascade')
+    product_id = fields.Many2one('product.product', string='Item / Layanan / Obat', required=True)
+    line_type = fields.Selection([
+        ('consultation', 'Konsultasi Dokter'),
+        ('procedure', 'Tindakan Medis'),
+        ('medication', 'Obat Farmasi'),
+        ('bhp', 'BHP Medis'),
+        ('lab', 'Pemeriksaan Laboratorium'),
+        ('rad', 'Pemeriksaan Radiologi'),
+    ], string='Tipe Layanan', default='consultation', required=True)
+
+    qty = fields.Float(string='Jumlah (Qty)', default=1.0)
+    unit_price = fields.Monetary(string='Tarif / Harga Satuan', currency_field='currency_id')
+    currency_id = fields.Many2one('res.currency', string='Mata Uang', default=lambda self: self.env.company.currency_id)
+
+    lot_id = fields.Many2one('stock.lot', string='Lot / Batch ID (FEFO)')
+    doctor_id = fields.Many2one('res.partner', string='Dokter Operator', domain="[('is_doctor', '=', True)]")
+    analytic_account_id = fields.Many2one('account.analytic.account', string='Analytic Account')

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- 1. METODE BAYAR: CASH KASIR RAWAT JALAN -->
+        <record id="pos_pay_cash" model="pos.payment.method">
+            <field name="name">Tunai Kasir Pratama</field>
+            <field name="is_cash_count" eval="True"/>
+            <field name="journal_id" ref="adera_core.journal_kas_ksr"/>
+            <field name="receivable_account_id" ref="adera_core.account_112010"/>
+            <field name="payment_type_category">cash</field>
+        </record>
+
+        <!-- 1B. METODE BAYAR: CASH KASIR HEMODIALISIS (DEDICATED CASH JOURNAL/METHOD FOR POS HD) -->
+        <record id="journal_kas_hd" model="account.journal">
+            <field name="name">Kas Kasir Hemodialisis</field>
+            <field name="code">KKHD</field>
+            <field name="type">cash</field>
+            <field name="default_account_id" ref="adera_core.account_111020"/>
+        </record>
+
+        <record id="pos_pay_cash_hd" model="pos.payment.method">
+            <field name="name">Tunai Kasir Hemodialisis</field>
+            <field name="is_cash_count" eval="True"/>
+            <field name="journal_id" ref="journal_kas_hd"/>
+            <field name="receivable_account_id" ref="adera_core.account_112010"/>
+            <field name="payment_type_category">cash</field>
+        </record>
+
+        <!-- 2. METODE BAYAR: QRIS STATIS / DINAMIS / MIDTRANS -->
+        <record id="pos_pay_qris" model="pos.payment.method">
+            <field name="name">QRIS &amp; EDC Electronic</field>
+            <field name="journal_id" ref="adera_core.journal_pg_midtrans"/>
+            <field name="receivable_account_id" ref="adera_core.account_111220"/>
+            <field name="payment_type_category">electronic</field>
+        </record>
+
+        <!-- 3. METODE BAYAR: KLAIM BPJS KESEHATAN (AR RECEIVABLE OPEN ITEM) -->
+        <record id="pos_pay_claim_bpjs" model="pos.payment.method">
+            <field name="name">Piutang Klaim BPJS (SEP)</field>
+            <field name="journal_id" ref="adera_core.journal_ar_bpjs"/>
+            <field name="receivable_account_id" ref="adera_core.account_112020"/>
+            <field name="payment_type_category">insurance_claim</field>
+        </record>
+
+        <!-- 4. METODE BAYAR: REDEMPTION VOUCHER / PREPAID PACKAGE DEPOSIT -->
+        <record id="pos_pay_voucher_deposit" model="pos.payment.method">
+            <field name="name">Tebus Voucher / Paket Prepaid (Deposit)</field>
+            <field name="journal_id" ref="adera_core.journal_misc_clinic"/>
+            <field name="receivable_account_id" ref="adera_core.account_214020"/>
+            <field name="payment_type_category">voucher_deposit</field>
+        </record>
+
+        <!-- MASTER PRODUK PAKET PREPAID HEMODIALISIS (DEFERRED REVENUE PRODUCT) -->
+        <record id="product_voucher_paket_hd" model="product.product">
+            <field name="name">Paket Hemodialisis 5 Sesi (Pre-paid Voucher)</field>
+            <field name="default_code">VOUCHER-PAKET-HD</field>
+            <field name="type">service</field>
+            <field name="is_storable" eval="False"/>
+            <field name="list_price">4000000.0</field>
+            <field name="property_account_income_id" ref="adera_core.account_214010"/>
+            <field name="is_prepaid_treatment_package" eval="True"/>
+            <field name="package_sessions_count">5</field>
+            <field name="redemption_revenue_account_id" ref="adera_core.account_410110"/>
+        </record>
+    </data>
+</odoo>

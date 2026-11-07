@@ -1,0 +1,28 @@
+{
+    'name': 'Adera Clinic Inventory - FEFO, Valuation & Procurement',
+    'version': '19.0.1.0.0',
+    'category': 'Inventory/Healthcare',
+    'summary': 'Automated Perpetual FIFO Inventory, FEFO Removal Strategy, Lot Expiry Quarantine, and 3-Way Match AP for Klinik ADERA',
+    'author': 'Klinik ADERA Solutions',
+    'website': 'https://klinikadera.co.id',
+    'license': 'LGPL-3',
+    'depends': [
+        'base',
+        'stock',
+        'stock_account',
+        'purchase',
+        'product_expiry',
+        'adera_core',
+    ],
+    'data': [
+        'security/ir.model.access.csv',
+        'data/stock_location_data.xml',
+        'data/product_category_data.xml',
+        'data/products_data.xml',
+        'views/stock_lot_views.xml',
+        'views/purchase_order_views.xml',
+    ],
+    'installable': True,
+    'application': False,
+    'auto_install': False,
+}
