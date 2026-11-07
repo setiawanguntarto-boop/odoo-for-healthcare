@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <!-- Inherit web.NavBar.AppsMenu to open Adera Full App Switcher on click -->
+    <t t-inherit="web.NavBar.AppsMenu" t-inherit-mode="extension">
+        <xpath expr="//div[hasclass('o_navbar_apps_menu')]" position="replace">
+            <div class="o_navbar_apps_menu">
+                <button type="button" class="btn btn-sm d-flex align-items-center justify-content-center"
+                        title="Main Menu"
+                        data-hotkey="h"
+                        t-on-click="() => this.env.bus.trigger('ADERA:TOGGLE_APPSWITCHER', { open: true })">
+                    <i class="oi oi-apps text-white fs-5" />
+                </button>
+            </div>
+        </xpath>
+    </t>
+
+</templates>

@@ -1,0 +1,46 @@
+<templates xml:space="preserve">
+
+    <t t-name="adera_core.AppSwitcher">
+        <div class="o_adera_appswitcher d-flex flex-column" t-att-class="{ 'd-none': !state.isOpen }">
+            <!-- App Switcher Top Navigation Bar -->
+            <div class="o_adera_topbar d-flex align-items-center justify-content-between px-3 px-md-4">
+                <div class="d-flex align-items-center gap-2">
+                    <button class="btn o_adera_close_btn p-1" title="Close" t-on-click="close">
+                        <i class="oi oi-apps fs-4 text-white"/>
+                    </button>
+                    <span class="fw-bold text-white fs-5 ms-1">Aplikasi Sistem</span>
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                    <div class="o_adera_company_badge d-flex align-items-center gap-2 px-3 py-1 rounded-pill">
+                        <i class="fa fa-hospital-o text-white-50"/>
+                        <span class="text-white fw-bold tracking-wide">KLINIK ADERA</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main App Switcher Viewport -->
+            <div class="o_adera_grid_container flex-grow-1 overflow-auto d-flex flex-column align-items-center justify-content-center p-3 p-md-5">
+                <div class="o_adera_grid">
+                    <t t-foreach="apps" t-as="app" t-key="app.id">
+                        <div class="o_adera_app_card text-center d-flex flex-column align-items-center justify-content-center"
+                             t-att-data-menu-id="app.id"
+                             t-on-click="() => this.onAppClick(app)">
+                            <div class="o_adera_app_icon_wrapper d-flex align-items-center justify-content-center shadow-sm">
+                                <t t-if="app.webIconData">
+                                    <img class="o_adera_app_icon img-fluid" t-att-src="app.webIconData" t-att-alt="app.name"/>
+                                </t>
+                                <t t-else="">
+                                    <div class="o_adera_fallback_icon d-flex align-items-center justify-content-center">
+                                        <i class="fa fa-cubes fs-2 text-primary"/>
+                                    </div>
+                                </t>
+                            </div>
+                            <span class="o_adera_app_name mt-2 text-truncate" t-esc="app.name" t-att-title="app.name"/>
+                        </div>
+                    </t>
+                </div>
+            </div>
+        </div>
+    </t>
+
+</templates>
