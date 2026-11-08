@@ -89,7 +89,7 @@
     </record>
 
     <!-- Menuitem Navigation -->
-    <menuitem id="menu_doctor_remuneration_root" name="Remunerasi Dokter" parent="account.menu_finance" sequence="25"/>
+    <menuitem id="menu_doctor_remuneration_root" name="Remunerasi Dokter" sequence="15" web_icon="adera_doctor_remuneration,static/description/icon.png"/>
     <menuitem id="menu_doctor_settlement_action" name="Settlement &amp; PPh 21" parent="menu_doctor_remuneration_root" action="action_doctor_settlement" sequence="10"/>
     <menuitem id="menu_medical_fee_accrual_action" name="Daftar Akrual Jasa Medis" parent="menu_doctor_remuneration_root" action="action_medical_fee_accrual" sequence="20"/>
     <menuitem id="menu_medical_fee_rule_action" name="Aturan Bagi Hasil" parent="menu_doctor_remuneration_root" action="action_medical_fee_rule" sequence="30"/>

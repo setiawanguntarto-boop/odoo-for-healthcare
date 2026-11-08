@@ -18,10 +18,14 @@
         'data/account_accounts_data.xml',
         'data/account_journals_data.xml',
         'data/account_analytic_data.xml',
+        'views/landing_page_views.xml',
     ],
     'assets': {
         'web.assets_backend': [
             'adera_core/static/src/app_switcher/app_switcher.scss',
+            'adera_core/static/src/landing_page/landing_page.scss',
+            'adera_core/static/src/landing_page/landing_page.xml',
+            'adera_core/static/src/landing_page/landing_page.js',
         ],
     },
     'installable': True,
