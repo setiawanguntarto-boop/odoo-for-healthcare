@@ -52,12 +52,21 @@ class MedicalFeeAccrual(models.Model):
             ('doctor_type', '=', self.doctor_id.doctor_type),
         ], limit=1)
 
+        # Check encounter unit if available
+        is_hd = self.doctor_id.doctor_type == 'specialist_hd'
+        if self.encounter_reference:
+            encounter = self.env['clinic.encounter'].search([
+                ('external_encounter_id', '=', self.encounter_reference)
+            ], limit=1)
+            if encounter:
+                is_hd = encounter.clinic_unit == 'hd'
+
         if rule:
             expense_acc = rule.expense_account_id
             payable_acc = rule.payable_account_id
         else:
-            # Fallback berdasarkan doctor_type
-            if self.doctor_id.doctor_type == 'specialist_hd':
+            # Fallback berdasarkan unit / doctor_type
+            if is_hd:
                 expense_acc = self.env.ref('adera_core.account_510120', raise_if_not_found=False)
                 payable_acc = self.env.ref('adera_core.account_213020', raise_if_not_found=False)
             else:
@@ -71,7 +80,7 @@ class MedicalFeeAccrual(models.Model):
         # Fallback analytic distribution jika belum diset
         dist = self.analytic_distribution
         if not dist:
-            if self.doctor_id.doctor_type == 'specialist_hd':
+            if is_hd:
                 hd_analytic = self.env.ref('adera_core.analytic_account_hd_treat', raise_if_not_found=False)
                 if hd_analytic:
                     dist = {str(hd_analytic.id): 100.0}

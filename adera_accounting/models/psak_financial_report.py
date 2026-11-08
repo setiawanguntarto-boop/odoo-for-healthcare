@@ -298,9 +298,12 @@ class PsakFinancialReport(models.Model):
             ("11201", "Piutang Pasien Umum (Co-Pay)"),
             ("11202", "Piutang Klaim BPJS Kesehatan (VClaim)"),
             ("11203", "Piutang Klaim Asuransi Swasta & Korporasi"),
+            ("11210", "Piutang Usaha Lainnya (General AR)"),
             ("11401", "Persediaan Obat Farmasi Rawat Jalan"),
-            ("11402", "Persediaan BHP & Reagen Lab"),
+            ("11402", "Persediaan BHP Medis Rawat Jalan"),
             ("11403", "Persediaan Dialyzer & BHP Khusus HD"),
+            ("11404", "Persediaan Reagen Lab & Penunjang"),
+            ("11300", "Persediaan Lainnya (General Stock)"),
             ("11501", "Uang Muka & Biaya Dibayar Dimuka"),
         ]
 
@@ -399,6 +402,7 @@ class PsakFinancialReport(models.Model):
 
         current_liabilities = [
             ("21101", "Utang Usaha Pemasok Obat & BHP Medis"),
+            ("21110", "Utang Usaha Lainnya (General AP)"),
             ("21150", "GR/IR Clearing (Utang Belum Ditagih)"),
             ("21201", "Utang Pajak PPN"),
             ("21203", "Utang PPh 21 Tenaga Ahli Dokter"),

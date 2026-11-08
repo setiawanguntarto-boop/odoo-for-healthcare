@@ -106,14 +106,17 @@ class ClinicApiController(http.Controller):
             doc_name = doc_data.get('name')
             if doc_sip:
                 doctor_rec = env['res.partner'].search([('sip_number', '=', doc_sip)], limit=1)
+                doc_type = 'specialist_hd' if unit == 'hd' else 'general'
                 if not doctor_rec and doc_name:
-                    doc_type = 'specialist_hd' if ('Sp.' in doc_name or unit == 'hd') else 'general'
                     doctor_rec = env['res.partner'].create({
                         'name': doc_name,
                         'sip_number': doc_sip,
                         'is_doctor': True,
                         'doctor_type': doc_type,
                     })
+                elif doctor_rec and doctor_rec.doctor_type != doc_type and unit == 'pratama':
+                    # Ensure pratama doctor_type if practicing in pratama
+                    doctor_rec.doctor_type = 'general'
 
             # Safe parse ISO encounter_datetime
             raw_dt = payload.get('encounter_datetime')

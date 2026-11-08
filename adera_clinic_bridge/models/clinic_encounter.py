@@ -94,16 +94,25 @@ class ClinicEncounter(models.Model):
             self.write({'state': 'error', 'error_message': str(e)})
 
     def _ensure_patient_partner(self):
-        if self.patient_id:
-            return
-        partner = self.env['res.partner'].search([('ref', '=', self.patient_mrn)], limit=1)
-        if not partner:
-            partner = self.env['res.partner'].create({
-                'name': self.patient_name,
-                'ref': self.patient_mrn,
-                'customer_rank': 1,
-            })
-        self.patient_id = partner.id
+        # Tentukan akun piutang: BPJS Claim 112020 vs Pasien Umum 112010
+        if self.payer_type in ('bpjs', 'split') or self.sep_claim_number:
+            rec_acc = self.env.ref('adera_core.account_112020', raise_if_not_found=False)
+        else:
+            rec_acc = self.env.ref('adera_core.account_112010', raise_if_not_found=False)
+
+        if not self.patient_id:
+            partner = self.env['res.partner'].search([('ref', '=', self.patient_mrn)], limit=1)
+            if not partner:
+                partner = self.env['res.partner'].create({
+                    'name': self.patient_name,
+                    'ref': self.patient_mrn,
+                    'customer_rank': 1,
+                    'property_account_receivable_id': rec_acc.id if rec_acc else False,
+                })
+            self.patient_id = partner.id
+
+        if rec_acc and self.patient_id:
+            self.patient_id.property_account_receivable_id = rec_acc.id
 
     def _resolve_analytic_account(self, poli_code):
         analytic_map = {
@@ -151,6 +160,7 @@ class ClinicEncounter(models.Model):
                 'quantity': line.qty,
                 'price_unit': line.unit_price,
                 'analytic_distribution': dist,
+                'tax_ids': [(5, 0, 0)],
             }
             if income_acc:
                 line_vals['account_id'] = income_acc.id
@@ -172,6 +182,45 @@ class ClinicEncounter(models.Model):
         invoice = self.env['account.move'].create(inv_vals)
         invoice.action_post()
         self.account_move_id = invoice.id
+
+        # Update receivable account line to PSAK 112020/112010 if needed
+        rec_acc = self.patient_id.property_account_receivable_id
+        if rec_acc:
+            rec_line = invoice.line_ids.filtered(lambda l: l.account_type == 'asset_receivable')
+            if rec_line and rec_line.account_id != rec_acc:
+                rec_line.write({'account_id': rec_acc.id})
+
+        # Process Co-Pay / Split Payment if provided in raw_payload
+        if self.raw_payload:
+            try:
+                payload = json.loads(self.raw_payload)
+                splits = payload.get('payment_split', [])
+                for sp in splits:
+                    method = sp.get('method')
+                    amt = float(sp.get('amount', 0.0))
+                    jcode = sp.get('journal_code', 'PGATE')
+                    if method in ('qris', 'cash', 'edc', 'transfer') and amt > 0:
+                        pay_journal = self.env['account.journal'].search([('code', '=', jcode)], limit=1)
+                        if not pay_journal:
+                            pay_journal = self.env['account.journal'].search([('type', 'in', ('bank', 'cash'))], limit=1)
+                        if pay_journal:
+                            payment = self.env['account.payment'].create({
+                                'partner_id': self.patient_id.id,
+                                'amount': amt,
+                                'journal_id': pay_journal.id,
+                                'payment_type': 'inbound',
+                                'partner_type': 'customer',
+                                'date': invoice.invoice_date,
+                                'ref': f"Co-Pay QRIS/Kasir: {self.name}",
+                            })
+                            payment.action_post()
+                            lines_to_rec = (invoice.line_ids + payment.move_id.line_ids).filtered(
+                                lambda l: l.account_type == 'asset_receivable' and not l.reconciled
+                            )
+                            if len(lines_to_rec) >= 2:
+                                lines_to_rec.reconcile()
+            except Exception as e:
+                _logger.warning("Could not register co-pay payment for %s: %s", self.name, str(e))
 
     def _generate_pharmacy_dispense(self):
         if self.stock_picking_id:
@@ -210,11 +259,25 @@ class ClinicEncounter(models.Model):
         picking.action_confirm()
 
         # Alokasi lot jika ditentukan dari resep EHR
-        for ml in picking.move_line_ids:
-            matching_req = med_lines.filtered(lambda l: l.product_id == ml.product_id)[:1]
-            if matching_req and matching_req.lot_id:
-                ml.lot_id = matching_req.lot_id.id
-            ml.quantity = ml.quantity_product_uom
+        for move in picking.move_ids:
+            matching_req = med_lines.filtered(lambda l: l.product_id == move.product_id)[:1]
+            lot_id = matching_req.lot_id.id if matching_req and matching_req.lot_id else False
+            if not move.move_line_ids:
+                self.env['stock.move.line'].create({
+                    'move_id': move.id,
+                    'picking_id': picking.id,
+                    'product_id': move.product_id.id,
+                    'product_uom_id': move.product_uom.id,
+                    'location_id': src_location.id,
+                    'location_dest_id': cust_location.id,
+                    'quantity': move.product_uom_qty,
+                    'lot_id': lot_id,
+                })
+            else:
+                for ml in move.move_line_ids:
+                    if lot_id:
+                        ml.lot_id = lot_id
+                    ml.quantity = ml.quantity_product_uom
 
         try:
             picking.button_validate()
