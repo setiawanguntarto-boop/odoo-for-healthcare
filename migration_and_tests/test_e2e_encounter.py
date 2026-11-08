@@ -6,12 +6,13 @@ Simulates external EHR clinical encounter ingestion, tests idempotency,
 and verifies GL entries, FEFO stock reduction, and doctor fee accruals.
 """
 
+import os
 import sys
 import json
 import requests
 from decimal import Decimal
 
-ODOO_HOST = "http://localhost:8069"
+ODOO_HOST = os.environ.get("ODOO_HOST", "http://localhost:8070")
 SYNC_URL = f"{ODOO_HOST}/api/v1/clinic/encounter/sync"
 API_KEY = "adera_secret_token_2026"
 

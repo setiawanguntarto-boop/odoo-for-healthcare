@@ -125,20 +125,37 @@ class ClinicEncounter(models.Model):
         if self.account_move_id:
             return
 
-        journal = self.env.ref('adera_core.journal_inv_hd') if self.clinic_unit == 'hd' else self.env.ref('adera_core.journal_inv_out')
+        journal = self.env.ref('adera_core.journal_inv_hd', raise_if_not_found=False) if self.clinic_unit == 'hd' else self.env.ref('adera_core.journal_inv_out', raise_if_not_found=False)
+        if not journal:
+            journal = self.env['account.journal'].search([('type', '=', 'sale')], limit=1)
+
         inv_lines = []
 
         for line in self.line_ids:
             analytic_acc = line.analytic_account_id or self._resolve_analytic_account(self.poli_code)
             dist = {str(analytic_acc.id): 100.0} if analytic_acc else False
 
-            inv_lines.append((0, 0, {
+            income_acc = False
+            if line.line_type == 'medication':
+                income_acc = self.env.ref('adera_core.account_410060', raise_if_not_found=False)
+            elif line.line_type == 'consultation':
+                income_acc = self.env.ref('adera_core.account_410010', raise_if_not_found=False)
+            elif self.clinic_unit == 'hd':
+                income_acc = self.env.ref('adera_core.account_410110', raise_if_not_found=False)
+            else:
+                income_acc = self.env.ref('adera_core.account_410010', raise_if_not_found=False)
+
+            line_vals = {
                 'product_id': line.product_id.id,
                 'name': line.product_id.name,
                 'quantity': line.qty,
                 'price_unit': line.unit_price,
                 'analytic_distribution': dist,
-            }))
+            }
+            if income_acc:
+                line_vals['account_id'] = income_acc.id
+
+            inv_lines.append((0, 0, line_vals))
 
         if not inv_lines:
             return
@@ -164,14 +181,17 @@ class ClinicEncounter(models.Model):
         if not med_lines:
             return
 
-        src_location = self.env.ref('adera_inventory.stock_location_hd') if self.clinic_unit == 'hd' else self.env.ref('adera_inventory.stock_location_farmasi')
+        src_location = self.env.ref('adera_inventory.stock_location_hd', raise_if_not_found=False) if self.clinic_unit == 'hd' else self.env.ref('adera_inventory.stock_location_farmasi', raise_if_not_found=False)
+        if not src_location:
+            src_location = self.env.ref('stock.stock_location_stock')
         cust_location = self.env.ref('stock.stock_location_customers')
         picking_type = self.env['stock.picking.type'].search([('code', '=', 'outgoing')], limit=1)
+        if not picking_type:
+            return
 
         move_lines = []
         for line in med_lines:
             move_lines.append((0, 0, {
-                'name': line.product_id.name,
                 'product_id': line.product_id.id,
                 'product_uom_qty': line.qty,
                 'product_uom': line.product_id.uom_id.id,
@@ -185,7 +205,7 @@ class ClinicEncounter(models.Model):
             'origin': self.external_encounter_id,
             'location_id': src_location.id,
             'location_dest_id': cust_location.id,
-            'move_ids_without_package': move_lines,
+            'move_ids': move_lines,
         })
         picking.action_confirm()
 
@@ -196,7 +216,10 @@ class ClinicEncounter(models.Model):
                 ml.lot_id = matching_req.lot_id.id
             ml.quantity = ml.quantity_product_uom
 
-        picking.button_validate()
+        try:
+            picking.button_validate()
+        except Exception as e:
+            _logger.warning("Could not immediately validate picking: %s", str(e))
         self.stock_picking_id = picking.id
 
     def _accrue_doctor_fees(self):

@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ===================================================================
+         ROOT APPLICATION MENU: Akuntansi & Keuangan PSAK (Sequence 10)
+         Promoted to top-level Root Application on Enterprise App Switcher
+         =================================================================== -->
+    <menuitem id="menu_adera_accounting_root"
+              name="Akuntansi &amp; Keuangan PSAK"
+              sequence="10"
+              web_icon="adera_accounting,static/description/icon.png"/>
+
+    <!-- ===================================================================
+         1. LAPORAN KEUANGAN PSAK
+         =================================================================== -->
+    <menuitem id="menu_psak_reports_categ"
+              name="Laporan Keuangan PSAK"
+              parent="menu_adera_accounting_root"
+              sequence="10"/>
+
+    <menuitem id="menu_psak_profit_loss"
+              name="Laporan Laba Rugi (P&amp;L)"
+              parent="menu_psak_reports_categ"
+              action="action_psak_wizard_profit_loss"
+              sequence="10"/>
+
+    <menuitem id="menu_psak_balance_sheet"
+              name="Neraca Keuangan (Balance Sheet)"
+              parent="menu_psak_reports_categ"
+              action="action_psak_wizard_balance_sheet"
+              sequence="20"/>
+
+    <menuitem id="menu_psak_cash_flow"
+              name="Laporan Arus Kas (Cash Flow)"
+              parent="menu_psak_reports_categ"
+              action="action_psak_wizard_cash_flow"
+              sequence="30"/>
+
+    <menuitem id="menu_psak_general_ledger"
+              name="Buku Besar &amp; Neraca Saldo (OCA)"
+              parent="menu_psak_reports_categ"
+              action="account_financial_report.action_general_ledger_wizard"
+              sequence="40"/>
+
+    <menuitem id="menu_psak_trial_balance"
+              name="Neraca Saldo / Trial Balance (OCA)"
+              parent="menu_psak_reports_categ"
+              action="account_financial_report.action_trial_balance_wizard"
+              sequence="50"/>
+
+    <menuitem id="menu_psak_report_history"
+              name="Arsip Riwayat Laporan PSAK"
+              parent="menu_psak_reports_categ"
+              action="action_psak_financial_report_history"
+              sequence="60"/>
+
+    <!-- ===================================================================
+         2. PIUTANG & BILLING KLINIK
+         =================================================================== -->
+    <menuitem id="menu_ar_billing_categ"
+              name="Piutang &amp; Billing Klinik"
+              parent="menu_adera_accounting_root"
+              sequence="20"/>
+
+    <menuitem id="menu_ar_invout_action"
+              name="Faktur Pasien Rawat Jalan (INVOUT)"
+              parent="menu_ar_billing_categ"
+              action="action_invoice_outpatient_invout"
+              sequence="10"/>
+
+    <menuitem id="menu_ar_bpjs_claim_action"
+              name="Piutang Klaim BPJS (112020)"
+              parent="menu_ar_billing_categ"
+              action="action_ar_bpjs_claim_ledger"
+              sequence="20"/>
+
+    <menuitem id="menu_ar_pos_copay_action"
+              name="Settlement Co-Pay POS"
+              parent="menu_ar_billing_categ"
+              action="action_pos_copay_settlement_ledger"
+              sequence="30"/>
+
+    <!-- ===================================================================
+         3. HUTANG & PENGADAAN
+         =================================================================== -->
+    <menuitem id="menu_ap_procure_categ"
+              name="Hutang &amp; Pengadaan"
+              parent="menu_adera_accounting_root"
+              sequence="30"/>
+
+    <menuitem id="menu_ap_bmed_action"
+              name="Tagihan Distributor / Vendor (BMED)"
+              parent="menu_ap_procure_categ"
+              action="action_vendor_bills_medical_procure"
+              sequence="10"/>
+
+    <menuitem id="menu_ap_gr_ir_action"
+              name="Rekonsiliasi GR/IR Clearing (211500)"
+              parent="menu_ap_procure_categ"
+              action="action_gr_ir_clearing_ledger"
+              sequence="20"/>
+
+    <!-- ===================================================================
+         4. JASA MEDIS & PERPAJAKAN
+         =================================================================== -->
+    <menuitem id="menu_doctor_tax_categ"
+              name="Jasa Medis &amp; Perpajakan"
+              parent="menu_adera_accounting_root"
+              sequence="40"/>
+
+    <menuitem id="menu_doctor_accrual_action"
+              name="Akrual Utang Jasa Dokter (2130xx)"
+              parent="menu_doctor_tax_categ"
+              action="action_doctor_fee_accrual_lines"
+              sequence="10"/>
+
+    <menuitem id="menu_pph21_ledger_action"
+              name="Buku Besar PPh 21 Tenaga Ahli (212030)"
+              parent="menu_doctor_tax_categ"
+              action="action_pph21_tax_withholding_ledger"
+              sequence="20"/>
+
+    <menuitem id="menu_ebupot_log_action"
+              name="Log Ekspor e-Bupot DJP"
+              parent="menu_doctor_tax_categ"
+              action="action_ebupot_settlement_log"
+              sequence="30"/>
+
+    <!-- ===================================================================
+         5. KAS & BANK
+         =================================================================== -->
+    <menuitem id="menu_cash_bank_categ"
+              name="Kas &amp; Bank"
+              parent="menu_adera_accounting_root"
+              sequence="50"/>
+
+    <menuitem id="menu_cashier_variance_action"
+              name="Audit Selisih Kasir (619990)"
+              parent="menu_cash_bank_categ"
+              action="action_cashier_variance_audit_ledger"
+              sequence="10"/>
+
+    <menuitem id="menu_bank_recon_action"
+              name="Rekonsiliasi Bank"
+              parent="menu_cash_bank_categ"
+              action="action_bank_journal_reconciliation"
+              sequence="20"/>
+</odoo>

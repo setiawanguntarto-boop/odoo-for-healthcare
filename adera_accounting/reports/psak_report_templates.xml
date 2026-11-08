@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- QWeb Report Action -->
+    <record id="action_report_psak_financial_statement" model="ir.actions.report">
+        <field name="name">Laporan Keuangan PSAK (PDF)</field>
+        <field name="model">psak.financial.report</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">adera_accounting.report_psak_financial_document</field>
+        <field name="report_file">adera_accounting.report_psak_financial_document</field>
+        <field name="binding_model_id" ref="model_psak_financial_report"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- QWeb Report Template -->
+    <template id="report_psak_financial_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page" style="font-family: Arial, sans-serif; font-size: 11px;">
+                        <!-- Report Header -->
+                        <div class="text-center mb-4">
+                            <h3 style="font-weight: bold; margin-bottom: 2px; text-transform: uppercase;">
+                                <t t-esc="o.company_id.name"/>
+                            </h3>
+                            <h4 style="font-weight: bold; color: #5f249f; margin-bottom: 4px;">
+                                <t t-esc="o.name"/>
+                            </h4>
+                            <p style="margin-bottom: 2px; color: #666;">
+                                Periode: <t t-esc="o.date_from" t-options='{"widget": "date"}'/> s/d <t t-esc="o.date_to" t-options='{"widget": "date"}'/>
+                                <t t-if="o.analytic_account_id">
+                                    | Unit Bisnis: <t t-esc="o.analytic_account_id.name"/>
+                                </t>
+                            </p>
+                            <p style="margin-bottom: 0; font-size: 10px; color: #888;">
+                                Standar: Standar Akuntansi Keuangan Indonesia (PSAK) • Mata Uang: Rupiah (IDR)
+                            </p>
+                        </div>
+
+                        <!-- Report Lines Table -->
+                        <table class="table table-sm table-bordered mt-3" style="width: 100%;">
+                            <thead>
+                                <tr style="background-color: #f3edf8; font-weight: bold;">
+                                    <th style="width: 15%;">Kode Akun</th>
+                                    <th style="width: 45%;">Pos Keuangan PSAK</th>
+                                    <th class="text-end" style="width: 20%;">Periode Berjalan</th>
+                                    <t t-if="o.comparison_type != 'none'">
+                                        <th class="text-end" style="width: 20%;">Pembanding</th>
+                                    </t>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="o.line_ids" t-as="line">
+                                    <tr t-att-style="'background-color: ' + ('#ede2f5' if line.line_type == 'total' else '#f9f6fc' if line.line_type == 'subtotal' else '#ffffff') + '; ' + ('font-weight: bold;' if line.line_type in ('header', 'subtotal', 'total') else '')">
+                                        <td><t t-esc="line.code or ''"/></td>
+                                        <td>
+                                            <span t-att-style="'padding-left: ' + ('0px' if line.line_type == 'header' else '15px' if line.line_type == 'account' else '5px') + ';'">
+                                                <t t-esc="line.name"/>
+                                            </span>
+                                        </td>
+                                        <td class="text-end">
+                                            <t t-if="line.line_type != 'header'">
+                                                <t t-esc="line.amount_current" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                                            </t>
+                                        </td>
+                                        <t t-if="o.comparison_type != 'none'">
+                                            <td class="text-end">
+                                                <t t-if="line.line_type != 'header'">
+                                                    <t t-esc="line.amount_comparison" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                                                </t>
+                                            </td>
+                                        </t>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+
+                        <!-- Sign-off Block -->
+                        <div class="row mt-5" style="page-break-inside: avoid;">
+                            <div class="col-6 text-center">
+                                <p>Disiapkan Oleh,<br/><strong>Bagian Akuntansi &amp; Keuangan</strong></p>
+                                <br/><br/><br/>
+                                <p>( _______________________ )</p>
+                            </div>
+                            <div class="col-6 text-center">
+                                <p>Disetujui Oleh,<br/><strong>Direktur Operasional Klinik</strong></p>
+                                <br/><br/><br/>
+                                <p>( _______________________ )</p>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

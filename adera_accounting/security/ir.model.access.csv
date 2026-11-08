@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_psak_financial_report_user,psak.financial.report.user,model_psak_financial_report,base.group_user,1,1,1,1
+access_psak_financial_report_line_user,psak.financial.report.line.user,model_psak_financial_report_line,base.group_user,1,1,1,1
+access_psak_report_wizard_user,psak.report.wizard.user,model_psak_report_wizard,base.group_user,1,1,1,1

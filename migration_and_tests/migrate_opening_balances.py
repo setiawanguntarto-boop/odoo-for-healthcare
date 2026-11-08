@@ -12,7 +12,7 @@ from datetime import datetime
 
 _logger = logging.getLogger("adera.migration")
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(os.path.abspath(__file__)) if '__file__' in globals() else '/mnt/extra-addons/migration_and_tests'
 OPEN_AP_CSV = os.path.join(BASE_DIR, "open_ap.csv")
 OPEN_AR_CSV = os.path.join(BASE_DIR, "open_ar.csv")
 OPEN_STOCK_CSV = os.path.join(BASE_DIR, "open_stock.csv")
@@ -183,6 +183,7 @@ def run_migration(env):
     migrate_open_ap(env)
     migrate_open_ar(env)
     migrate_open_stock(env)
+    env.cr.commit()
     print("\n" + "=" * 70)
     print("MIGRATION COMPLETED SUCCESSFULLY.")
     print("=" * 70)

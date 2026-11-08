@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- PSAK Report Wizard Form View -->
+    <record id="view_psak_report_wizard_form" model="ir.ui.view">
+        <field name="name">psak.report.wizard.form</field>
+        <field name="model">psak.report.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Parameter Laporan Keuangan PSAK">
+                <sheet>
+                    <div class="oe_title">
+                        <h2>Parameter Filter &amp; Eksekusi Laporan PSAK</h2>
+                    </div>
+                    <group>
+                        <group string="Konfigurasi Laporan">
+                            <field name="report_type" widget="radio"/>
+                            <field name="analytic_account_id" placeholder="Konsolidasi Seluruh Klinik (ACC-PRATAMA vs ACC-HD)"/>
+                            <field name="target_move" widget="radio"/>
+                        </group>
+                        <group string="Rentang Waktu &amp; Periode">
+                            <field name="date_preset"/>
+                            <label for="date_from" string="Periode Pelaporan"/>
+                            <div class="o_row">
+                                <field name="date_from"/> s/d <field name="date_to"/>
+                            </div>
+                        </group>
+                    </group>
+
+                    <group string="Analisis Komparatif (Comparative Analysis)">
+                        <group>
+                            <field name="comparison_type"/>
+                        </group>
+                        <group invisible="comparison_type == 'none'">
+                            <label for="date_from_cmp" string="Periode Pembanding"/>
+                            <div class="o_row">
+                                <field name="date_from_cmp"/> s/d <field name="date_to_cmp"/>
+                            </div>
+                        </group>
+                    </group>
+
+                    <group string="Filter Lanjutan (Opsional)">
+                        <field name="journal_ids" widget="many2many_tags" placeholder="Pilih jurnal spesifik (INVOUT, BMED, JBPJS, KKSR)..."/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_generate_report" string="Tampilkan Laporan Interaktif" type="object" class="btn-primary"/>
+                    <button string="Batal" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Specific Actions for P&L, Balance Sheet, Cash Flow -->
+    <record id="action_psak_wizard_profit_loss" model="ir.actions.act_window">
+        <field name="name">Laporan Laba Rugi (P&amp;L)</field>
+        <field name="res_model">psak.report.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'default_report_type': 'profit_loss'}</field>
+    </record>
+
+    <record id="action_psak_wizard_balance_sheet" model="ir.actions.act_window">
+        <field name="name">Neraca Keuangan (Balance Sheet)</field>
+        <field name="res_model">psak.report.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'default_report_type': 'balance_sheet'}</field>
+    </record>
+
+    <record id="action_psak_wizard_cash_flow" model="ir.actions.act_window">
+        <field name="name">Laporan Arus Kas (Cash Flow)</field>
+        <field name="res_model">psak.report.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'default_report_type': 'cash_flow'}</field>
+    </record>
+</odoo>

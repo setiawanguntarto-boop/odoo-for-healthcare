@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- PSAK Report Form View -->
+    <record id="view_psak_financial_report_form" model="ir.ui.view">
+        <field name="name">psak.financial.report.form</field>
+        <field name="model">psak.financial.report</field>
+        <field name="arch" type="xml">
+            <form string="Laporan Keuangan PSAK">
+                <header>
+                    <button name="action_recompute" string="Hitung Ulang (Refresh Data)" type="object" class="btn-primary" icon="fa-refresh"/>
+                    <button name="%(action_psak_wizard_profit_loss)d" string="Ubah Filter Parameter" type="action" class="btn-secondary" invisible="report_type != 'profit_loss'"/>
+                    <button name="%(action_psak_wizard_balance_sheet)d" string="Ubah Filter Parameter" type="action" class="btn-secondary" invisible="report_type != 'balance_sheet'"/>
+                    <button name="%(action_psak_wizard_cash_flow)d" string="Ubah Filter Parameter" type="action" class="btn-secondary" invisible="report_type != 'cash_flow'"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <span class="o_form_label text-muted">Laporan Keuangan PSAK Klinik ADERA</span>
+                        <h1 class="text-primary">
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Informasi Periode &amp; Filter">
+                            <field name="report_type" readonly="1"/>
+                            <label for="date_from" string="Periode Pelaporan"/>
+                            <div class="o_row">
+                                <field name="date_from" readonly="1"/> s/d <field name="date_to" readonly="1"/>
+                            </div>
+                            <field name="analytic_account_id" readonly="1"/>
+                        </group>
+                        <group string="Standar &amp; Pembanding">
+                            <field name="target_move" readonly="1"/>
+                            <field name="comparison_type" readonly="1"/>
+                            <label for="date_from_cmp" string="Periode Pembanding" invisible="comparison_type == 'none'"/>
+                            <div class="o_row" invisible="comparison_type == 'none'">
+                                <field name="date_from_cmp" readonly="1"/> s/d <field name="date_to_cmp" readonly="1"/>
+                            </div>
+                            <field name="company_id" readonly="1" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Tabel Laporan Keuangan PSAK" name="report_lines">
+                            <field name="line_ids" readonly="1">
+                                <list decoration-bf="line_type in ('subtotal', 'total', 'header')"
+                                      decoration-muted="line_type == 'header'"
+                                      decoration-primary="line_type == 'total'">
+                                    <field name="sequence" column_invisible="1"/>
+                                    <field name="code" string="Akun / Ref"/>
+                                    <field name="name" string="Pos Keuangan PSAK"/>
+                                    <field name="amount_current" string="Periode Berjalan" widget="monetary" sum="Total"/>
+                                    <field name="amount_comparison" string="Pembanding" widget="monetary" column_invisible="parent.comparison_type == 'none'"/>
+                                    <field name="variance_amount" string="Selisih (Rp)" widget="monetary" column_invisible="parent.comparison_type == 'none'"/>
+                                    <field name="variance_percent" string="Selisih (%)" widget="percentage" column_invisible="parent.comparison_type == 'none'"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                    <field name="line_type" column_invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- PSAK Report List View -->
+    <record id="view_psak_financial_report_tree" model="ir.ui.view">
+        <field name="name">psak.financial.report.tree</field>
+        <field name="model">psak.financial.report</field>
+        <field name="arch" type="xml">
+            <list string="Daftar Riwayat Laporan PSAK">
+                <field name="name"/>
+                <field name="report_type"/>
+                <field name="date_from"/>
+                <field name="date_to"/>
+                <field name="analytic_account_id"/>
+                <field name="target_move"/>
+                <field name="comparison_type"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Window Action: Riwayat Seluruh Laporan -->
+    <record id="action_psak_financial_report_history" model="ir.actions.act_window">
+        <field name="name">Riwayat Laporan Keuangan</field>
+        <field name="res_model">psak.financial.report</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>
