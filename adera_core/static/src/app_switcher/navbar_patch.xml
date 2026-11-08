@@ -8,7 +8,7 @@
                 <button type="button" class="btn btn-sm d-flex align-items-center justify-content-center"
                         title="Main Menu"
                         data-hotkey="h"
-                        t-on-click="() => this.env.bus.trigger('ADERA:TOGGLE_APPSWITCHER', { open: true })">
+                        t-on-click="() => this.actionService.doAction('adera_app_switcher', { clearBreadcrumbs: true })">
                     <i class="oi oi-apps text-white fs-5" />
                 </button>
             </div>

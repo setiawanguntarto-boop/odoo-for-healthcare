@@ -39,32 +39,15 @@
     }
 }
 
-// Fullscreen App Switcher Overlay
+// Fullscreen App Switcher Action Viewport
 .o_adera_appswitcher {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 1050;
+    height: 100%;
+    min-height: calc(100vh - 46px);
     background: linear-gradient(135deg, #dfd8ed 0%, #ece7f6 50%, #f4f0fa 100%);
-    backdrop-filter: blur(8px);
-    transition: opacity 0.25s ease-in-out;
 
     .o_adera_topbar {
-        height: 52px;
         background: #9052DE;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-
-        .o_adera_close_btn {
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            border-radius: 6px;
-            &:hover {
-                background: rgba(255, 255, 255, 0.15);
-            }
-        }
 
         .o_adera_company_badge {
             background: rgba(255, 255, 255, 0.15);

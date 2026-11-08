@@ -1,13 +1,11 @@
 <templates xml:space="preserve">
 
     <t t-name="adera_core.AppSwitcher">
-        <div class="o_adera_appswitcher d-flex flex-column" t-att-class="{ 'd-none': !state.isOpen }">
-            <!-- App Switcher Top Navigation Bar -->
-            <div class="o_adera_topbar d-flex align-items-center justify-content-between px-3 px-md-4">
+        <div class="o_adera_appswitcher d-flex flex-column w-100 h-100">
+            <!-- App Switcher Top Brand Banner -->
+            <div class="o_adera_topbar d-flex align-items-center justify-content-between px-4 py-2">
                 <div class="d-flex align-items-center gap-2">
-                    <button class="btn o_adera_close_btn p-1" title="Close" t-on-click="close">
-                        <i class="oi oi-apps fs-4 text-white"/>
-                    </button>
+                    <i class="oi oi-apps fs-4 text-white"/>
                     <span class="fw-bold text-white fs-5 ms-1">Aplikasi Sistem</span>
                 </div>
                 <div class="d-flex align-items-center gap-3">
@@ -19,7 +17,7 @@
             </div>
 
             <!-- Main App Switcher Viewport -->
-            <div class="o_adera_grid_container flex-grow-1 overflow-auto d-flex flex-column align-items-center justify-content-center p-3 p-md-5">
+            <div class="o_adera_grid_container flex-grow-1 overflow-auto d-flex flex-column align-items-center justify-content-center p-4 p-md-5">
                 <div class="o_adera_grid">
                     <t t-foreach="apps" t-as="app" t-key="app.id">
                         <div class="o_adera_app_card text-center d-flex flex-column align-items-center justify-content-center"
