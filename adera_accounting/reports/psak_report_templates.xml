@@ -2,7 +2,7 @@
 <odoo>
     <!-- QWeb Report Action -->
     <record id="action_report_psak_financial_statement" model="ir.actions.report">
-        <field name="name">Laporan Keuangan PSAK / SAK EMKM / SAK EP (PDF)</field>
+        <field name="name">Laporan Keuangan Resmi SAK EMKM / PSAK (PDF)</field>
         <field name="model">psak.financial.report</field>
         <field name="report_type">qweb-pdf</field>
         <field name="report_name">adera_accounting.report_psak_financial_document</field>
@@ -16,54 +16,85 @@
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="o">
                 <t t-call="web.external_layout">
-                    <div class="page" style="font-family: Arial, sans-serif; font-size: 11px;">
-                        <!-- Report Header -->
-                        <div class="text-center mb-4">
-                            <h3 style="font-weight: bold; margin-bottom: 2px; text-transform: uppercase;">
-                                <t t-esc="o.company_id.name"/>
-                            </h3>
-                            <h4 style="font-weight: bold; color: #5f249f; margin-bottom: 4px;">
-                                <t t-esc="o.name"/>
+                    <div class="page" style="font-family: 'Segoe UI', Arial, sans-serif; font-size: 10.5px; color: #212529;">
+                        <!-- Formal Statutory Enterprise Header -->
+                        <div class="text-center pb-3 mb-3" style="border-bottom: 2px solid #212529;">
+                            <h4 style="font-weight: 800; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.5px; color: #111;">
+                                PT PROSPERRA MEDIKA UTAMA
                             </h4>
-                            <p style="margin-bottom: 2px; color: #666;">
-                                Periode: <t t-esc="o.date_from" t-options='{"widget": "date"}'/> s/d <t t-esc="o.date_to" t-options='{"widget": "date"}'/>
-                                <t t-if="o.analytic_account_id">
-                                    | Unit Bisnis: <t t-esc="o.analytic_account_id.name"/>
-                                </t>
-                            </p>
-                            <p style="margin-bottom: 0; font-size: 10px; color: #888;">
-                                Standar: <t t-esc="'SAK EMKM (Phase 1 Baseline)' if o.framework_standard == 'emkm' else 'SAK EP / PSAK (Phase 2 Roadmap)'"/> • Mata Uang: Rupiah (IDR)
-                            </p>
+                            <h5 style="font-weight: 700; margin-bottom: 4px; color: #333; text-transform: uppercase;">
+                                KLINIK ADERA
+                            </h5>
+                            <h3 style="font-weight: 800; color: #1a237e; margin-top: 6px; margin-bottom: 4px; text-transform: uppercase;">
+                                <t t-esc="o.name"/>
+                            </h3>
+                            <div style="font-size: 10px; color: #495057; margin-top: 4px;">
+                                <span><strong>Periode Pelaporan:</strong> <t t-esc="o.date_from" t-options='{"widget": "date"}'/> s/d <t t-esc="o.date_to" t-options='{"widget": "date"}'/></span>
+                                <span style="margin: 0 8px;">•</span>
+                                <span><strong>Unit Bisnis:</strong> <t t-esc="o.analytic_account_id.name if o.analytic_account_id else 'Konsolidasi Seluruh Unit Klinik'"/></span>
+                                <span style="margin: 0 8px;">•</span>
+                                <span><strong>Mata Uang:</strong> Rupiah (IDR)</span>
+                            </div>
+                            <div style="font-size: 9px; color: #6c757d; margin-top: 2px;">
+                                Standar Akuntansi Keuangan: <t t-esc="'SAK EMKM (Standar Entitas Mikro, Kecil, dan Menengah)' if o.framework_standard == 'emkm' else 'SAK EP / PSAK (Standar Entitas Privat)'"/> — Sesuai Regulasi Permenkes No. 14/2021
+                            </div>
                         </div>
 
-                        <!-- Report Lines Table -->
-                        <table class="table table-sm table-bordered mt-3" style="width: 100%;">
+                        <!-- Balance Sheet Audit Verification Box (When Balance Sheet) -->
+                        <t t-if="o.report_type == 'balance_sheet'">
+                            <div t-att-style="'padding: 6px 12px; margin-bottom: 12px; border-radius: 4px; font-size: 10px; ' + ('background-color: #e8f5e9; border: 1px solid #81c784; color: #1b5e20;' if o.is_balanced else 'background-color: #ffebee; border: 1px solid #e57373; color: #b71c1c;')">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span>
+                                        <strong>VERIFIKASI AUDIT KESEIMBANGAN:</strong>
+                                        <t t-if="o.is_balanced">
+                                            Persamaan Akuntansi Terpenuhi Secara Sempurna (Total Aset = Total Liabilitas + Ekuitas)
+                                        </t>
+                                        <t t-else="">
+                                            Terdapat Selisih Keseimbangan pada Posisi Keuangan!
+                                        </t>
+                                    </span>
+                                    <span style="font-family: 'Courier New', monospace; font-weight: bold;">
+                                        Selisih: <t t-esc="o.balance_difference" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                                    </span>
+                                </div>
+                            </div>
+                        </t>
+
+                        <!-- Statutory Report Lines Table -->
+                        <table class="table table-sm table-bordered mt-2 mb-4" style="width: 100%; border-collapse: collapse;">
                             <thead>
-                                <tr style="background-color: #f3edf8; font-weight: bold;">
-                                    <th style="width: 15%;">Kode Akun</th>
-                                    <th style="width: 45%;">Pos Keuangan / Kategori</th>
-                                    <th class="text-end" style="width: 20%;">Periode Berjalan</th>
+                                <tr style="background-color: #e9ecef; border-bottom: 2px solid #343a40; font-weight: 700;">
+                                    <th style="width: 14%; padding: 6px 8px; border: 1px solid #dee2e6;">Kode Akun</th>
+                                    <th style="width: 48%; padding: 6px 8px; border: 1px solid #dee2e6;">Pos Keuangan / Standar Akuntansi</th>
+                                    <th class="text-end" style="width: 19%; padding: 6px 8px; border: 1px solid #dee2e6;">Periode Berjalan</th>
                                     <t t-if="o.comparison_type != 'none' and o.report_type not in ('calk', 'equity_change')">
-                                        <th class="text-end" style="width: 20%;">Pembanding</th>
+                                        <th class="text-end" style="width: 19%; padding: 6px 8px; border: 1px solid #dee2e6;">Pembanding</th>
                                     </t>
                                 </tr>
                             </thead>
                             <tbody>
                                 <t t-foreach="o.line_ids" t-as="line">
-                                    <tr t-att-style="'background-color: ' + ('#ede2f5' if line.line_type == 'total' else '#f9f6fc' if line.line_type == 'subtotal' else '#ffffff') + '; ' + ('font-weight: bold;' if line.line_type in ('header', 'subtotal', 'total') else '')">
-                                        <td><t t-esc="line.code or ''"/></td>
-                                        <td>
-                                            <span t-att-style="'padding-left: ' + ('0px' if line.line_type == 'header' else '15px' if line.line_type == 'account' else '5px') + ';'">
+                                    <tr t-att-style="'line-height: 1.35; ' + (
+                                        'background-color: #e2e8f0; font-weight: 800; border-top: 1px solid #000; border-bottom: 3px double #000;' if line.line_type == 'total' else
+                                        'background-color: #f1f5f9; font-weight: 700; border-top: 1px solid #64748b;' if line.line_type == 'subtotal' else
+                                        'background-color: #f8fafc; font-weight: 700; text-transform: uppercase;' if line.line_type == 'header' else
+                                        'background-color: #ffffff;'
+                                    )">
+                                        <td style="padding: 4px 8px; border: 1px solid #dee2e6; font-family: 'Courier New', monospace; font-size: 10px;">
+                                            <t t-esc="line.code or ''"/>
+                                        </td>
+                                        <td style="padding: 4px 8px; border: 1px solid #dee2e6;">
+                                            <span t-att-style="'display: inline-block; padding-left: ' + ('0px' if line.line_type == 'header' else '16px' if line.line_type == 'account' else '6px') + ';'">
                                                 <t t-esc="line.name"/>
                                             </span>
                                         </td>
-                                        <td class="text-end">
+                                        <td class="text-end" style="padding: 4px 8px; border: 1px solid #dee2e6; font-family: 'Courier New', monospace; font-size: 10.5px;">
                                             <t t-if="line.line_type != 'header'">
                                                 <t t-esc="line.amount_current" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
                                             </t>
                                         </td>
                                         <t t-if="o.comparison_type != 'none' and o.report_type not in ('calk', 'equity_change')">
-                                            <td class="text-end">
+                                            <td class="text-end" style="padding: 4px 8px; border: 1px solid #dee2e6; font-family: 'Courier New', monospace; font-size: 10.5px;">
                                                 <t t-if="line.line_type != 'header'">
                                                     <t t-esc="line.amount_comparison" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
                                                 </t>
@@ -77,52 +108,63 @@
                         <!-- CaLK Narrative Disclosures Section (Visible if CaLK report) -->
                         <t t-if="o.report_type == 'calk'">
                             <div style="margin-top: 25px; page-break-before: always;">
-                                <h4 style="font-weight: bold; color: #5f249f; border-bottom: 2px solid #5f249f; padding-bottom: 5px;">
+                                <h4 style="font-weight: 800; color: #1a237e; border-bottom: 2px solid #1a237e; padding-bottom: 5px;">
                                     CATATAN ATAS LAPORAN KEUANGAN (CaLK) RINCIAN &amp; PENGUNGKAPAN
                                 </h4>
 
                                 <div style="margin-top: 15px;">
-                                    <h5 style="font-weight: bold; color: #333;">Catatan 1: Profil Entitas &amp; Legalitas Operasional (Permenkes 14/2021)</h5>
-                                    <p style="white-space: pre-line; line-height: 1.5; color: #444;">
+                                    <h5 style="font-weight: bold; color: #212529;">Catatan 1: Profil Entitas &amp; Legalitas Operasional (Permenkes 14/2021)</h5>
+                                    <p style="white-space: pre-line; line-height: 1.5; color: #333;">
                                         <t t-esc="o.calk_profile_text"/>
                                     </p>
                                 </div>
 
                                 <div style="margin-top: 15px;">
-                                    <h5 style="font-weight: bold; color: #333;">Catatan 2: Ikhtisar Kebijakan Akuntansi Signifikan</h5>
-                                    <p style="white-space: pre-line; line-height: 1.5; color: #444;">
+                                    <h5 style="font-weight: bold; color: #212529;">Catatan 2: Ikhtisar Kebijakan Akuntansi Signifikan (PSAK / SAK EMKM)</h5>
+                                    <p style="white-space: pre-line; line-height: 1.5; color: #333;">
                                         <t t-esc="o.calk_policy_text"/>
                                     </p>
                                 </div>
 
                                 <div style="margin-top: 15px;">
-                                    <h5 style="font-weight: bold; color: #333;">Catatan 3: Rincian &amp; Jadwal Umur Piutang Pasien &amp; Klaim BPJS</h5>
+                                    <h5 style="font-weight: bold; color: #212529;">Catatan 3: Rincian &amp; Jadwal Umur Piutang Pasien &amp; Klaim BPJS</h5>
                                     <t t-out="o.calk_receivables_html"/>
                                 </div>
 
                                 <div style="margin-top: 15px;">
-                                    <h5 style="font-weight: bold; color: #333;">Catatan 4: Jadwal Aset Tetap Medis &amp; Akumulasi Penyusutan</h5>
+                                    <h5 style="font-weight: bold; color: #212529;">Catatan 4: Jadwal Aset Tetap Medis &amp; Akumulasi Penyusutan</h5>
                                     <t t-out="o.calk_assets_html"/>
                                 </div>
 
                                 <div style="margin-top: 15px;">
-                                    <h5 style="font-weight: bold; color: #333;">Catatan 5: Rekonsiliasi Jasa Medis &amp; Pajak PPh 21 Dokter</h5>
+                                    <h5 style="font-weight: bold; color: #212529;">Catatan 5: Rekonsiliasi Jasa Medis &amp; Pajak PPh 21 Tenaga Ahli Dokter</h5>
                                     <t t-out="o.calk_tax_doc_html"/>
                                 </div>
                             </div>
                         </t>
 
-                        <!-- Sign-off Block -->
-                        <div class="row mt-5" style="page-break-inside: avoid;">
-                            <div class="col-6 text-center">
-                                <p>Disiapkan Oleh,<br/><strong>Bagian Akuntansi &amp; Keuangan</strong></p>
-                                <br/><br/><br/>
-                                <p>( _______________________ )</p>
+                        <!-- Formal Tripartite Audit Sign-off Block -->
+                        <div class="row mt-5 pt-3" style="page-break-inside: avoid; border-top: 1px solid #ced4da;">
+                            <div class="col-4 text-center">
+                                <p class="mb-1 text-muted small">Disiapkan Oleh:</p>
+                                <p class="fw-bold mb-4">Bagian Akuntansi &amp; Keuangan</p>
+                                <br/><br/>
+                                <p class="mb-0 fw-bold">( _______________________ )</p>
+                                <p class="small text-muted mb-0">Staff Akuntansi Klinik</p>
                             </div>
-                            <div class="col-6 text-center">
-                                <p>Disetujui Oleh,<br/><strong>Direktur Operasional Klinik</strong></p>
-                                <br/><br/><br/>
-                                <p>( _______________________ )</p>
+                            <div class="col-4 text-center">
+                                <p class="mb-1 text-muted small">Diperiksa Oleh:</p>
+                                <p class="fw-bold mb-4">Finance &amp; Tax Controller</p>
+                                <br/><br/>
+                                <p class="mb-0 fw-bold">( _______________________ )</p>
+                                <p class="small text-muted mb-0">Manager Keuangan</p>
+                            </div>
+                            <div class="col-4 text-center">
+                                <p class="mb-1 text-muted small">Disetujui Oleh:</p>
+                                <p class="fw-bold mb-4">Pimpinan Entitas Klinik</p>
+                                <br/><br/>
+                                <p class="mb-0 fw-bold">( _______________________ )</p>
+                                <p class="small text-muted mb-0">Direktur Utama PT Prosperra Medika Utama</p>
                             </div>
                         </div>
                     </div>

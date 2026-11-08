@@ -140,6 +140,7 @@ class PsakReportWizard(models.TransientModel):
             "framework_standard": self.framework_standard,
             "report_type": self.report_type,
             "cash_flow_method": self.cash_flow_method,
+            "date_preset": self.date_preset,
             "date_from": self.date_from,
             "date_to": self.date_to,
             "target_move": self.target_move,

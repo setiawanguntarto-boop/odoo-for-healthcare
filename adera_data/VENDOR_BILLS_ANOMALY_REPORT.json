@@ -1,0 +1,21 @@
+{
+  "timestamp": "2026-11-08T10:41:07.780386",
+  "stats": {
+    "total_rows": 10,
+    "processed": 9,
+    "skipped_zero_test": 1,
+    "skipped_existing": 0,
+    "po_linked_bills": 4,
+    "direct_bills": 5,
+    "payments_registered": 3,
+    "errors": 0
+  },
+  "anomalies": [
+    {
+      "row": 0,
+      "reason": "Zero total amount test record",
+      "po_ref": "PO-1777379160289",
+      "inv_no": "11"
+    }
+  ]
+}

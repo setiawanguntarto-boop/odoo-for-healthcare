@@ -41,6 +41,18 @@ class PsakFinancialReport(models.Model):
         default="direct",
     )
 
+    date_preset = fields.Selection(
+        [
+            ("this_month", "Bulan Berjalan (This Month)"),
+            ("this_quarter", "Kuartal Berjalan (This Quarter)"),
+            ("ytd", "Tahun Berjalan (Year to Date)"),
+            ("custom", "Kustom (Pilih Rentang Tanggal)"),
+        ],
+        string="Preset Periode",
+        default="this_month",
+        help="Pilihan cepat periode waktu pelaporan",
+    )
+
     date_from = fields.Date(string="Tanggal Awal", required=True)
     date_to = fields.Date(string="Tanggal Akhir", required=True)
     target_move = fields.Selection(
@@ -84,6 +96,91 @@ class PsakFinancialReport(models.Model):
         string="Rincian Baris Laporan",
     )
 
+    # Computed Statutory Totals & Balance Audit Metrics
+    total_assets = fields.Monetary(string="Total Aset", compute="_compute_report_totals", store=True)
+    total_liabilities = fields.Monetary(string="Total Liabilitas", compute="_compute_report_totals", store=True)
+    total_equity = fields.Monetary(string="Total Ekuitas", compute="_compute_report_totals", store=True)
+    total_liabilities_equity = fields.Monetary(string="Total Liabilitas & Ekuitas", compute="_compute_report_totals", store=True)
+    balance_difference = fields.Monetary(string="Selisih Keseimbangan", compute="_compute_report_totals", store=True)
+    is_balanced = fields.Boolean(string="Status Seimbang (Balanced)", compute="_compute_report_totals", store=True)
+    net_profit = fields.Monetary(string="Laba / (Rugi) Bersih", compute="_compute_report_totals", store=True)
+    total_revenue = fields.Monetary(string="Total Pendapatan", compute="_compute_report_totals", store=True)
+    total_cogs = fields.Monetary(string="Total HPP (Beban Pokok)", compute="_compute_report_totals", store=True)
+    total_opex = fields.Monetary(string="Total Beban Operasional", compute="_compute_report_totals", store=True)
+
+    @api.depends("line_ids.amount_current", "report_type")
+    def _compute_report_totals(self):
+        for rec in self:
+            assets = 0.0
+            liab = 0.0
+            equity = 0.0
+            liab_eq = 0.0
+            profit = 0.0
+            rev = 0.0
+            cogs = 0.0
+            opex = 0.0
+
+            for line in rec.line_ids:
+                if line.code == "AUDIT-00":
+                    continue
+                lname = (line.name or "").upper()
+                if "TOTAL ASET (" in lname or lname.strip() == "TOTAL ASET":
+                    assets = line.amount_current
+                elif "TOTAL KEWAJIBAN JANGKA PENDEK" in lname or "TOTAL LIABILITAS" in lname:
+                    liab = line.amount_current
+                elif "TOTAL EKUITAS" in lname:
+                    equity = line.amount_current
+                elif "TOTAL KEWAJIBAN & EKUITAS" in lname:
+                    liab_eq = line.amount_current
+                elif "LABA" in lname and ("BERSIH" in lname or "TAHUN BERJALAN" in lname or "PERIODE BERJALAN" in lname or "SETELAH PAJAK" in lname):
+                    profit = line.amount_current
+                elif "TOTAL PENDAPATAN USAHA" in lname:
+                    rev = line.amount_current
+                elif "TOTAL BEBAN POKOK" in lname or "HPP" in lname:
+                    cogs = line.amount_current
+                elif "TOTAL BEBAN OPERASIONAL" in lname:
+                    opex = line.amount_current
+
+            rec.total_assets = assets
+            rec.total_liabilities = liab
+            rec.total_equity = equity
+            rec.total_liabilities_equity = liab_eq
+            rec.net_profit = profit
+            rec.total_revenue = rev
+            rec.total_cogs = cogs
+            rec.total_opex = opex
+            rec.balance_difference = abs(assets - liab_eq)
+            rec.is_balanced = (rec.balance_difference < 0.01) if rec.report_type == "balance_sheet" else True
+
+    @api.onchange("date_preset")
+    def _onchange_date_preset(self):
+        today = date.today()
+        if self.date_preset == "this_month":
+            self.date_from = today.replace(day=1)
+            self.date_to = (today.replace(day=1) + relativedelta(months=1)) - relativedelta(days=1)
+        elif self.date_preset == "this_quarter":
+            quarter_start_month = 3 * ((today.month - 1) // 3) + 1
+            self.date_from = today.replace(month=quarter_start_month, day=1)
+            self.date_to = (self.date_from + relativedelta(months=3)) - relativedelta(days=1)
+        elif self.date_preset == "ytd":
+            self.date_from = today.replace(month=1, day=1)
+            self.date_to = today
+
+    @api.onchange("comparison_type", "date_from", "date_to")
+    def _onchange_comparison_type(self):
+        if self.comparison_type == "none" or not self.date_from or not self.date_to:
+            self.date_from_cmp = False
+            self.date_to_cmp = False
+            return
+
+        if self.comparison_type == "previous_year":
+            self.date_from_cmp = self.date_from - relativedelta(years=1)
+            self.date_to_cmp = self.date_to - relativedelta(years=1)
+        elif self.comparison_type == "previous_period":
+            diff_days = (self.date_to - self.date_from).days + 1
+            self.date_to_cmp = self.date_from - relativedelta(days=1)
+            self.date_from_cmp = self.date_to_cmp - relativedelta(days=diff_days - 1)
+
     # Narrative CaLK Disclosures per SAK EMKM / SAK EP & Permenkes 14/2021
     calk_profile_text = fields.Text(string="Catatan 1: Profil Entitas & Legalitas Operasional")
     calk_policy_text = fields.Text(string="Catatan 2: Ikhtisar Kebijakan Akuntansi Signifikan")
@@ -91,9 +188,28 @@ class PsakFinancialReport(models.Model):
     calk_assets_html = fields.Html(string="Catatan 4: Jadwal Aset Tetap Medis & Penyusutan")
     calk_tax_doc_html = fields.Html(string="Catatan 5: Rekonsiliasi Jasa Medis & Pajak PPh 21 Dokter")
 
+    def action_recalculate(self):
+        """Alias controller untuk recalculate langsung dari tombol form."""
+        return self.action_recompute()
+
     def action_recompute(self):
-        """Menghitung ulang baris laporan sesuai filter dan regulasi akuntansi."""
+        """Menghitung ulang baris laporan secara atomik sesuai filter terkini dan menyegarkan tampilan."""
         self.ensure_one()
+
+        # Update dynamic name to reflect current filters
+        report_titles = {
+            "profit_loss": "Laporan Laba Rugi Komprehensif",
+            "balance_sheet": "Laporan Posisi Keuangan (Neraca)",
+            "cash_flow": f"Laporan Arus Kas ({'Tidak Langsung' if self.cash_flow_method == 'indirect' else 'Langsung'})",
+            "equity_change": "Laporan Perubahan Ekuitas (SAK EP)",
+            "calk": "Catatan Atas Laporan Keuangan (CaLK)",
+        }
+        std_label = "[SAK EMKM] " if self.framework_standard == "emkm" else "[SAK EP] "
+        unit_label = f"[{self.analytic_account_id.name}] " if self.analytic_account_id else "[Konsolidasi Klinik] "
+        date_from_str = self.date_from.strftime('%d/%m/%Y') if self.date_from else ''
+        date_to_str = self.date_to.strftime('%d/%m/%Y') if self.date_to else ''
+        self.name = f"{std_label}{unit_label}{report_titles.get(self.report_type, 'Laporan Keuangan')} ({date_from_str} - {date_to_str})"
+
         self.line_ids.unlink()
 
         if self.report_type == "profit_loss":
@@ -110,11 +226,21 @@ class PsakFinancialReport(models.Model):
         elif self.report_type == "calk":
             self._compute_calk()
 
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'psak.financial.report',
+            'res_id': self.id,
+            'view_mode': 'form',
+            'target': 'current',
+        }
+
     def _get_account_balance(self, code_prefix, date_from, date_to, is_cumulative=False):
         """Menghitung saldo akun (debit - credit) atau (credit - debit) berdasarkan kode prefix."""
         domain = [("company_id", "=", self.company_id.id)]
         if self.target_move == "posted":
             domain.append(("parent_state", "=", "posted"))
+        elif self.target_move == "all":
+            domain.append(("parent_state", "in", ["posted", "draft"]))
 
         if is_cumulative:
             domain.append(("date", "<=", date_to))
@@ -130,9 +256,17 @@ class PsakFinancialReport(models.Model):
 
         # Filter analytic account if specified (Odoo 19 analytic_distribution)
         if self.analytic_account_id:
-            acc_id_str = str(self.analytic_account_id.id)
+            valid_analytic_ids = {str(self.analytic_account_id.id)}
+            # Expand child analytic accounts if parent unit is chosen
+            if self.analytic_account_id.code == 'ACC-PRATAMA':
+                child_ids = self.env['account.analytic.account'].search([('code', '=like', 'PRAT-%')]).ids
+                valid_analytic_ids.update(str(cid) for cid in child_ids)
+            elif self.analytic_account_id.code == 'ACC-HD':
+                child_ids = self.env['account.analytic.account'].search([('code', '=like', 'HD-%')]).ids
+                valid_analytic_ids.update(str(cid) for cid in child_ids)
+
             matched_lines = matched_lines.filtered(
-                lambda l: l.analytic_distribution and acc_id_str in l.analytic_distribution
+                lambda l: l.analytic_distribution and bool(valid_analytic_ids.intersection(l.analytic_distribution.keys()))
             )
 
         debit = sum(matched_lines.mapped("debit"))
@@ -579,6 +713,20 @@ class PsakFinancialReport(models.Model):
         lines_data.append((0, 0, {
             "sequence": seq, "name": "TOTAL KEWAJIBAN & EKUITAS",
             "line_type": "total", "amount_current": total_liab_equity_now, "amount_comparison": total_liab_equity_cmp,
+        }))
+        seq += 10
+
+        # Absolute Zero-Balance Audit Verification (Total Aset = Total Liabilitas + Ekuitas)
+        diff_bal_now = total_assets_now - total_liab_equity_now
+        diff_bal_cmp = total_assets_cmp - total_liab_equity_cmp
+        status_txt = "SEIMBANG (Rp 0.00)" if abs(diff_bal_now) < 0.01 else f"SELISIH (Rp {diff_bal_now:,.2f})"
+        lines_data.append((0, 0, {
+            "sequence": seq,
+            "name": f"KESEIMBANGAN AUDIT: TOTAL ASET - (LIABILITAS + EKUITAS) [{status_txt}]",
+            "code": "AUDIT-00",
+            "line_type": "total",
+            "amount_current": diff_bal_now,
+            "amount_comparison": diff_bal_cmp,
         }))
 
         self.write({"line_ids": lines_data})

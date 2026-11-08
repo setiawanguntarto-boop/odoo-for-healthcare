@@ -5,77 +5,171 @@
         <field name="name">psak.financial.report.form</field>
         <field name="model">psak.financial.report</field>
         <field name="arch" type="xml">
-            <form string="Laporan Keuangan PSAK / SAK EMKM / SAK EP">
+            <form string="Laporan Keuangan PSAK / SAK EMKM">
                 <header>
-                    <button name="action_recompute" string="Hitung Ulang (Refresh Data)" type="object" class="btn-primary" icon="fa-refresh"/>
-                    <button name="%(action_psak_wizard_profit_loss)d" string="Ubah Filter" type="action" class="btn-secondary" invisible="report_type != 'profit_loss'"/>
-                    <button name="%(action_psak_wizard_balance_sheet)d" string="Ubah Filter" type="action" class="btn-secondary" invisible="report_type != 'balance_sheet'"/>
-                    <button name="%(action_psak_wizard_cash_flow)d" string="Ubah Filter" type="action" class="btn-secondary" invisible="report_type != 'cash_flow'"/>
-                    <button name="%(action_psak_wizard_equity_change)d" string="Ubah Filter" type="action" class="btn-secondary" invisible="report_type != 'equity_change'"/>
-                    <button name="%(action_psak_wizard_calk)d" string="Ubah Filter" type="action" class="btn-secondary" invisible="report_type != 'calk'"/>
+                    <button name="action_recalculate" string="Hitung Ulang (Refresh Data)" type="object" class="btn-primary" icon="fa-refresh"/>
+                    <button name="%(action_report_psak_financial_statement)d" string="Cetak Dokumen Resmi (PDF)" type="action" class="btn-secondary" icon="fa-print"/>
+                    <button name="%(action_psak_wizard_profit_loss)d" string="Wizard Parameter" type="action" class="btn-link" invisible="report_type != 'profit_loss'"/>
+                    <button name="%(action_psak_wizard_balance_sheet)d" string="Wizard Parameter" type="action" class="btn-link" invisible="report_type != 'balance_sheet'"/>
+                    <button name="%(action_psak_wizard_cash_flow)d" string="Wizard Parameter" type="action" class="btn-link" invisible="report_type != 'cash_flow'"/>
+                    <button name="%(action_psak_wizard_equity_change)d" string="Wizard Parameter" type="action" class="btn-link" invisible="report_type != 'equity_change'"/>
+                    <button name="%(action_psak_wizard_calk)d" string="Wizard Parameter" type="action" class="btn-link" invisible="report_type != 'calk'"/>
                 </header>
                 <sheet>
-                    <div class="oe_title">
-                        <span class="o_form_label text-muted">Klinik ADERA - PT Prosperra Medika Utama</span>
-                        <h1 class="text-primary">
-                            <field name="name" readonly="1"/>
-                        </h1>
+                    <!-- Formal Statutory Header Banner -->
+                    <div class="o_adera_report_header border-bottom pb-3 mb-3">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <span class="badge bg-primary text-white px-2 py-1 mb-1">PT PROSPERRA MEDIKA UTAMA</span>
+                                <span class="badge bg-secondary text-white px-2 py-1 mb-1 ms-1">KLINIK ADERA</span>
+                                <h2 class="text-dark fw-bold mb-0 mt-1">
+                                    <field name="name" readonly="1"/>
+                                </h2>
+                                <p class="text-muted small mb-0 mt-1">
+                                    Standar Akuntansi Keuangan Entitas Mikro, Kecil, dan Menengah (SAK EMKM) / SAK EP • Disajikan dalam Rupiah (IDR)
+                                </p>
+                            </div>
+                            <div class="text-end">
+                                <span class="d-block text-muted small">Unit Pelaporan:</span>
+                                <field name="analytic_account_id" readonly="1" options="{'no_open': True}" invisible="not analytic_account_id" class="fw-bold text-dark fs-6"/>
+                                <span class="fw-bold text-dark fs-6" invisible="analytic_account_id">Konsolidasi Seluruh Klinik</span>
+                            </div>
+                        </div>
                     </div>
-                    <group>
-                        <group string="Informasi Regulasi &amp; Standar">
-                            <field name="framework_standard" readonly="1"/>
-                            <field name="report_type" readonly="1"/>
-                            <field name="cash_flow_method" readonly="1" invisible="report_type != 'cash_flow'"/>
-                            <field name="analytic_account_id" readonly="1"/>
-                        </group>
-                        <group string="Periode &amp; Filter">
-                            <label for="date_from" string="Periode Pelaporan"/>
-                            <div class="o_row">
-                                <field name="date_from" readonly="1"/> s/d <field name="date_to" readonly="1"/>
-                            </div>
-                            <field name="target_move" readonly="1"/>
-                            <field name="comparison_type" readonly="1" invisible="report_type in ('calk', 'equity_change')"/>
-                            <label for="date_from_cmp" string="Periode Pembanding" invisible="comparison_type == 'none' or report_type in ('calk', 'equity_change')"/>
-                            <div class="o_row" invisible="comparison_type == 'none' or report_type in ('calk', 'equity_change')">
-                                <field name="date_from_cmp" readonly="1"/> s/d <field name="date_to_cmp" readonly="1"/>
-                            </div>
-                            <field name="company_id" readonly="1" groups="base.group_multi_company"/>
-                        </group>
-                    </group>
 
+                    <!-- Hidden technical fields for audit logic -->
+                    <field name="is_balanced" invisible="1"/>
+                    <field name="currency_id" invisible="1"/>
+
+                    <!-- Audit Balance Verification Banner (Balance Sheet) -->
+                    <div class="alert alert-success d-flex align-items-center justify-content-between py-2 px-3 mb-3 shadow-sm border-0"
+                         role="status"
+                         invisible="report_type != 'balance_sheet' or not is_balanced">
+                        <div class="d-flex align-items-center">
+                            <i class="fa fa-check-circle fs-4 me-3 text-success" title="Status Audit Sesuai"/>
+                            <div>
+                                <strong class="d-block">STATUS AUDIT: NERACA SEIMBANG (PERFECTLY BALANCED)</strong>
+                                <span class="small text-muted">Persamaan Akuntansi Terverifikasi: Total Aset = Total Liabilitas + Ekuitas</span>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-success fs-6 px-3 py-2">Selisih: Rp 0.00</span>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-danger d-flex align-items-center justify-content-between py-2 px-3 mb-3 shadow-sm border-0"
+                         role="alert"
+                         invisible="report_type != 'balance_sheet' or is_balanced">
+                        <div class="d-flex align-items-center">
+                            <i class="fa fa-exclamation-triangle fs-4 me-3 text-danger" title="Peringatan Selisih"/>
+                            <div>
+                                <strong class="d-block">PERINGATAN AUDIT: NERACA BELUM SEIMBANG</strong>
+                                <span class="small text-muted">Terdapat selisih antara Total Aset dengan Total Liabilitas &amp; Ekuitas</span>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-danger fs-6 px-3 py-2">
+                                Selisih: <field name="balance_difference" widget="monetary"/>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Statutory Performance Summary Ribbon (Profit & Loss) -->
+                    <div class="row g-2 mb-3" invisible="report_type != 'profit_loss'">
+                        <div class="col-md-3">
+                            <div class="p-2 border rounded bg-light text-center">
+                                <span class="text-muted small d-block">Total Pendapatan Usaha</span>
+                                <span class="fw-bold fs-6 text-primary"><field name="total_revenue" widget="monetary"/></span>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-2 border rounded bg-light text-center">
+                                <span class="text-muted small d-block">Beban Pokok (HPP Obat &amp; BHP)</span>
+                                <span class="fw-bold fs-6 text-danger"><field name="total_cogs" widget="monetary"/></span>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-2 border rounded bg-light text-center">
+                                <span class="text-muted small d-block">Beban Operasional &amp; Jasa Medis</span>
+                                <span class="fw-bold fs-6 text-danger"><field name="total_opex" widget="monetary"/></span>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-2 border rounded bg-light text-center">
+                                <span class="text-muted small d-block">Laba / (Rugi) Bersih</span>
+                                <span class="fw-bold fs-6 text-success"><field name="net_profit" widget="monetary"/></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Parameter Controller: Periode & Filter -->
+                    <div class="card mb-3 border bg-light-subtle shadow-sm">
+                        <div class="card-header bg-white py-2 d-flex align-items-center justify-content-between">
+                            <span class="fw-bold text-dark">
+                                <i class="fa fa-sliders me-1 text-primary"/> Parameter &amp; Filter Pelaporan
+                            </span>
+                            <button name="action_recalculate" string="Terapkan &amp; Hitung Ulang" type="object" class="btn btn-sm btn-primary" icon="fa-refresh"/>
+                        </div>
+                        <div class="card-body py-2">
+                            <group>
+                                <group string="Rentang Waktu Pelaporan">
+                                    <field name="date_preset"/>
+                                    <label for="date_from" string="Rentang Tanggal"/>
+                                    <div class="o_row">
+                                        <field name="date_from" class="oe_inline"/>
+                                        <span class="mx-2 text-muted fw-bold">s/d</span>
+                                        <field name="date_to" class="oe_inline"/>
+                                    </div>
+                                    <field name="target_move" widget="selection"/>
+                                </group>
+                                <group string="Unit Bisnis &amp; Komparasi">
+                                    <field name="analytic_account_id" placeholder="Konsolidasi Seluruh Klinik (ACC-PRATAMA vs ACC-HD)"/>
+                                    <field name="comparison_type" widget="selection" invisible="report_type in ('calk', 'equity_change')"/>
+                                    <label for="date_from_cmp" string="Tanggal Pembanding" invisible="comparison_type == 'none' or report_type in ('calk', 'equity_change')"/>
+                                    <div class="o_row" invisible="comparison_type == 'none' or report_type in ('calk', 'equity_change')">
+                                        <field name="date_from_cmp" class="oe_inline"/>
+                                        <span class="mx-2 text-muted fw-bold">s/d</span>
+                                        <field name="date_to_cmp" class="oe_inline"/>
+                                    </div>
+                                </group>
+                            </group>
+                        </div>
+                    </div>
+
+                    <!-- Main Report Notebook -->
                     <notebook>
-                        <page string="Tabel Laporan Keuangan" name="report_lines">
+                        <page string="Laporan Keuangan Baku" name="report_lines">
                             <field name="line_ids" readonly="1">
                                 <list decoration-bf="line_type in ('subtotal', 'total', 'header')"
                                       decoration-muted="line_type == 'header'"
-                                      decoration-primary="line_type == 'total'">
+                                      decoration-success="line_type == 'total'">
                                     <field name="sequence" column_invisible="1"/>
-                                    <field name="code" string="Akun / Ref"/>
-                                    <field name="name" string="Pos Keuangan / Standar"/>
-                                    <field name="amount_current" string="Periode Berjalan" widget="monetary" sum="Total"/>
-                                    <field name="amount_comparison" string="Pembanding" widget="monetary" column_invisible="parent.comparison_type == 'none'"/>
-                                    <field name="variance_amount" string="Selisih (Rp)" widget="monetary" column_invisible="parent.comparison_type == 'none'"/>
-                                    <field name="variance_percent" string="Selisih (%)" widget="percentage" column_invisible="parent.comparison_type == 'none'"/>
+                                    <field name="code" string="Kode Akun / Ref" style="font-family: monospace; font-size: 11px;"/>
+                                    <field name="name" string="Pos Keuangan / Standar Akuntansi"/>
+                                    <field name="amount_current" string="Periode Berjalan (Rp)" widget="monetary" style="text-align: right; font-family: monospace; font-weight: 600;"/>
+                                    <field name="amount_comparison" string="Pembanding (Rp)" widget="monetary" column_invisible="parent.comparison_type == 'none'" style="text-align: right; font-family: monospace;"/>
+                                    <field name="variance_amount" string="Selisih (Rp)" widget="monetary" column_invisible="parent.comparison_type == 'none'" style="text-align: right; font-family: monospace;"/>
+                                    <field name="variance_percent" string="Selisih (%)" widget="percentage" column_invisible="parent.comparison_type == 'none'" style="text-align: right; font-family: monospace;"/>
                                     <field name="currency_id" column_invisible="1"/>
                                     <field name="line_type" column_invisible="1"/>
                                 </list>
                             </field>
                         </page>
 
-                        <page string="Rincian Pengungkapan CaLK (Permenkes 14/2021 &amp; SAK EMKM)" name="calk_notes" invisible="report_type != 'calk'">
-                            <group string="Catatan 1: Profil Entitas &amp; Legalitas Operasional">
+                        <page string="Catatan Atas Laporan Keuangan (CaLK)" name="calk_notes" invisible="report_type != 'calk'">
+                            <group string="Catatan 1: Profil Entitas &amp; Legalitas Operasional (Permenkes 14/2021)">
                                 <field name="calk_profile_text" readonly="1" nolabel="1"/>
                             </group>
-                            <group string="Catatan 2: Ikhtisar Kebijakan Akuntansi Signifikan">
+                            <group string="Catatan 2: Ikhtisar Kebijakan Akuntansi Signifikan (PSAK / SAK EMKM)">
                                 <field name="calk_policy_text" readonly="1" nolabel="1"/>
                             </group>
                             <group string="Catatan 3: Rincian &amp; Jadwal Umur Piutang Pasien &amp; Klaim BPJS">
                                 <field name="calk_receivables_html" readonly="1" widget="html" nolabel="1"/>
                             </group>
-                            <group string="Catatan 4: Jadwal Aset Tetap Medis &amp; Penyusutan">
+                            <group string="Catatan 4: Jadwal Aset Tetap Medis &amp; Akumulasi Penyusutan">
                                 <field name="calk_assets_html" readonly="1" widget="html" nolabel="1"/>
                             </group>
-                            <group string="Catatan 5: Rekonsiliasi Jasa Medis &amp; Pajak PPh 21 Dokter">
+                            <group string="Catatan 5: Rekonsiliasi Jasa Medis &amp; Pajak PPh 21 Tenaga Ahli Dokter">
                                 <field name="calk_tax_doc_html" readonly="1" widget="html" nolabel="1"/>
                             </group>
                         </page>
@@ -90,7 +184,7 @@
         <field name="name">psak.financial.report.tree</field>
         <field name="model">psak.financial.report</field>
         <field name="arch" type="xml">
-            <list string="Daftar Riwayat Laporan Keuangan PSAK / SAK EMKM / SAK EP">
+            <list string="Daftar Riwayat Laporan Keuangan PSAK / SAK EMKM">
                 <field name="name"/>
                 <field name="framework_standard"/>
                 <field name="report_type"/>
@@ -103,10 +197,36 @@
         </field>
     </record>
 
+    <!-- PSAK Report Search View -->
+    <record id="view_psak_financial_report_search" model="ir.ui.view">
+        <field name="name">psak.financial.report.search</field>
+        <field name="model">psak.financial.report</field>
+        <field name="arch" type="xml">
+            <search string="Pencarian Laporan Keuangan">
+                <field name="name"/>
+                <field name="analytic_account_id"/>
+                <field name="report_type"/>
+                <filter string="Laba Rugi (P&amp;L)" name="filter_pl" domain="[('report_type', '=', 'profit_loss')]"/>
+                <filter string="Neraca Keuangan" name="filter_bs" domain="[('report_type', '=', 'balance_sheet')]"/>
+                <filter string="Arus Kas" name="filter_cf" domain="[('report_type', '=', 'cash_flow')]"/>
+                <filter string="CaLK" name="filter_calk" domain="[('report_type', '=', 'calk')]"/>
+                <separator/>
+                <filter string="Klinik Pratama (Rawat Jalan)" name="filter_pratama" domain="[('analytic_account_id.code', '=', 'ACC-PRATAMA')]"/>
+                <filter string="Klinik Utama Hemodialisis" name="filter_hd" domain="[('analytic_account_id.code', '=', 'ACC-HD')]"/>
+                <group>
+                    <filter string="Tipe Laporan" name="group_report_type" context="{'group_by': 'report_type'}"/>
+                    <filter string="Unit Bisnis" name="group_analytic" context="{'group_by': 'analytic_account_id'}"/>
+                    <filter string="Standar Regulasi" name="group_standard" context="{'group_by': 'framework_standard'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
     <!-- Window Action: Riwayat Seluruh Laporan -->
     <record id="action_psak_financial_report_history" model="ir.actions.act_window">
         <field name="name">Riwayat Laporan Keuangan</field>
         <field name="res_model">psak.financial.report</field>
         <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_psak_financial_report_search"/>
     </record>
 </odoo>

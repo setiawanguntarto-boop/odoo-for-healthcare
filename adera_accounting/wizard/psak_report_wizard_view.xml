@@ -5,10 +5,12 @@
         <field name="name">psak.report.wizard.form</field>
         <field name="model">psak.report.wizard</field>
         <field name="arch" type="xml">
-            <form string="Parameter Laporan Keuangan PSAK / SAK EMKM / SAK EP">
+            <form string="Parameter Laporan Keuangan SAK EMKM / PSAK">
                 <sheet>
-                    <div class="oe_title">
-                        <h2>Parameter Filter &amp; Eksekusi Laporan Regulasi</h2>
+                    <div class="oe_title mb-3">
+                        <span class="badge bg-primary text-white px-2 py-1 mb-1">PT PROSPERRA MEDIKA UTAMA</span>
+                        <h3 class="text-dark fw-bold mb-0">Parameter Filter Laporan Keuangan Regulasi</h3>
+                        <p class="text-muted small mb-0">Klinik ADERA • Standar Akuntansi Keuangan Entitas Mikro, Kecil, dan Menengah (SAK EMKM)</p>
                     </div>
                     <group>
                         <group string="Konfigurasi Kerangka Standar">

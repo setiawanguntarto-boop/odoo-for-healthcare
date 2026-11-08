@@ -1,12 +1,13 @@
 {
-  "timestamp": "2026-11-08T09:09:20.082630",
+  "timestamp": "2026-11-08T09:47:50.501453",
   "statistics": {
     "patients": {
       "total_rows": 28507,
       "valid": 28411,
       "discarded": 96,
       "created": 0,
-      "updated": 28411
+      "updated": 28411,
+      "skipped": 0
     },
     "doctors": {
       "total_raw": 12,
@@ -17,7 +18,8 @@
       "valid": 362,
       "discarded": 134,
       "staged": 0,
-      "lines_created": 0
+      "lines_created": 0,
+      "skipped": 362
     }
   },
   "anomalies_summary": {
