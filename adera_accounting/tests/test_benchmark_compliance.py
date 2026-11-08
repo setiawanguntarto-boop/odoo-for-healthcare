@@ -124,3 +124,4 @@ class TestBenchmarkCompliance(TransactionCase):
         })
         report_cf.action_recompute()
         self.assertTrue(len(report_cf.line_ids) > 0, "Laporan Arus Kas Metode Tidak Langsung tidak menghasilkan baris!")
+

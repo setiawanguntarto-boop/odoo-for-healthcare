@@ -1,0 +1,316 @@
+{
+  "timestamp": "2026-11-08T09:25:03.622860",
+  "statistics": {
+    "procurement": {
+      "total_rows": 37,
+      "valid": 4,
+      "discarded": 33,
+      "po_created": 0,
+      "pickings_done": 4
+    },
+    "encounters": {
+      "total_rows": 2124,
+      "valid": 308,
+      "discarded": 1816,
+      "created": 0,
+      "skipped": 308
+    },
+    "ancillaries": {
+      "pharmacy_lines": 0,
+      "lab_lines": 0,
+      "rad_lines": 0
+    }
+  },
+  "anomalies_summary": {
+    "discarded_procurement_count": 33,
+    "discarded_encounters_count": 1816
+  },
+  "sample_discarded_procurement": [
+    {
+      "row": 3,
+      "order": "PO-1781446613192",
+      "product": "BHP Alkes Vaksinasi",
+      "supplier": "PT. SIGMA BERSAMA",
+      "modal": 0.0,
+      "reasons": [
+        "Test Supplier with 0 Modal (PT. SIGMA BERSAMA)"
+      ]
+    },
+    {
+      "row": 4,
+      "order": "PO-1781446613192",
+      "product": "BHP Admin Vaksinasi",
+      "supplier": "PT. SIGMA BERSAMA",
+      "modal": 0.0,
+      "reasons": [
+        "Test Supplier with 0 Modal (PT. SIGMA BERSAMA)"
+      ]
+    },
+    {
+      "row": 5,
+      "order": "PO-1777379160289",
+      "product": "BHP Admin Vaksinasi",
+      "supplier": "PT. SIGMA BERSAMA",
+      "modal": 0.0,
+      "reasons": [
+        "Test Supplier with 0 Modal (PT. SIGMA BERSAMA)"
+      ]
+    },
+    {
+      "row": 10,
+      "order": "PO-1763372695557",
+      "product": "Buckminster Crane Testing Update",
+      "supplier": "PT. SIGMA BERSAMA",
+      "modal": 10000.0,
+      "reasons": [
+        "Test Product Name ('Buckminster Crane Testing Update')"
+      ]
+    },
+    {
+      "row": 11,
+      "order": "PO-1760676319744",
+      "product": "Produk Testing Update Baru Ini",
+      "supplier": "PT. SIGMA BERSAMA",
+      "modal": 2000000.0,
+      "reasons": [
+        "Test Product Name ('Produk Testing Update Baru Ini')"
+      ]
+    },
+    {
+      "row": 12,
+      "order": "PO-1761798472531",
+      "product": "testing produk 123",
+      "supplier": "Gatot Supplier",
+      "modal": 1000.0,
+      "reasons": [
+        "Test Product Name ('testing produk 123')"
+      ]
+    },
+    {
+      "row": 13,
+      "order": "PO-1761798081886",
+      "product": "testing produk 123",
+      "supplier": "Gatot Supplier",
+      "modal": 50000.0,
+      "reasons": [
+        "Test Product Name ('testing produk 123')",
+        "Test Batch ('MANTAP-123')"
+      ]
+    },
+    {
+      "row": 14,
+      "order": "PO-1761798081886",
+      "product": "testing produk 123",
+      "supplier": "Gatot Supplier",
+      "modal": 50000.0,
+      "reasons": [
+        "Test Product Name ('testing produk 123')",
+        "Test Batch ('MANTAP-123')"
+      ]
+    },
+    {
+      "row": 15,
+      "order": "PO-1761798081886",
+      "product": "testing produk 123",
+      "supplier": "Gatot Supplier",
+      "modal": 50000.0,
+      "reasons": [
+        "Test Product Name ('testing produk 123')"
+      ]
+    },
+    {
+      "row": 16,
+      "order": "PO-1761727179381",
+      "product": "testing produk 123",
+      "supplier": "PT. GATOT TANGGUH JASMANI",
+      "modal": 1000000.0,
+      "reasons": [
+        "Test Product Name ('testing produk 123')"
+      ]
+    }
+  ],
+  "sample_discarded_encounters": [
+    {
+      "row": 9,
+      "faktur": "INV-1761059046969",
+      "pasien": "Rhiannon Blake",
+      "amount": 0.0,
+      "reasons": [
+        "Zero / Draft Invoice (Rp 0.0)"
+      ]
+    },
+    {
+      "row": 10,
+      "faktur": "INV-1761194062055",
+      "pasien": "Kirstens Cleveland",
+      "amount": 0.0,
+      "reasons": [
+        "Zero / Draft Invoice (Rp 0.0)"
+      ]
+    },
+    {
+      "row": 11,
+      "faktur": "INV-1761198936901",
+      "pasien": "TESCIA PUTRI ARYANI",
+      "amount": 0.0,
+      "reasons": [
+        "Zero / Draft Invoice (Rp 0.0)"
+      ]
+    },
+    {
+      "row": 12,
+      "faktur": "INV-1761200002201",
+      "pasien": "Akhmal Dimas Test",
+      "amount": 0.0,
+      "reasons": [
+        "Zero / Draft Invoice (Rp 0.0)",
+        "Test Patient Name ('Akhmal Dimas Test')"
+      ]
+    },
+    {
+      "row": 13,
+      "faktur": "INV-1761202247797",
+      "pasien": "TESCIA PUTRI ARYANI",
+      "amount": 0.0,
+      "reasons": [
+        "Zero / Draft Invoice (Rp 0.0)"
+      ]
+    },
+    {
+      "row": 17,
+      "faktur": "INV-1761793975945",
+      "pasien": "Abid Bilal",
+      "amount": 0.0,
+      "reasons": [
+        "Zero / Draft Invoice (Rp 0.0)"
+      ]
+    },
+    {
+      "row": 18,
+      "faktur": "INV-1761796385350",
+      "pasien": "102390123 213123123",
+      "amount": 0.0,
+      "reasons": [
+        "Zero / Draft Invoice (Rp 0.0)"
+      ]
+    },
+    {
+      "row": 22,
+      "faktur": "INV-1761817566470",
+      "pasien": "ERLIN",
+      "amount": 0.0,
+      "reasons": [
+        "Zero / Draft Invoice (Rp 0.0)"
+      ]
+    },
+    {
+      "row": 23,
+      "faktur": "INV-1761818359334",
+      "pasien": "102390123 213123123",
+      "amount": 0.0,
+      "reasons": [
+        "Zero / Draft Invoice (Rp 0.0)"
+      ]
+    },
+    {
+      "row": 32,
+      "faktur": "INV-1761901508486",
+      "pasien": "TESCIA PUTRI ARYANI",
+      "amount": 0.0,
+      "reasons": [
+        "Zero / Draft Invoice (Rp 0.0)"
+      ]
+    },
+    {
+      "row": 33,
+      "faktur": "INV-1762412175049",
+      "pasien": "102390123 213123123",
+      "amount": 0.0,
+      "reasons": [
+        "Zero / Draft Invoice (Rp 0.0)"
+      ]
+    },
+    {
+      "row": 34,
+      "faktur": "INV-1762418963558",
+      "pasien": "102390123 213123123",
+      "amount": 0.0,
+      "reasons": [
+        "Zero / Draft Invoice (Rp 0.0)"
+      ]
+    },
+    {
+      "row": 35,
+      "faktur": "INV-1762510315534",
+      "pasien": "102390123 213123123",
+      "amount": 0.0,
+      "reasons": [
+        "Zero / Draft Invoice (Rp 0.0)"
+      ]
+    },
+    {
+      "row": 38,
+      "faktur": "INV-1762756648482",
+      "pasien": "102390123 213123123",
+      "amount": 0.0,
+      "reasons": [
+        "Zero / Draft Invoice (Rp 0.0)"
+      ]
+    },
+    {
+      "row": 39,
+      "faktur": "INV-1762851224924",
+      "pasien": "wfwef ewfweq",
+      "amount": 0.0,
+      "reasons": [
+        "Zero / Draft Invoice (Rp 0.0)"
+      ]
+    },
+    {
+      "row": 40,
+      "faktur": "INV-1762855061221",
+      "pasien": "102390123 213123123",
+      "amount": 0.0,
+      "reasons": [
+        "Zero / Draft Invoice (Rp 0.0)"
+      ]
+    },
+    {
+      "row": 49,
+      "faktur": "INV-1763457264531",
+      "pasien": "Sari Wulandari",
+      "amount": 0.0,
+      "reasons": [
+        "Zero / Draft Invoice (Rp 0.0)"
+      ]
+    },
+    {
+      "row": 60,
+      "faktur": "INV-1763632444055",
+      "pasien": "Akhmal Dimas Test",
+      "amount": 2003.0,
+      "reasons": [
+        "Test Patient Name ('Akhmal Dimas Test')"
+      ]
+    },
+    {
+      "row": 61,
+      "faktur": "INV-1763697556611",
+      "pasien": "Abid Bilal",
+      "amount": 0.0,
+      "reasons": [
+        "Zero / Draft Invoice (Rp 0.0)"
+      ]
+    },
+    {
+      "row": 65,
+      "faktur": "INV-1763973633227",
+      "pasien": "test789",
+      "amount": 0.0,
+      "reasons": [
+        "Zero / Draft Invoice (Rp 0.0)",
+        "Test Patient Name ('test789')"
+      ]
+    }
+  ]
+}

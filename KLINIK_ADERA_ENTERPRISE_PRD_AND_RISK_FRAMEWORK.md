@@ -443,3 +443,4 @@ flowchart TD
      docker exec -i postgres_adera_clinic pg_restore -U odoo -d adera_prod /backup/adera_prod_pre_cutover.dump
      ```
    - Alihkan kasir klinik ke mode pencatatan tiket kasir sementara (*manual receipt*) maksimal 4 jam sementara perbaikan skrip CSV dijalankan ulang.
+

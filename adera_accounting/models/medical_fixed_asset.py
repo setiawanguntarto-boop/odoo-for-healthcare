@@ -188,3 +188,4 @@ class MedicalFixedAsset(models.Model):
             self.state = "closed"
 
         return move
+

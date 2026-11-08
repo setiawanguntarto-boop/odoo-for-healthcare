@@ -315,3 +315,4 @@ class ClinicPrepaidDialysisPackage(models.Model):
         new_used = self.sessions_used + 1
         new_state = "depleted" if new_used >= self.total_sessions else "active"
         self.write({"sessions_used": new_used, "state": new_state})
+

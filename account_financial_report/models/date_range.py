@@ -19,3 +19,4 @@ class DateRange(models.Model):
     date_end = fields.Date(required=True)
     type_id = fields.Many2one("date.range.type", string="Type")
     company_id = fields.Many2one("res.company", default=lambda self: self.env.company)
+

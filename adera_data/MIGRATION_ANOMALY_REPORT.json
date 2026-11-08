@@ -1,0 +1,392 @@
+{
+  "timestamp": "2026-11-08T09:09:20.082630",
+  "statistics": {
+    "patients": {
+      "total_rows": 28507,
+      "valid": 28411,
+      "discarded": 96,
+      "created": 0,
+      "updated": 28411
+    },
+    "doctors": {
+      "total_raw": 12,
+      "registered": 12
+    },
+    "encounters": {
+      "total_rows": 496,
+      "valid": 362,
+      "discarded": 134,
+      "staged": 0,
+      "lines_created": 0
+    }
+  },
+  "anomalies_summary": {
+    "total_discarded_patients": 96,
+    "total_discarded_encounters": 134
+  },
+  "sample_discarded_patients": [
+    {
+      "row": 10,
+      "mrn": "01K5AX317FCQS059E6XDQPD0SY",
+      "name": "MAS  PEMARAH😡",
+      "reasons": [
+        "Test / Dummy Patient Name ('MAS  PEMARAH😡')"
+      ]
+    },
+    {
+      "row": 4378,
+      "mrn": "SBA000003",
+      "name": "TESTING",
+      "reasons": [
+        "Test / Dummy Patient Name ('TESTING')"
+      ]
+    },
+    {
+      "row": 4380,
+      "mrn": "SBA000005",
+      "name": "TESTING 2",
+      "reasons": [
+        "Test / Dummy Patient Name ('TESTING 2')"
+      ]
+    },
+    {
+      "row": 4383,
+      "mrn": "SBA000008",
+      "name": "ADIKNYA MAS PEMARAH😡",
+      "reasons": [
+        "Test / Dummy Patient Name ('ADIKNYA MAS PEMARAH😡')"
+      ]
+    },
+    {
+      "row": 4397,
+      "mrn": "SBA000032",
+      "name": "AKHMAL DIMAS TEST",
+      "reasons": [
+        "Test / Dummy Patient Name ('AKHMAL DIMAS TEST')"
+      ]
+    },
+    {
+      "row": 4405,
+      "mrn": "SBA000044",
+      "name": "TEST TEST",
+      "reasons": [
+        "Test / Dummy Patient Name ('TEST TEST')"
+      ]
+    },
+    {
+      "row": 4406,
+      "mrn": "SBA000045",
+      "name": "TEST TEST",
+      "reasons": [
+        "Test / Dummy Patient Name ('TEST TEST')"
+      ]
+    },
+    {
+      "row": 4407,
+      "mrn": "SBA000046",
+      "name": "TEST TEST",
+      "reasons": [
+        "Test / Dummy Patient Name ('TEST TEST')"
+      ]
+    },
+    {
+      "row": 4408,
+      "mrn": "SBA000047",
+      "name": "TEST TEST",
+      "reasons": [
+        "Test / Dummy Patient Name ('TEST TEST')"
+      ]
+    },
+    {
+      "row": 4415,
+      "mrn": "SBA000054",
+      "name": "TEST2 TEST2",
+      "reasons": [
+        "Test / Dummy Patient Name ('TEST2 TEST2')"
+      ]
+    },
+    {
+      "row": 4416,
+      "mrn": "SBA000055",
+      "name": "",
+      "reasons": [
+        "Invalid or Empty Name"
+      ]
+    },
+    {
+      "row": 4418,
+      "mrn": "SBA000057",
+      "name": "TEST TEST",
+      "reasons": [
+        "Test / Dummy Patient Name ('TEST TEST')"
+      ]
+    },
+    {
+      "row": 4438,
+      "mrn": "SBA000108",
+      "name": "TEST789",
+      "reasons": [
+        "Test / Dummy Patient Name ('TEST789')"
+      ]
+    },
+    {
+      "row": 4439,
+      "mrn": "SBA000111",
+      "name": "TEST788",
+      "reasons": [
+        "Test / Dummy Patient Name ('TEST788')"
+      ]
+    },
+    {
+      "row": 4447,
+      "mrn": "SBA000119",
+      "name": "TEST789",
+      "reasons": [
+        "Test / Dummy Patient Name ('TEST789')"
+      ]
+    },
+    {
+      "row": 4498,
+      "mrn": "SBA000217",
+      "name": "ABID TEST 29 NOV",
+      "reasons": [
+        "Test / Dummy Patient Name ('ABID TEST 29 NOV')"
+      ]
+    },
+    {
+      "row": 4705,
+      "mrn": "SBA000448",
+      "name": "TESTING",
+      "reasons": [
+        "Test / Dummy Patient Name ('TESTING')"
+      ]
+    },
+    {
+      "row": 4706,
+      "mrn": "SBA000449",
+      "name": "TEST",
+      "reasons": [
+        "Test / Dummy Patient Name ('TEST')"
+      ]
+    },
+    {
+      "row": 4713,
+      "mrn": "SBA000456",
+      "name": "TEST",
+      "reasons": [
+        "Test / Dummy Patient Name ('TEST')"
+      ]
+    },
+    {
+      "row": 4719,
+      "mrn": "SBA000462",
+      "name": "MAS TESTER",
+      "reasons": [
+        "Test / Dummy Patient Name ('MAS TESTER')"
+      ]
+    }
+  ],
+  "sample_discarded_encounters": [
+    {
+      "row": 5,
+      "faktur": "INV-395-1764042651234",
+      "patient": "nam depan",
+      "doctor": "Abdi Marang Gusti Alhaq  M.med.sc tes",
+      "total_amount": 333333.0,
+      "reasons": [
+        "Test Patient Name ('nam depan')",
+        "Dummy NIK ('noidentiassass')"
+      ]
+    },
+    {
+      "row": 6,
+      "faktur": "INV-416-1764224511525",
+      "patient": "Abied",
+      "doctor": "Antonius Janottama Saga",
+      "total_amount": 333333.0,
+      "reasons": [
+        "Dummy NIK ('212312312')"
+      ]
+    },
+    {
+      "row": 7,
+      "faktur": "INV-417-1764225234466",
+      "patient": "abide",
+      "doctor": "Abdi Marang Gusti Alhaq  M.med.sc tes",
+      "total_amount": 333333.0,
+      "reasons": [
+        "Dummy NIK ('21231243')"
+      ]
+    },
+    {
+      "row": 8,
+      "faktur": "INV-421-1764300126439",
+      "patient": "Abid Test 29 Nov",
+      "doctor": "Antonius Janottama Saga",
+      "total_amount": 50000.0,
+      "reasons": [
+        "Test Patient Name ('Abid Test 29 Nov')"
+      ]
+    },
+    {
+      "row": 9,
+      "faktur": "INV-1764574750443",
+      "patient": "rio rio",
+      "doctor": "Farah Dina",
+      "total_amount": 1000.0,
+      "reasons": [
+        "Dummy NIK ('123')"
+      ]
+    },
+    {
+      "row": 168,
+      "faktur": "INV-1765276147961",
+      "patient": "Test 3",
+      "doctor": "Abdi Marang Gusti Alhaq  M.med.sc tes",
+      "total_amount": 0.0,
+      "reasons": [
+        "Test Patient Name ('Test 3')"
+      ]
+    },
+    {
+      "row": 170,
+      "faktur": "INV-1765306581309",
+      "patient": "rio rio",
+      "doctor": "Abdi Marang Gusti Alhaq  M.med.sc tes",
+      "total_amount": 0.0,
+      "reasons": [
+        "Dummy NIK ('123')"
+      ]
+    },
+    {
+      "row": 173,
+      "faktur": "INV-1765430771633",
+      "patient": "Test Developer",
+      "doctor": "Antonius Janottama Saga",
+      "total_amount": 1.0,
+      "reasons": [
+        "Test Patient Name ('Test Developer')"
+      ]
+    },
+    {
+      "row": 175,
+      "faktur": "INV-1765503608197",
+      "patient": "Test Developer",
+      "doctor": "Abdi Marang Gusti Alhaq  M.med.sc tes",
+      "total_amount": 0.0,
+      "reasons": [
+        "Test Patient Name ('Test Developer')"
+      ]
+    },
+    {
+      "row": 177,
+      "faktur": "INV-1765518603978",
+      "patient": "rio rio",
+      "doctor": "Farah Dina",
+      "total_amount": 100000.0,
+      "reasons": [
+        "Dummy NIK ('123')"
+      ]
+    },
+    {
+      "row": 178,
+      "faktur": "INV-20517-1765526128118",
+      "patient": "Abid Test 29 Nov",
+      "doctor": "Antonius Janottama Saga",
+      "total_amount": 40000.0,
+      "reasons": [
+        "Test Patient Name ('Abid Test 29 Nov')"
+      ]
+    },
+    {
+      "row": 179,
+      "faktur": "INV-20519-1765725484028",
+      "patient": "nama depan",
+      "doctor": "Antonius Janottama Saga",
+      "total_amount": 57200000.0,
+      "reasons": [
+        "Status 'Batal'"
+      ]
+    },
+    {
+      "row": 180,
+      "faktur": "INV-20521-1765781731805",
+      "patient": "Testing",
+      "doctor": "Abdi Marang Gusti Alhaq  M.med.sc tes",
+      "total_amount": 10000.0,
+      "reasons": [
+        "Test Patient Name ('Testing')"
+      ]
+    },
+    {
+      "row": 181,
+      "faktur": "INV-20522-1765781796410",
+      "patient": "Testing",
+      "doctor": "Antonius Janottama Saga",
+      "total_amount": 10000.0,
+      "reasons": [
+        "Test Patient Name ('Testing')"
+      ]
+    },
+    {
+      "row": 182,
+      "faktur": "INV-1765863090387",
+      "patient": "rio rio",
+      "doctor": "Abdi Marang Gusti Alhaq  M.med.sc tes",
+      "total_amount": 100000.0,
+      "reasons": [
+        "Dummy NIK ('123')"
+      ]
+    },
+    {
+      "row": 188,
+      "faktur": "INV-1765867091418",
+      "patient": "Pasien Test 28",
+      "doctor": "Abdi Marang Gusti Alhaq  M.med.sc tes",
+      "total_amount": 100000.0,
+      "reasons": [
+        "Test Patient Name ('Pasien Test 28')"
+      ]
+    },
+    {
+      "row": 189,
+      "faktur": "INV-1765867196802",
+      "patient": "Test Pasien 0001",
+      "doctor": "Abdi Marang Gusti Alhaq  M.med.sc tes",
+      "total_amount": 100000.0,
+      "reasons": [
+        "Test Patient Name ('Test Pasien 0001')"
+      ]
+    },
+    {
+      "row": 192,
+      "faktur": "INV-1765876666643",
+      "patient": "mas rohman fatur",
+      "doctor": "Antonius Janottama Saga",
+      "total_amount": 25100.0,
+      "reasons": [
+        "Dummy NIK ('testing123')"
+      ]
+    },
+    {
+      "row": 194,
+      "faktur": "INV-20540-1766081778913",
+      "patient": "test789",
+      "doctor": "Antonius Janottama Saga",
+      "total_amount": 100000.0,
+      "reasons": [
+        "Test Patient Name ('test789')"
+      ]
+    },
+    {
+      "row": 195,
+      "faktur": "INV-20541-1766081939595",
+      "patient": "test789",
+      "doctor": "Antonius Janottama Saga",
+      "total_amount": 100000.0,
+      "reasons": [
+        "Test Patient Name ('test789')"
+      ]
+    }
+  ]
+}

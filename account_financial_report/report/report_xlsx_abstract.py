@@ -12,3 +12,4 @@ class ReportXlsxAbstract(models.AbstractModel):
         elif data and "docids" in data:
             return self.env[self.env.context.get("active_model")].browse(data["docids"])
         return []
+
