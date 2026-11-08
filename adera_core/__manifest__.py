@@ -22,9 +22,6 @@
     'assets': {
         'web.assets_backend': [
             'adera_core/static/src/app_switcher/app_switcher.scss',
-            'adera_core/static/src/app_switcher/app_switcher.xml',
-            'adera_core/static/src/app_switcher/navbar_patch.xml',
-            'adera_core/static/src/app_switcher/app_switcher.js',
         ],
     },
     'installable': True,
