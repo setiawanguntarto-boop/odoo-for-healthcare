@@ -1,0 +1,60 @@
+PERMINTAAN LAB PER 21 AGUSTUS 2025 S/D 21 AGUSTUS 2026,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,
+Status:,Semua,Asuransi:,Semua,Tenaga Medis:,Semua,,,,,,,,,,,,
+TANGGAL,ORDER ID,LAYANAN,IN,OUT,WAKTU,NO. ID,PASIEN,TENAGA MEDIS,ASURANSI,JUMLAH,#FAKTUR,HARGA (Rp),PEMBAYARAN,PENGGUNA,STATUS,,_MONTHKEY
+20/11/2025,INV-1763619109417,Pembelian Langsung,-,-,- / -,SGI000162,TESCIA PUTRI ARYANI,-,-,1,INV-1763619109417,1000,Proses,adminpratama,-,,2025-11
+20/11/2025,INV-1763626939975,Pembelian Langsung,-,-,- / -,SGI000162,TESCIA PUTRI ARYANI,-,-,1,INV-1763626939975,100000,Proses,adminpratama,-,,2025-11
+20/11/2025,INV-1763630611080,Pembelian Langsung,-,-,- / -,SGI000162,TESCIA PUTRI ARYANI,-,-,1,INV-1763630611080,100,Proses,adminpratama,-,,2025-11
+20/11/2025,INV-1763630786132,Pembelian Langsung,-,-,- / -,SGI000162,TESCIA PUTRI ARYANI,-,-,1,INV-1763630786132,2100,Proses,adminpratama,-,,2025-11
+20/11/2025,INV-1763631781600,Pembelian Langsung,-,-,- / -,SGI000162,TESCIA PUTRI ARYANI,-,-,1,INV-1763631781600,2000,Proses,adminpratama,-,,2025-11
+20/11/2025,INV-1763631781600,Pembelian Langsung,-,-,- / -,SGI000162,TESCIA PUTRI ARYANI,-,-,1,INV-1763631781600,2000,Proses,adminpratama,-,,2025-11
+20/11/2025,INV-1763631781600,Pembelian Langsung,-,-,- / -,SGI000162,TESCIA PUTRI ARYANI,-,-,1,INV-1763631781600,20000,Proses,adminpratama,-,,2025-11
+20/11/2025,INV-1763631781600,Pembelian Langsung,-,-,- / -,SGI000162,TESCIA PUTRI ARYANI,-,-,1,INV-1763631781600,2000,Proses,adminpratama,-,,2025-11
+20/11/2025,INV-1763631781600,Pembelian Langsung,-,-,- / -,SGI000162,TESCIA PUTRI ARYANI,-,-,1,INV-1763631781600,2000,Proses,adminpratama,-,,2025-11
+20/11/2025,INV-1763632201982,Pembelian Langsung,-,-,- / -,SGI000162,TESCIA PUTRI ARYANI,-,-,1,INV-1763632201982,1000,Proses,adminpratama,-,,2025-11
+21/11/2025,INV-1763703357484,Pembelian Langsung,-,-,- / -,SGI000162,TESCIA PUTRI ARYANI,-,-,1,INV-1763703357484,1000,Proses,adminpratama,-,,2025-11
+21/11/2025,INV-1763703357484,Pembelian Langsung,-,-,- / -,SGI000162,TESCIA PUTRI ARYANI,-,-,1,INV-1763703357484,1000,Proses,adminpratama,-,,2025-11
+21/11/2025,INV-1763710275601,HEMATOLOGY,-,-,- / -,SBA000031,rio rio,Antonius Janottama Saga,-,1,INV-1763710275601,1000,Proses,adminpratama,Selesai,,2025-11
+21/11/2025,INV-1763712006689,URINALISIS,-,-,- / -,SBA000031,rio rio,Antonius Janottama Saga,-,1,INV-1763712006689,1000,Proses,adminpratama,Selesai,,2025-11
+27/11/2025,INV-1764241442673,HEMATOLOGY,-,-,- / -,SBA000216,abidtes,-,-,1,INV-1764241442673,10,Lunas,adminpratama,Selesai,,2025-11
+28/11/2025,INV-1764316410161,URINALISIS,-,-,- / -,SBA000031,rio rio,Antonius Janottama Saga,-,1,INV-1764316410161,1000,Lunas,adminpratama,Selesai,,2025-11
+28/11/2025,INV-1764316456202,HEMATOLOGY,-,-,- / -,SBA000031,rio rio,Antonius Janottama Saga,-,1,INV-1764316456202,1000,Lunas,adminpratama,Selesai,,2025-11
+28/11/2025,INV-1764316456202,URINALISIS,-,-,- / -,SBA000031,rio rio,Antonius Janottama Saga,-,1,INV-1764316456202,210000,Lunas,adminpratama,Selesai,,2025-11
+01/12/2025,INV-1764571839539,URINALISIS,-,-,- / -,SBA000031,rio rio,Antonius Janottama Saga,-,1,INV-1764571839539,10000,Proses,adminpratama,Selesai,,2025-12
+02/12/2025,INV-1764668408500,HEMATOLOGY,-,-,- / -,SBA000217,Abid Test 29 Nov,-,-,1,INV-1764668408500,200000,Lunas,adminpratama,Selesai,,2025-12
+02/12/2025,INV-1764675255440,URINALISIS,-,-,- / -,SBA000217,Abid Test 29 Nov,-,-,1,INV-1764675255440,1000,Lunas,adminpratama,Selesai,,2025-12
+02/12/2025,INV-1764682753986,HEMATOLOGY,-,-,- / -,SBA000217,Abid Test 29 Nov,-,-,1,INV-1764682753986,199999,Lunas,adminpratama,Selesai,,2025-12
+05/12/2025,INV-1764908015562,URINALISIS,-,-,- / -,SBA_018470,Muhammad Abid Arrofi,-,-,1,INV-1764908015562,150000,Lunas,adminpratama,Selesai,,2025-12
+06/12/2025,INV-1765006608791,HEMATOLOGY,-,-,- / -,SBA_016197,Test Developer,-,-,1,INV-1765006608791,1000,Lunas,adminpratama,Selesai,,2025-12
+10/12/2025,INV-1765354566106,URINALISIS,-,-,- / -,SBA000031,rio rio,-,-,1,INV-1765354566106,150000,Lunas,adminpratama,Selesai,,2025-12
+15/12/2025,INV-1765784218859,URINALISIS,-,-,- / -,SBA000031,rio rio,Antonius Janottama Saga,PT Saliman,1,INV-1765784218859,1000,Proses,adminpratama,Selesai,,2025-12
+16/12/2025,INV-1765860867466,Pembelian Langsung,-,-,- / -,SBA000031,rio rio,Antonius Janottama Saga,PT Saliman,1,INV-1765860867466,1000,Finalisasi,adminpratama,Menunggu,,2025-12
+16/12/2025,INV-1765860867466,Pembelian Langsung,-,-,- / -,SBA000031,rio rio,Antonius Janottama Saga,PT Saliman,1,INV-1765860867466,1000,Finalisasi,adminpratama,Menunggu,,2025-12
+16/12/2025,INV-1765860867466,Pembelian Langsung,-,-,- / -,SBA000031,rio rio,Antonius Janottama Saga,PT Saliman,1,INV-1765860867466,1000,Finalisasi,adminpratama,Menunggu,,2025-12
+16/12/2025,INV-1765864243459,HbA1c,-,-,- / -,SBA000031,rio rio,Antonius Janottama Saga,PT Saliman,1,INV-1765864243459,1000,Finalisasi,adminpratama,Menunggu,,2025-12
+16/12/2025,INV-1765864243459,Pembelian Langsung,-,-,- / -,SBA000031,rio rio,Antonius Janottama Saga,PT Saliman,1,INV-1765864243459,1000,Finalisasi,adminpratama,Menunggu,,2025-12
+16/12/2025,INV-1765864243459,SCREENING METABOLIK SYNDROME,-,-,- / -,SBA000031,rio rio,Antonius Janottama Saga,PT Saliman,1,INV-1765864243459,1000,Finalisasi,adminpratama,Menunggu,,2025-12
+16/12/2025,INV-1765864837325,GOLONGAN DARAH,-,-,- / -,SBA000031,rio rio,Antonius Janottama Saga,PT Saliman,1,INV-1765864837325,2000,Finalisasi,adminpratama,Menunggu,,2025-12
+16/12/2025,INV-1765864837325,Pembelian Langsung,-,-,- / -,SBA000031,rio rio,Antonius Janottama Saga,PT Saliman,1,INV-1765864837325,2000,Finalisasi,adminpratama,Menunggu,,2025-12
+16/12/2025,INV-1765864837325,SCREENING METABOLIK SYNDROME,-,-,- / -,SBA000031,rio rio,Antonius Janottama Saga,PT Saliman,1,INV-1765864837325,4500,Finalisasi,adminpratama,Menunggu,,2025-12
+16/12/2025,BKG-960293,SCREENING METABOLIK SYNDROME,06:37,-,- / -,SBA_017039,Tes A Developer,Abdi Marang Gusti Alhaq  M.med.sc tes,PT ASEDE,1,INV-1765867025339,420000,Finalisasi,adminpratama,Menunggu,,2025-12
+16/12/2025,BKG-656162,SCREENING METABOLIK SYNDROME,08:48,-,- / -,SBA000450,YAN DANU TIRTA,Dedy Sukmo Anggoro,PT Saliman,1,INV-1765874894141,420000,Lunas,adminpratama,Menunggu,,2025-12
+16/12/2025,BKG-806866,SCREENING METABOLIK SYNDROME,09:12,-,- / -,SBA000452,mas aimar,Antonius Janottama Saga,PT Saliman,1,INV-1765876350445,100,Proses,adminpratama,Menunggu,,2025-12
+16/12/2025,BKG-678272,SCREENING METABOLIK SYNDROME,09:17,05:06,19 jam / 49 menit,SBA000453,mas rohman fatur,Antonius Janottama Saga,PT Saliman,1,INV-1765876666643,100,Lunas,adminpratama,Menunggu,,2025-12
+22/12/2025,INV-1766386436329,SCREENING METABOLIK SYNDROME,-,-,- / -,SBA000454,Abid Bilal,Antonius Janottama Saga,-,1,INV-1766386436329,466200,Proses,adminpratama,Menunggu,,2025-12
+23/12/2025,BKG-439131,SCREENING METABOLIK SYNDROME,04:29,-,- / -,SBA000031,rio rio,Antonius Janottama Saga,-,1,2512000010,466200,Lunas,adminpratama,Menunggu,,2025-12
+23/12/2025,2512000011,SCREENING METABOLIK SYNDROME,-,-,- / -,SBA000454,Abid Bilal,-,-,1,2512000011,466200,Finalisasi,adminpratama,Menunggu,,2025-12
+23/12/2025,2512000015,SCREENING METABOLIK SYNDROME,-,-,- / -,SBA000454,Abid Bilal,Antonius Janottama Saga,PT Saliman,1,2512000015,444000,Finalisasi,adminpratama,Menunggu,,2025-12
+23/12/2025,2512000016,SCREENING METABOLIK SYNDROME,-,-,- / -,SBA000454,Abid Bilal,Antonius Janottama Saga,PT Saliman,1,2512000016,466200,Finalisasi,adminpratama,Menunggu,,2025-12
+23/12/2025,2512000017,SCREENING METABOLIK SYNDROME,-,-,- / -,SBA_018159,Dra. Tafwidiati Abidah,Antonius Janottama Saga,PT Saliman,1,2512000017,466200,Lunas,adminpratama,Menunggu,,2025-12
+23/12/2025,2512000019,SCREENING METABOLIK SYNDROME,-,-,- / -,SBA_013759,Rio Yusron Ridhani,Antonius Janottama Saga,-,1,2512000019,447552,Finalisasi,adminpratama,Menunggu,,2025-12
+23/12/2025,2512000019,HEMATOLOGY,-,-,- / -,SBA_013759,Rio Yusron Ridhani,Antonius Janottama Saga,-,1,2512000019,0,Finalisasi,adminpratama,Menunggu,,2025-12
+23/12/2025,2512000020,SCREENING METABOLIK SYNDROME,-,-,- / -,SBA_018901,Kakana Giandra Warganegara,Antonius Janottama Saga,test,1,2512000020,420000,Lunas,adminpratama,Menunggu,,2025-12
+07/01/2026,BKG-853563,Rawat Jalan,08:03,08:07,- / 5 menit,SBA_019333,Deka Prima Rosalinda,Farah Dina,test,1,2601000013,450000,Proses,-,Selesai,,2026-01
+08/01/2026,BKG-952269,SCREENING METABOLIK SYNDROME,04:49,08:44,3 jam / 55 menit,SBA_014193,Rio Wachid Satriya,Antonius Janottama Saga,PT Saliman,1,2601000014,420000,Proses,-,Diisi,,2026-01
+09/01/2026,BKG-717506,HEMATOLOGY,10:32,10:42,- / 10 menit,SBA000464,Anggita   Nurul Handayani,Farah Dina,-,1,2601000021,60000,Lunas,adminpratama,Menunggu,,2026-01
+09/01/2026,BKG-946492,SCREENING METABOLIK SYNDROME,17:37,18:32,- / 56 menit,SBA_019275,Citra Agusta Putri Anastasia,Antonius Janottama Saga,-,1,2601000023,420000,Lunas,adminpratama,Menunggu,,2026-01
+15/01/2026,2601000043,SCREENING METABOLIK SYNDROME,-,-,- / -,SBA000448,Testing,-,-,1,2601000043,420000,Finalisasi,adminpratama,Menunggu,,2026-01
+15/01/2026,2601000044,SCREENING METABOLIK SYNDROME,-,-,- / -,SBA_007046,Laurensius Beta Harvin N,Antonius Janottama Saga,-,1,2601000044,420000,Finalisasi,adminpratama,Menunggu,,2026-01
+19/01/2026,BKG-867685,HEMATOLOGY,05:32,14:41,9 jam / 9 menit,SBA_011854,Muhammad Rio Azam,"Rosyida Avicennianing Tyas , M.hpm",Nusantara Health Insurance,1,2601000050,0,Proses,-,Selesai,,2026-01
+,,,,WAKTU RATA-RATA,5 jam / 41 menit,,,,,,TOTAL,"7,748,461.00",,,,,

@@ -20,7 +20,28 @@ export class AderaLandingPage extends Component {
         // Exclude Menu Utama itself from the grid
         return root.children
             .map((id) => this.menuService.getMenu(id))
-            .filter((app) => app && app.xmlid !== "adera_core.menu_adera_landing_root" && app.name !== "Menu Utama");
+            .filter((app) => app && app.xmlid !== "adera_core.menu_adera_landing_root" && app.name !== "Menu Utama")
+            .map((app) => {
+                let iconUrl = null;
+                const rawIcon = app.webIconData || app.web_icon_data;
+                if (rawIcon) {
+                    if (rawIcon.startsWith("data:image") || rawIcon.startsWith("/") || rawIcon.startsWith("http")) {
+                        iconUrl = rawIcon;
+                    } else {
+                        const mime = app.web_icon_data_mimetype || (rawIcon.startsWith("P") ? "image/svg+xml" : "image/png");
+                        iconUrl = `data:${mime};base64,${rawIcon.replace(/\s/g, "")}`;
+                    }
+                } else if (app.web_icon) {
+                    const parts = app.web_icon.split(",");
+                    if (parts.length === 2) {
+                        iconUrl = `/${parts[0]}/${parts[1]}`;
+                    }
+                }
+                return {
+                    ...app,
+                    iconSrc: iconUrl || "/web/static/img/default_icon_app.png",
+                };
+            });
     }
 
     async onAppClick(app) {
@@ -49,4 +70,3 @@ export class AderaLandingPage extends Component {
 }
 
 registry.category("actions").add("adera_core.landing_page", AderaLandingPage);
-

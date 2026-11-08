@@ -26,9 +26,9 @@
                              t-att-data-menu-id="app.id"
                              t-att-title="app.name"
                              t-on-click="() => this.onAppClick(app)">
-                            <div class="o_adera_app_icon_wrapper d-flex align-items-center justify-content-center shadow-sm">
-                                <t t-if="app.webIconData">
-                                    <img class="o_adera_app_icon" t-att-src="app.webIconData" t-att-alt="app.name"/>
+                            <div class="o_adera_app_icon_wrapper d-flex align-items-center justify-content-center">
+                                <t t-if="app.iconSrc">
+                                    <img class="o_adera_app_icon" t-att-src="app.iconSrc" t-att-alt="app.name"/>
                                 </t>
                                 <t t-else="">
                                     <div class="o_adera_fallback_icon d-flex align-items-center justify-content-center">
@@ -50,4 +50,3 @@
     </t>
 
 </templates>
-
