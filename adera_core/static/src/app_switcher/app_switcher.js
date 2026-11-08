@@ -1,5 +1,5 @@
 import { Component } from "@odoo/owl";
-import { useService } from "@web/core/utils/hooks";
+import { useBus, useService } from "@web/core/utils/hooks";
 import { registry } from "@web/core/registry";
 import { NavBar } from "@web/webclient/navbar/navbar";
 import { patch } from "@web/core/utils/patch";
@@ -11,6 +11,7 @@ export class AderaAppSwitcher extends Component {
     setup() {
         this.menuService = useService("menu");
         this.actionService = useService("action");
+        useBus(this.env.bus, "MENUS:APP-CHANGED", () => this.render());
     }
 
     get apps() {

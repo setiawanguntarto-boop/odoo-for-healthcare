@@ -1,6 +1,6 @@
 import { Component } from "@odoo/owl";
 import { registry } from "@web/core/registry";
-import { useService } from "@web/core/utils/hooks";
+import { useBus, useService } from "@web/core/utils/hooks";
 import { standardActionServiceProps } from "@web/webclient/actions/action_service";
 
 export class AderaLandingPage extends Component {
@@ -10,6 +10,7 @@ export class AderaLandingPage extends Component {
     setup() {
         this.menuService = useService("menu");
         this.actionService = useService("action");
+        useBus(this.env.bus, "MENUS:APP-CHANGED", () => this.render());
     }
 
     get apps() {
