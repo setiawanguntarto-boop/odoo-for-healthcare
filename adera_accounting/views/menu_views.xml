@@ -10,10 +10,10 @@
               web_icon="adera_accounting,static/description/icon.png"/>
 
     <!-- ===================================================================
-         1. LAPORAN KEUANGAN PSAK
+         1. LAPORAN KEUANGAN REGULASI (SAK EMKM / SAK EP / PSAK)
          =================================================================== -->
     <menuitem id="menu_psak_reports_categ"
-              name="Laporan Keuangan PSAK"
+              name="Laporan Keuangan Regulasi"
               parent="menu_adera_accounting_root"
               sequence="10"/>
 
@@ -30,10 +30,22 @@
               sequence="20"/>
 
     <menuitem id="menu_psak_cash_flow"
-              name="Laporan Arus Kas (Cash Flow)"
+              name="Laporan Arus Kas (Cash Flow - SAK EP)"
               parent="menu_psak_reports_categ"
               action="action_psak_wizard_cash_flow"
               sequence="30"/>
+
+    <menuitem id="menu_psak_equity_change"
+              name="Laporan Perubahan Ekuitas (SAK EP)"
+              parent="menu_psak_reports_categ"
+              action="action_psak_wizard_equity_change"
+              sequence="35"/>
+
+    <menuitem id="menu_psak_calk"
+              name="Catatan Atas Lap. Keuangan (CaLK)"
+              parent="menu_psak_reports_categ"
+              action="action_psak_wizard_calk"
+              sequence="38"/>
 
     <menuitem id="menu_psak_general_ledger"
               name="Buku Besar &amp; Neraca Saldo (OCA)"
@@ -54,7 +66,7 @@
               sequence="60"/>
 
     <!-- ===================================================================
-         2. PIUTANG & BILLING KLINIK
+         2. PIUTANG & KLAIM BPJS KLINIK
          =================================================================== -->
     <menuitem id="menu_ar_billing_categ"
               name="Piutang &amp; Billing Klinik"
@@ -73,14 +85,26 @@
               action="action_ar_bpjs_claim_ledger"
               sequence="20"/>
 
+    <menuitem id="menu_bpjs_dispute_action"
+              name="Cadangan Dispute Klaim BPJS (112990)"
+              parent="menu_ar_billing_categ"
+              action="action_bpjs_dispute_wizard"
+              sequence="25"/>
+
     <menuitem id="menu_ar_pos_copay_action"
               name="Settlement Co-Pay POS"
               parent="menu_ar_billing_categ"
               action="action_pos_copay_settlement_ledger"
               sequence="30"/>
 
+    <menuitem id="menu_prepaid_package_action"
+              name="Paket Dialisis Dimuka (PSAK 72)"
+              parent="menu_ar_billing_categ"
+              action="action_clinic_prepaid_dialysis_packages"
+              sequence="40"/>
+
     <!-- ===================================================================
-         3. HUTANG & PENGADAAN
+         3. HUTANG & PENGADAAN MEDIS
          =================================================================== -->
     <menuitem id="menu_ap_procure_categ"
               name="Hutang &amp; Pengadaan"
@@ -100,7 +124,7 @@
               sequence="20"/>
 
     <!-- ===================================================================
-         4. JASA MEDIS & PERPAJAKAN
+         4. JASA MEDIS & PERPAJAKAN DOKTER
          =================================================================== -->
     <menuitem id="menu_doctor_tax_categ"
               name="Jasa Medis &amp; Perpajakan"
@@ -126,12 +150,32 @@
               sequence="30"/>
 
     <!-- ===================================================================
-         5. KAS & BANK
+         5. ASET TETAP MEDIS (PERMENKES 14/2021)
+         =================================================================== -->
+    <menuitem id="menu_fixed_assets_categ"
+              name="Aset Tetap Medis"
+              parent="menu_adera_accounting_root"
+              sequence="45"/>
+
+    <menuitem id="menu_medical_assets_action"
+              name="Peralatan Medis &amp; HD (121010/121020)"
+              parent="menu_fixed_assets_categ"
+              action="action_medical_fixed_assets"
+              sequence="10"/>
+
+    <!-- ===================================================================
+         6. KAS & BANK
          =================================================================== -->
     <menuitem id="menu_cash_bank_categ"
               name="Kas &amp; Bank"
               parent="menu_adera_accounting_root"
               sequence="50"/>
+
+    <menuitem id="menu_bpjs_capitation_action"
+              name="Pengakuan Kapitasi BPJS (410040)"
+              parent="menu_cash_bank_categ"
+              action="action_bpjs_capitation_wizard"
+              sequence="5"/>
 
     <menuitem id="menu_cashier_variance_action"
               name="Audit Selisih Kasir (619990)"

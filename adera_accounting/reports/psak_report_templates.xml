@@ -2,7 +2,7 @@
 <odoo>
     <!-- QWeb Report Action -->
     <record id="action_report_psak_financial_statement" model="ir.actions.report">
-        <field name="name">Laporan Keuangan PSAK (PDF)</field>
+        <field name="name">Laporan Keuangan PSAK / SAK EMKM / SAK EP (PDF)</field>
         <field name="model">psak.financial.report</field>
         <field name="report_type">qweb-pdf</field>
         <field name="report_name">adera_accounting.report_psak_financial_document</field>
@@ -32,7 +32,7 @@
                                 </t>
                             </p>
                             <p style="margin-bottom: 0; font-size: 10px; color: #888;">
-                                Standar: Standar Akuntansi Keuangan Indonesia (PSAK) • Mata Uang: Rupiah (IDR)
+                                Standar: <t t-esc="'SAK EMKM (Phase 1 Baseline)' if o.framework_standard == 'emkm' else 'SAK EP / PSAK (Phase 2 Roadmap)'"/> • Mata Uang: Rupiah (IDR)
                             </p>
                         </div>
 
@@ -41,9 +41,9 @@
                             <thead>
                                 <tr style="background-color: #f3edf8; font-weight: bold;">
                                     <th style="width: 15%;">Kode Akun</th>
-                                    <th style="width: 45%;">Pos Keuangan PSAK</th>
+                                    <th style="width: 45%;">Pos Keuangan / Kategori</th>
                                     <th class="text-end" style="width: 20%;">Periode Berjalan</th>
-                                    <t t-if="o.comparison_type != 'none'">
+                                    <t t-if="o.comparison_type != 'none' and o.report_type not in ('calk', 'equity_change')">
                                         <th class="text-end" style="width: 20%;">Pembanding</th>
                                     </t>
                                 </tr>
@@ -62,7 +62,7 @@
                                                 <t t-esc="line.amount_current" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
                                             </t>
                                         </td>
-                                        <t t-if="o.comparison_type != 'none'">
+                                        <t t-if="o.comparison_type != 'none' and o.report_type not in ('calk', 'equity_change')">
                                             <td class="text-end">
                                                 <t t-if="line.line_type != 'header'">
                                                     <t t-esc="line.amount_comparison" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
@@ -73,6 +73,44 @@
                                 </t>
                             </tbody>
                         </table>
+
+                        <!-- CaLK Narrative Disclosures Section (Visible if CaLK report) -->
+                        <t t-if="o.report_type == 'calk'">
+                            <div style="margin-top: 25px; page-break-before: always;">
+                                <h4 style="font-weight: bold; color: #5f249f; border-bottom: 2px solid #5f249f; padding-bottom: 5px;">
+                                    CATATAN ATAS LAPORAN KEUANGAN (CaLK) RINCIAN &amp; PENGUNGKAPAN
+                                </h4>
+
+                                <div style="margin-top: 15px;">
+                                    <h5 style="font-weight: bold; color: #333;">Catatan 1: Profil Entitas &amp; Legalitas Operasional (Permenkes 14/2021)</h5>
+                                    <p style="white-space: pre-line; line-height: 1.5; color: #444;">
+                                        <t t-esc="o.calk_profile_text"/>
+                                    </p>
+                                </div>
+
+                                <div style="margin-top: 15px;">
+                                    <h5 style="font-weight: bold; color: #333;">Catatan 2: Ikhtisar Kebijakan Akuntansi Signifikan</h5>
+                                    <p style="white-space: pre-line; line-height: 1.5; color: #444;">
+                                        <t t-esc="o.calk_policy_text"/>
+                                    </p>
+                                </div>
+
+                                <div style="margin-top: 15px;">
+                                    <h5 style="font-weight: bold; color: #333;">Catatan 3: Rincian &amp; Jadwal Umur Piutang Pasien &amp; Klaim BPJS</h5>
+                                    <t t-out="o.calk_receivables_html"/>
+                                </div>
+
+                                <div style="margin-top: 15px;">
+                                    <h5 style="font-weight: bold; color: #333;">Catatan 4: Jadwal Aset Tetap Medis &amp; Akumulasi Penyusutan</h5>
+                                    <t t-out="o.calk_assets_html"/>
+                                </div>
+
+                                <div style="margin-top: 15px;">
+                                    <h5 style="font-weight: bold; color: #333;">Catatan 5: Rekonsiliasi Jasa Medis &amp; Pajak PPh 21 Dokter</h5>
+                                    <t t-out="o.calk_tax_doc_html"/>
+                                </div>
+                            </div>
+                        </t>
 
                         <!-- Sign-off Block -->
                         <div class="row mt-5" style="page-break-inside: avoid;">

@@ -19,6 +19,7 @@
         'data/stock_location_data.xml',
         'data/product_category_data.xml',
         'data/products_data.xml',
+        'data/ir_cron_data.xml',
         'views/stock_lot_views.xml',
         'views/purchase_order_views.xml',
     ],

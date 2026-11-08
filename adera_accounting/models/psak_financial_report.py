@@ -1,23 +1,44 @@
 # -*- coding: utf-8 -*-
 from odoo import fields, models, api
 from dateutil.relativedelta import relativedelta
+from datetime import date
 import json
 
 
 class PsakFinancialReport(models.Model):
     _name = "psak.financial.report"
-    _description = "Laporan Keuangan PSAK Klinik ADERA"
+    _description = "Laporan Keuangan PSAK / SAK EMKM / SAK EP Klinik ADERA"
     _order = "date_to desc, id desc"
 
     name = fields.Char(string="Nama Laporan", required=True)
+    framework_standard = fields.Selection(
+        [
+            ("emkm", "SAK EMKM (Phase 1 Baseline - Standar Entitas Mikro, Kecil, Menengah)"),
+            ("sak_ep", "SAK EP / PSAK (Phase 2 Roadmap - Standar Entitas Privat)"),
+        ],
+        string="Standar Akuntansi Regulasi",
+        default="emkm",
+        required=True,
+        help="Sesuai Keputusan DPN IAI & Permenkes 14/2021 untuk Tata Kelola Keuangan Klinik Swasta Nasional",
+    )
     report_type = fields.Selection(
         [
             ("profit_loss", "Laporan Laba Rugi (Statement of Profit or Loss)"),
-            ("balance_sheet", "Neraca Keuangan (Statement of Financial Position)"),
-            ("cash_flow", "Laporan Arus Kas (Statement of Cash Flows)"),
+            ("balance_sheet", "Laporan Posisi Keuangan (Statement of Financial Position / Neraca)"),
+            ("cash_flow", "Laporan Arus Kas (Statement of Cash Flows - SAK EP)"),
+            ("equity_change", "Laporan Perubahan Ekuitas (Statement of Changes in Equity - SAK EP)"),
+            ("calk", "Catatan Atas Laporan Keuangan (CaLK - SAK EMKM / SAK EP)"),
         ],
-        string="Tipe Laporan PSAK",
+        string="Tipe Laporan Standar",
         required=True,
+    )
+    cash_flow_method = fields.Selection(
+        [
+            ("direct", "Metode Langsung (Direct Method - PSAK 2 / SAK EP)"),
+            ("indirect", "Metode Tidak Langsung (Indirect Method - PSAK 2 / SAK EP)"),
+        ],
+        string="Metode Arus Kas",
+        default="direct",
     )
 
     date_from = fields.Date(string="Tanggal Awal", required=True)
@@ -48,7 +69,7 @@ class PsakFinancialReport(models.Model):
     analytic_account_id = fields.Many2one(
         "account.analytic.account",
         string="Unit Bisnis Analitik",
-        help="Pilih ACC-PRATAMA atau ACC-HD untuk breakdown unit bisnis, atau kosongkan untuk Konsolidasi Seluruh Klinik",
+        help="Pilih ACC-PRATAMA atau ACC-HD untuk isolasi unit bisnis, atau kosongkan untuk Konsolidasi Seluruh Klinik",
     )
     company_id = fields.Many2one(
         "res.company",
@@ -63,8 +84,15 @@ class PsakFinancialReport(models.Model):
         string="Rincian Baris Laporan",
     )
 
+    # Narrative CaLK Disclosures per SAK EMKM / SAK EP & Permenkes 14/2021
+    calk_profile_text = fields.Text(string="Catatan 1: Profil Entitas & Legalitas Operasional")
+    calk_policy_text = fields.Text(string="Catatan 2: Ikhtisar Kebijakan Akuntansi Signifikan")
+    calk_receivables_html = fields.Html(string="Catatan 3: Rincian & Jadwal Umur Piutang Pasien/Klaim")
+    calk_assets_html = fields.Html(string="Catatan 4: Jadwal Aset Tetap Medis & Penyusutan")
+    calk_tax_doc_html = fields.Html(string="Catatan 5: Rekonsiliasi Jasa Medis & Pajak PPh 21 Dokter")
+
     def action_recompute(self):
-        """Menghitung ulang baris laporan sesuai filter."""
+        """Menghitung ulang baris laporan sesuai filter dan regulasi akuntansi."""
         self.ensure_one()
         self.line_ids.unlink()
 
@@ -73,7 +101,14 @@ class PsakFinancialReport(models.Model):
         elif self.report_type == "balance_sheet":
             self._compute_balance_sheet()
         elif self.report_type == "cash_flow":
-            self._compute_cash_flow()
+            if self.cash_flow_method == "indirect":
+                self._compute_cash_flow_indirect()
+            else:
+                self._compute_cash_flow_direct()
+        elif self.report_type == "equity_change":
+            self._compute_equity_changes()
+        elif self.report_type == "calk":
+            self._compute_calk()
 
     def _get_account_balance(self, code_prefix, date_from, date_to, is_cumulative=False):
         """Menghitung saldo akun (debit - credit) atau (credit - debit) berdasarkan kode prefix."""
@@ -88,12 +123,12 @@ class PsakFinancialReport(models.Model):
 
         lines = self.env["account.move.line"].search(domain)
 
-        # Filter by code prefix (JSONB code_store in Odoo 19)
+        # Filter by code prefix
         matched_lines = lines.filtered(
             lambda l: l.account_id.code and l.account_id.code.startswith(code_prefix)
         )
 
-        # Filter analytic account if specified
+        # Filter analytic account if specified (Odoo 19 analytic_distribution)
         if self.analytic_account_id:
             acc_id_str = str(self.analytic_account_id.id)
             matched_lines = matched_lines.filtered(
@@ -105,22 +140,27 @@ class PsakFinancialReport(models.Model):
         return debit, credit
 
     def _compute_profit_loss(self):
-        """Kalkulasi Laporan Laba Rugi Berstandar PSAK."""
+        """Kalkulasi Laporan Laba Rugi Berstandar SAK EMKM / SAK EP."""
         lines_data = []
         seq = 10
 
-        # Kategori 1: PENDAPATAN USAHA (REVENUE)
+        # Kategori 1: PENDAPATAN USAHA (REVENUES)
         lines_data.append((0, 0, {
-            "sequence": seq, "name": "PENDAPATAN USAHA (OPERATING REVENUES)",
+            "sequence": seq, "name": "PENDAPATAN USAHA OPERASIONAL (OPERATING REVENUES)",
             "line_type": "header",
         }))
         seq += 10
 
         rev_accounts = [
-            ("41001", "Pendapatan Pelayanan Rawat Jalan (Konsultasi & Tindakan)"),
-            ("41011", "Pendapatan Pelayanan Hemodialisis"),
+            ("41001", "Pendapatan Pelayanan Rawat Jalan (Konsultasi & Tindakan Poli Umum)"),
+            ("41002", "Pendapatan Tindakan Poli Gigi & Mulut"),
+            ("41003", "Pendapatan Pelayanan KIA & Kebidanan"),
+            ("41004", "Pendapatan Kapitasi BPJS Kesehatan FKTP"),
             ("41006", "Pendapatan Penjualan Farmasi & Resep Obat"),
-            ("41900", "Pendapatan Operasional Klinik Lainnya"),
+            ("41007", "Pendapatan Tuslah & Embalase Farmasi"),
+            ("41011", "Pendapatan Pelayanan Hemodialisis Rutin"),
+            ("41012", "Pendapatan Pelayanan Paket Dialisis Terakui (PSAK 72)"),
+            ("41900", "Pendapatan Operasional Pelayanan Lainnya"),
         ]
 
         total_rev_cur = 0.0
@@ -135,22 +175,23 @@ class PsakFinancialReport(models.Model):
                 d_cmp, c_cmp = self._get_account_balance(prefix, self.date_from_cmp, self.date_to_cmp)
                 amt_cmp = c_cmp - d_cmp
 
-            total_rev_cur += amt_cur
-            total_rev_cmp += amt_cmp
+            if amt_cur != 0.0 or amt_cmp != 0.0 or prefix in ("41001", "41004", "41011", "41006"):
+                total_rev_cur += amt_cur
+                total_rev_cmp += amt_cmp
 
-            lines_data.append((0, 0, {
-                "sequence": seq, "name": label, "code": prefix,
-                "line_type": "account", "amount_current": amt_cur, "amount_comparison": amt_cmp,
-            }))
-            seq += 10
+                lines_data.append((0, 0, {
+                    "sequence": seq, "name": label, "code": prefix,
+                    "line_type": "account", "amount_current": amt_cur, "amount_comparison": amt_cmp,
+                }))
+                seq += 10
 
         lines_data.append((0, 0, {
-            "sequence": seq, "name": "TOTAL PENDAPATAN USAHA",
+            "sequence": seq, "name": "TOTAL PENDAPATAN USAHA OPERASIONAL",
             "line_type": "subtotal", "amount_current": total_rev_cur, "amount_comparison": total_rev_cmp,
         }))
         seq += 10
 
-        # Kategori 2: BEBAN POKOK PENDAPATAN (HPP / COGS)
+        # Kategori 2: BEBAN POKOK PENDAPATAN (COGS / HPP)
         lines_data.append((0, 0, {
             "sequence": seq, "name": "BEBAN POKOK PENDAPATAN (COGS / HPP)",
             "line_type": "header",
@@ -158,8 +199,9 @@ class PsakFinancialReport(models.Model):
         seq += 10
 
         cogs_accounts = [
-            ("51001", "HPP Obat & BHP Farmasi Rawat Jalan"),
-            ("51002", "HPP Dialyzer & BHP Khusus Hemodialisis"),
+            ("51001", "HPP Obat & BHP Farmasi Rawat Jalan (FIFO Perpetual)"),
+            ("51002", "HPP Dialyzer & BHP Khusus Hemodialisis (FIFO Perpetual)"),
+            ("51004", "HPP Reagen Laboratorium & BHP Diagnostik"),
         ]
 
         total_cogs_cur = 0.0
@@ -174,14 +216,15 @@ class PsakFinancialReport(models.Model):
                 d_cmp, c_cmp = self._get_account_balance(prefix, self.date_from_cmp, self.date_to_cmp)
                 amt_cmp = d_cmp - c_cmp
 
-            total_cogs_cur += amt_cur
-            total_cogs_cmp += amt_cmp
+            if amt_cur != 0.0 or amt_cmp != 0.0 or prefix in ("51001", "51002"):
+                total_cogs_cur += amt_cur
+                total_cogs_cmp += amt_cmp
 
-            lines_data.append((0, 0, {
-                "sequence": seq, "name": label, "code": prefix,
-                "line_type": "account", "amount_current": amt_cur, "amount_comparison": amt_cmp,
-            }))
-            seq += 10
+                lines_data.append((0, 0, {
+                    "sequence": seq, "name": label, "code": prefix,
+                    "line_type": "account", "amount_current": amt_cur, "amount_comparison": amt_cmp,
+                }))
+                seq += 10
 
         lines_data.append((0, 0, {
             "sequence": seq, "name": "TOTAL BEBAN POKOK PENDAPATAN (HPP)",
@@ -210,9 +253,9 @@ class PsakFinancialReport(models.Model):
             ("51012", "Beban Jasa Medis Dokter Spesialis Hemodialisis"),
             ("61001", "Beban Gaji & Tunjangan Karyawan Medis/Non-Medis"),
             ("61002", "Beban Listrik, Air & Utilitas Medis"),
-            ("61003", "Beban Pemeliharaan Mesin HD & Peralatan Medis"),
-            ("61999", "Beban Selisih Rekonsiliasi Kas Kasir (Blind Count)"),
-            ("61900", "Beban Operasional & Umum Lainnya"),
+            ("61003", "Beban Pemeliharaan & Penyusutan Mesin HD / Alat Medis"),
+            ("61900", "Beban Operasional Umum & Beban Dispute Klaim BPJS"),
+            ("61999", "Beban Selisih Rekonsiliasi Kas Kasir (Blind Count Shift Variance)"),
         ]
 
         total_opex_cur = 0.0
@@ -227,17 +270,18 @@ class PsakFinancialReport(models.Model):
                 d_cmp, c_cmp = self._get_account_balance(prefix, self.date_from_cmp, self.date_to_cmp)
                 amt_cmp = d_cmp - c_cmp
 
-            total_opex_cur += amt_cur
-            total_opex_cmp += amt_cmp
+            if amt_cur != 0.0 or amt_cmp != 0.0 or prefix in ("51011", "51012", "61999"):
+                total_opex_cur += amt_cur
+                total_opex_cmp += amt_cmp
 
-            lines_data.append((0, 0, {
-                "sequence": seq, "name": label, "code": prefix,
-                "line_type": "account", "amount_current": amt_cur, "amount_comparison": amt_cmp,
-            }))
-            seq += 10
+                lines_data.append((0, 0, {
+                    "sequence": seq, "name": label, "code": prefix,
+                    "line_type": "account", "amount_current": amt_cur, "amount_comparison": amt_cmp,
+                }))
+                seq += 10
 
         lines_data.append((0, 0, {
-            "sequence": seq, "name": "TOTAL BEBAN OPERASIONAL",
+            "sequence": seq, "name": "TOTAL BEBAN OPERASIONAL & REMUNERASI",
             "line_type": "subtotal", "amount_current": total_opex_cur, "amount_comparison": total_opex_cmp,
         }))
         seq += 10
@@ -270,7 +314,7 @@ class PsakFinancialReport(models.Model):
         }))
         seq += 10
 
-        # LABA BERSIH (NET INCOME)
+        # LABA BERSIH
         net_profit_cur = op_profit_cur + net_other_cur
         net_profit_cmp = op_profit_cmp + net_other_cmp
         lines_data.append((0, 0, {
@@ -281,7 +325,7 @@ class PsakFinancialReport(models.Model):
         self.write({"line_ids": lines_data})
 
     def _compute_balance_sheet(self):
-        """Kalkulasi Neraca Keuangan Berstandar PSAK."""
+        """Kalkulasi Neraca Keuangan Berstandar SAK EMKM / SAK EP."""
         lines_data = []
         seq = 10
 
@@ -291,20 +335,14 @@ class PsakFinancialReport(models.Model):
 
         current_assets = [
             ("11101", "Kas Kasir Rawat Jalan (Cash Safe)"),
-            ("11102", "Kas Kasir Hemodialisis"),
-            ("11111", "Bank BCA Operasional"),
-            ("11121", "Kliring Payment Gateway Midtrans"),
-            ("11122", "Kliring EDC / QRIS"),
+            ("11102", "Kas Kasir Hemodialisis (Cash Safe HD)"),
+            ("11111", "Bank BCA Operasional Klinik"),
+            ("11121", "Kliring Payment Gateway Midtrans / Doku"),
+            ("11122", "Kliring EDC / QRIS Statis & Dinamis"),
             ("11201", "Piutang Pasien Umum (Co-Pay)"),
             ("11202", "Piutang Klaim BPJS Kesehatan (VClaim)"),
             ("11203", "Piutang Klaim Asuransi Swasta & Korporasi"),
             ("11210", "Piutang Usaha Lainnya (General AR)"),
-            ("11401", "Persediaan Obat Farmasi Rawat Jalan"),
-            ("11402", "Persediaan BHP Medis Rawat Jalan"),
-            ("11403", "Persediaan Dialyzer & BHP Khusus HD"),
-            ("11404", "Persediaan Reagen Lab & Penunjang"),
-            ("11300", "Persediaan Lainnya (General Stock)"),
-            ("11501", "Uang Muka & Biaya Dibayar Dimuka"),
         ]
 
         tot_cur_asset_now = 0.0
@@ -319,14 +357,61 @@ class PsakFinancialReport(models.Model):
                 d_c, c_c = self._get_account_balance(prefix, False, self.date_to_cmp, is_cumulative=True)
                 amt_cmp = d_c - c_c
 
-            tot_cur_asset_now += amt_now
-            tot_cur_asset_cmp += amt_cmp
+            if amt_now != 0.0 or amt_cmp != 0.0 or prefix in ("11101", "11111", "11201", "11202"):
+                tot_cur_asset_now += amt_now
+                tot_cur_asset_cmp += amt_cmp
 
-            lines_data.append((0, 0, {
-                "sequence": seq, "name": label, "code": prefix,
-                "line_type": "account", "amount_current": amt_now, "amount_comparison": amt_cmp,
-            }))
-            seq += 10
+                lines_data.append((0, 0, {
+                    "sequence": seq, "name": label, "code": prefix,
+                    "line_type": "account", "amount_current": amt_now, "amount_comparison": amt_cmp,
+                }))
+                seq += 10
+
+        # Contra-Asset: 112990 Cadangan Kerugian Penolakan / Dispute Klaim BPJS
+        d_dis, c_dis = self._get_account_balance("11299", False, self.date_to, is_cumulative=True)
+        amt_dis_now = -(c_dis - d_dis)  # Normal balance is credit, reduces asset
+        amt_dis_cmp = 0.0
+        if self.comparison_type != "none" and self.date_to_cmp:
+            d_dis_c, c_dis_c = self._get_account_balance("11299", False, self.date_to_cmp, is_cumulative=True)
+            amt_dis_cmp = -(c_dis_c - d_dis_c)
+
+        tot_cur_asset_now += amt_dis_now
+        tot_cur_asset_cmp += amt_dis_cmp
+
+        lines_data.append((0, 0, {
+            "sequence": seq, "name": "(Less) Cadangan Penolakan / Dispute Klaim BPJS", "code": "112990",
+            "line_type": "account", "amount_current": amt_dis_now, "amount_comparison": amt_dis_cmp,
+        }))
+        seq += 10
+
+        # Persediaan Medis & Farmasi
+        inventory_assets = [
+            ("11401", "Persediaan Obat Farmasi (Ethical & OTC)"),
+            ("11402", "Persediaan BHP Medis Rawat Jalan"),
+            ("11403", "Persediaan Dialyzer & BHP Khusus HD"),
+            ("11404", "Persediaan Reagen Lab & Penunjang"),
+            ("11300", "Persediaan Lainnya (General Stock)"),
+            ("11501", "Uang Muka & Biaya Dibayar Dimuka"),
+        ]
+
+        for prefix, label in inventory_assets:
+            d_now, c_now = self._get_account_balance(prefix, False, self.date_to, is_cumulative=True)
+            amt_now = d_now - c_now
+
+            amt_cmp = 0.0
+            if self.comparison_type != "none" and self.date_to_cmp:
+                d_c, c_c = self._get_account_balance(prefix, False, self.date_to_cmp, is_cumulative=True)
+                amt_cmp = d_c - c_c
+
+            if amt_now != 0.0 or amt_cmp != 0.0 or prefix in ("11401", "11403"):
+                tot_cur_asset_now += amt_now
+                tot_cur_asset_cmp += amt_cmp
+
+                lines_data.append((0, 0, {
+                    "sequence": seq, "name": label, "code": prefix,
+                    "line_type": "account", "amount_current": amt_now, "amount_comparison": amt_cmp,
+                }))
+                seq += 10
 
         lines_data.append((0, 0, {
             "sequence": seq, "name": "TOTAL ASET LANCAR",
@@ -334,12 +419,12 @@ class PsakFinancialReport(models.Model):
         }))
         seq += 10
 
-        # ASET TIDAK LANCAR
+        # ASET TIDAK LANCAR (NON-CURRENT ASSETS)
         lines_data.append((0, 0, {"sequence": seq, "name": "ASET TIDAK LANCAR (NON-CURRENT ASSETS)", "line_type": "header"}))
         seq += 10
 
         fixed_assets = [
-            ("12101", "Peralatan Medis & Laboratorium"),
+            ("12101", "Peralatan Medis & Laboratorium (USG, EKG, Dental)"),
             ("12102", "Mesin Hemodialisis & RO Water System"),
             ("12103", "Inventaris & Infrastruktur Klinik"),
         ]
@@ -355,16 +440,17 @@ class PsakFinancialReport(models.Model):
                 d_c, c_c = self._get_account_balance(prefix, False, self.date_to_cmp, is_cumulative=True)
                 amt_cmp = d_c - c_c
 
-            tot_fix_asset_now += amt_now
-            tot_fix_asset_cmp += amt_cmp
+            if amt_now != 0.0 or amt_cmp != 0.0 or prefix in ("12101", "12102"):
+                tot_fix_asset_now += amt_now
+                tot_fix_asset_cmp += amt_cmp
 
-            lines_data.append((0, 0, {
-                "sequence": seq, "name": label, "code": prefix,
-                "line_type": "account", "amount_current": amt_now, "amount_comparison": amt_cmp,
-            }))
-            seq += 10
+                lines_data.append((0, 0, {
+                    "sequence": seq, "name": label, "code": prefix,
+                    "line_type": "account", "amount_current": amt_now, "amount_comparison": amt_cmp,
+                }))
+                seq += 10
 
-        # Akumulasi Penyusutan
+        # Akumulasi Penyusutan (Contra-Asset)
         d_dep_now, c_dep_now = self._get_account_balance("1220", False, self.date_to, is_cumulative=True)
         amt_dep_now = -(c_dep_now - d_dep_now)
         amt_dep_cmp = 0.0
@@ -376,7 +462,7 @@ class PsakFinancialReport(models.Model):
         tot_fix_asset_cmp += amt_dep_cmp
 
         lines_data.append((0, 0, {
-            "sequence": seq, "name": "Akumulasi Penyusutan Alat Medis & Mesin HD", "code": "1220",
+            "sequence": seq, "name": "(Less) Akumulasi Penyusutan Peralatan Medis & Mesin HD", "code": "122010",
             "line_type": "account", "amount_current": amt_dep_now, "amount_comparison": amt_dep_cmp,
         }))
         seq += 10
@@ -403,13 +489,13 @@ class PsakFinancialReport(models.Model):
         current_liabilities = [
             ("21101", "Utang Usaha Pemasok Obat & BHP Medis"),
             ("21110", "Utang Usaha Lainnya (General AP)"),
-            ("21150", "GR/IR Clearing (Utang Belum Ditagih)"),
+            ("21150", "GR/IR Clearing (Interim Clearing Utang Belum Ditagih)"),
             ("21201", "Utang Pajak PPN"),
-            ("21203", "Utang PPh 21 Tenaga Ahli Dokter"),
+            ("21203", "Utang PPh 21 Tenaga Ahli Dokter (Pasal 17 / PMK 168)"),
             ("21301", "Akrual Utang Jasa Medis Dokter Rawat Jalan"),
-            ("21302", "Akrual Utang Jasa Medis Dokter Hemodialisis"),
+            ("21302", "Akrual Utang Jasa Medis Dokter Spesialis Hemodialisis"),
             ("21401", "Pendapatan Diterima Dimuka Pasien (Deposit)"),
-            ("21402", "Pendapatan Diterima Dimuka Paket Dialisis (PSAK 72)"),
+            ("21402", "Pendapatan Diterima Dimuka Paket Hemodialisis (PSAK 72)"),
         ]
 
         tot_liab_now = 0.0
@@ -423,14 +509,15 @@ class PsakFinancialReport(models.Model):
                 d_c, c_c = self._get_account_balance(prefix, False, self.date_to_cmp, is_cumulative=True)
                 amt_cmp = c_c - d_c
 
-            tot_liab_now += amt_now
-            tot_liab_cmp += amt_cmp
+            if amt_now != 0.0 or amt_cmp != 0.0 or prefix in ("21101", "21150", "21301", "21302", "21402"):
+                tot_liab_now += amt_now
+                tot_liab_cmp += amt_cmp
 
-            lines_data.append((0, 0, {
-                "sequence": seq, "name": label, "code": prefix,
-                "line_type": "account", "amount_current": amt_now, "amount_comparison": amt_cmp,
-            }))
-            seq += 10
+                lines_data.append((0, 0, {
+                    "sequence": seq, "name": label, "code": prefix,
+                    "line_type": "account", "amount_current": amt_now, "amount_comparison": amt_cmp,
+                }))
+                seq += 10
 
         lines_data.append((0, 0, {
             "sequence": seq, "name": "TOTAL KEWAJIBAN JANGKA PENDEK",
@@ -438,8 +525,8 @@ class PsakFinancialReport(models.Model):
         }))
         seq += 10
 
-        # BAGIAN III: EKUITAS (EQUITY)
-        lines_data.append((0, 0, {"sequence": seq, "name": "EKUITAS (EQUITY)", "line_type": "header"}))
+        # BAGIAN III: EKUITAS (EQUITY - Enforcing Asumsi Kesatuan Usaha)
+        lines_data.append((0, 0, {"sequence": seq, "name": "EKUITAS ENTITAS KLINIK (EQUITY)", "line_type": "header"}))
         seq += 10
 
         d_cap_now, c_cap_now = self._get_account_balance("3100", False, self.date_to, is_cumulative=True)
@@ -456,23 +543,23 @@ class PsakFinancialReport(models.Model):
             amt_ret_cmp = c_rt - d_rt
 
         lines_data.append((0, 0, {
-            "sequence": seq, "name": "Modal Disetor PT Prosperra Medika Utama", "code": "310010",
+            "sequence": seq, "name": "Modal Saham Disetor PT Prosperra Medika Utama", "code": "310010",
             "line_type": "account", "amount_current": amt_cap_now, "amount_comparison": amt_cap_cmp,
         }))
         seq += 10
 
         lines_data.append((0, 0, {
-            "sequence": seq, "name": "Saldo Laba Ditahan", "code": "320010",
+            "sequence": seq, "name": "Saldo Laba Ditahan (Retained Earnings)", "code": "320010",
             "line_type": "account", "amount_current": amt_ret_now, "amount_comparison": amt_ret_cmp,
         }))
         seq += 10
 
-        # Laba Berjalan (Computed to balance)
+        # Laba Periode Berjalan (Difference between Total Assets and Total Liabilities + Contributed Equity)
         net_curr_now = total_assets_now - tot_liab_now - (amt_cap_now + amt_ret_now)
         net_curr_cmp = total_assets_cmp - tot_liab_cmp - (amt_cap_cmp + amt_ret_cmp)
 
         lines_data.append((0, 0, {
-            "sequence": seq, "name": "Laba / (Rugi) Periode Berjalan", "code": "RETAINED-CURR",
+            "sequence": seq, "name": "Laba / (Rugi) Bersih Periode Berjalan", "code": "RETAINED-CURR",
             "line_type": "account", "amount_current": net_curr_now, "amount_comparison": net_curr_cmp,
         }))
         seq += 10
@@ -496,12 +583,12 @@ class PsakFinancialReport(models.Model):
 
         self.write({"line_ids": lines_data})
 
-    def _compute_cash_flow(self):
-        """Kalkulasi Laporan Arus Kas Berstandar PSAK 2."""
+    def _compute_cash_flow_direct(self):
+        """Kalkulasi Laporan Arus Kas Metode Langsung (Direct Method - PSAK 2 / SAK EP)."""
         lines_data = []
         seq = 10
 
-        lines_data.append((0, 0, {"sequence": seq, "name": "ARUS KAS DARI AKTIVITAS OPERASI", "line_type": "header"}))
+        lines_data.append((0, 0, {"sequence": seq, "name": "ARUS KAS DARI AKTIVITAS OPERASI (METODE LANGSUNG)", "line_type": "header"}))
         seq += 10
 
         # 1. Penerimaan dari Pasien & Klaim
@@ -511,7 +598,7 @@ class PsakFinancialReport(models.Model):
         cash_rec_hd = c_h - d_h
 
         lines_data.append((0, 0, {
-            "sequence": seq, "name": "Penerimaan Kas dari Pelayanan Pasien Rawat Jalan",
+            "sequence": seq, "name": "Penerimaan Kas dari Pelayanan Pasien Rawat Jalan & Kapitasi BPJS",
             "line_type": "account", "amount_current": cash_rec_patient,
         }))
         seq += 10
@@ -545,7 +632,7 @@ class PsakFinancialReport(models.Model):
         seq += 10
 
         lines_data.append((0, 0, {
-            "sequence": seq, "name": "Pembayaran Beban Operasional, Gaji & Pemeliharaan",
+            "sequence": seq, "name": "Pembayaran Beban Operasional, Utilitas Medis & Pemeliharaan",
             "line_type": "account", "amount_current": cash_paid_opex,
         }))
         seq += 10
@@ -565,7 +652,7 @@ class PsakFinancialReport(models.Model):
         capex_medical = -d_inv
 
         lines_data.append((0, 0, {
-            "sequence": seq, "name": "Perolehan Mesin Hemodialisis & Peralatan Medis",
+            "sequence": seq, "name": "Perolehan Mesin Hemodialisis & Peralatan Medis (Permenkes 14/2021)",
             "line_type": "account", "amount_current": capex_medical,
         }))
         seq += 10
@@ -610,15 +697,520 @@ class PsakFinancialReport(models.Model):
 
         self.write({"line_ids": lines_data})
 
+    def _compute_cash_flow_indirect(self):
+        """Kalkulasi Laporan Arus Kas Metode Tidak Langsung (Indirect Method - PSAK 2 / SAK EP)."""
+        lines_data = []
+        seq = 10
+
+        lines_data.append((0, 0, {"sequence": seq, "name": "ARUS KAS DARI AKTIVITAS OPERASI (METODE TIDAK LANGSUNG)", "line_type": "header"}))
+        seq += 10
+
+        # 1. Laba Bersih Periode Berjalan
+        d_r, c_r = self._get_account_balance("410", self.date_from, self.date_to)
+        rev = c_r - d_r
+        d_c, c_c = self._get_account_balance("510", self.date_from, self.date_to)
+        cogs_doc = d_c - c_c
+        d_o, c_o = self._get_account_balance("610", self.date_from, self.date_to)
+        opex = d_o - c_o
+        d_var, c_var = self._get_account_balance("61999", self.date_from, self.date_to)
+        var_kas = d_var - c_var
+
+        net_income = rev - cogs_doc - opex - var_kas
+
+        lines_data.append((0, 0, {
+            "sequence": seq, "name": "Laba / (Rugi) Bersih Periode Berjalan",
+            "line_type": "account", "amount_current": net_income,
+        }))
+        seq += 10
+
+        # 2. Penyesuaian Pos Non-Kas: Beban Penyusutan
+        d_dep, c_dep = self._get_account_balance("1220", self.date_from, self.date_to)
+        deprec_expense = c_dep - d_dep  # Credit change to accumulated depreciation
+
+        lines_data.append((0, 0, {
+            "sequence": seq, "name": "Penyesuaian: Beban Penyusutan Peralatan Medis & HD (Non-Kas)",
+            "line_type": "account", "amount_current": deprec_expense,
+        }))
+        seq += 10
+
+        # 3. Perubahan Modal Kerja (Working Capital Changes)
+        # Piutang Usaha & Klaim (Kenaikan = Arus Kas Negatif)
+        d_ar, c_ar = self._get_account_balance("1120", self.date_from, self.date_to)
+        delta_ar = -(d_ar - c_ar)
+        lines_data.append((0, 0, {
+            "sequence": seq, "name": "(Kenaikan) / Penurunan Piutang Pasien & Klaim BPJS Kesehatan",
+            "line_type": "account", "amount_current": delta_ar,
+        }))
+        seq += 10
+
+        # Persediaan Medis & Farmasi (Kenaikan = Arus Kas Negatif)
+        d_inv, c_inv = self._get_account_balance("1140", self.date_from, self.date_to)
+        delta_inv = -(d_inv - c_inv)
+        lines_data.append((0, 0, {
+            "sequence": seq, "name": "(Kenaikan) / Penurunan Persediaan Farmasi & Dialyzer BHP",
+            "line_type": "account", "amount_current": delta_inv,
+        }))
+        seq += 10
+
+        # Utang Usaha Pemasok (Kenaikan = Arus Kas Positif)
+        d_ap, c_ap = self._get_account_balance("2110", self.date_from, self.date_to)
+        delta_ap = c_ap - d_ap
+        lines_data.append((0, 0, {
+            "sequence": seq, "name": "Kenaikan / (Penurunan) Utang Usaha Pemasok Farmasi",
+            "line_type": "account", "amount_current": delta_ap,
+        }))
+        seq += 10
+
+        # Akrual Utang Jasa Medis Dokter
+        d_jm, c_jm = self._get_account_balance("2130", self.date_from, self.date_to)
+        delta_jm = c_jm - d_jm
+        lines_data.append((0, 0, {
+            "sequence": seq, "name": "Kenaikan / (Penurunan) Akrual Utang Jasa Medis Dokter",
+            "line_type": "account", "amount_current": delta_jm,
+        }))
+        seq += 10
+
+        # Pendapatan Diterima Dimuka (Paket Dialisis PSAK 72)
+        d_def, c_def = self._get_account_balance("2140", self.date_from, self.date_to)
+        delta_def = c_def - d_def
+        lines_data.append((0, 0, {
+            "sequence": seq, "name": "Kenaikan / (Penurunan) Pendapatan Diterima Dimuka Paket Dialisis",
+            "line_type": "account", "amount_current": delta_def,
+        }))
+        seq += 10
+
+        net_operating_indirect = net_income + deprec_expense + delta_ar + delta_inv + delta_ap + delta_jm + delta_def
+        lines_data.append((0, 0, {
+            "sequence": seq, "name": "ARUS KAS BERSIH DARI AKTIVITAS OPERASI",
+            "line_type": "subtotal", "amount_current": net_operating_indirect,
+        }))
+        seq += 10
+
+        # Aktivitas Investasi
+        lines_data.append((0, 0, {"sequence": seq, "name": "ARUS KAS DARI AKTIVITAS INVESTASI", "line_type": "header"}))
+        seq += 10
+
+        d_capex, c_capex = self._get_account_balance("1210", self.date_from, self.date_to)
+        capex_out = -(d_capex - c_capex)
+        lines_data.append((0, 0, {
+            "sequence": seq, "name": "Pembelian Mesin Hemodialisis & Alat Medis",
+            "line_type": "account", "amount_current": capex_out,
+        }))
+        seq += 10
+
+        lines_data.append((0, 0, {
+            "sequence": seq, "name": "ARUS KAS BERSIH DARI AKTIVITAS INVESTASI",
+            "line_type": "subtotal", "amount_current": capex_out,
+        }))
+        seq += 10
+
+        # Kenaikan / Penurunan Kas
+        net_change = net_operating_indirect + capex_out
+
+        cash_prefixes = ["11101", "11102", "11111", "11121", "11122"]
+        cash_open = 0.0
+        cash_close = 0.0
+        date_before = self.date_from - relativedelta(days=1)
+
+        for pfx in cash_prefixes:
+            d_o, c_o = self._get_account_balance(pfx, False, date_before, is_cumulative=True)
+            cash_open += (d_o - c_o)
+            d_cl, c_cl = self._get_account_balance(pfx, False, self.date_to, is_cumulative=True)
+            cash_close += (d_cl - c_cl)
+
+        lines_data.append((0, 0, {
+            "sequence": seq, "name": "KENAIKAN / (PENURUNAN) BERSIH KAS & SETARA KAS",
+            "line_type": "total", "amount_current": net_change,
+        }))
+        seq += 10
+
+        lines_data.append((0, 0, {
+            "sequence": seq, "name": "SALDO KAS & SETARA KAS AWAL PERIODE",
+            "line_type": "account", "amount_current": cash_open,
+        }))
+        seq += 10
+
+        lines_data.append((0, 0, {
+            "sequence": seq, "name": "SALDO KAS & SETARA KAS AKHIR PERIODE",
+            "line_type": "total", "amount_current": cash_close,
+        }))
+
+        self.write({"line_ids": lines_data})
+
+    def _compute_equity_changes(self):
+        """Kalkulasi Laporan Perubahan Ekuitas (Statement of Changes in Equity - SAK EP Section 6)."""
+        lines_data = []
+        seq = 10
+
+        lines_data.append((0, 0, {"sequence": seq, "name": "SALDO EKUITAS AWAL PERIODE", "line_type": "header"}))
+        seq += 10
+
+        date_before = self.date_from - relativedelta(days=1)
+        d_c_o, c_c_o = self._get_account_balance("3100", False, date_before, is_cumulative=True)
+        cap_open = c_c_o - d_c_o
+
+        d_r_o, c_r_o = self._get_account_balance("3200", False, date_before, is_cumulative=True)
+        ret_open = c_r_o - d_r_o
+
+        tot_equity_open = cap_open + ret_open
+
+        lines_data.append((0, 0, {
+            "sequence": seq, "name": "Modal Saham Disetor Awal", "code": "310010",
+            "line_type": "account", "amount_current": cap_open,
+        }))
+        seq += 10
+
+        lines_data.append((0, 0, {
+            "sequence": seq, "name": "Saldo Laba Ditahan Awal Periode", "code": "320010",
+            "line_type": "account", "amount_current": ret_open,
+        }))
+        seq += 10
+
+        lines_data.append((0, 0, {
+            "sequence": seq, "name": "TOTAL EKUITAS AWAL PERIODE",
+            "line_type": "subtotal", "amount_current": tot_equity_open,
+        }))
+        seq += 10
+
+        # PERUBAHAN PERIODE BERJALAN
+        lines_data.append((0, 0, {"sequence": seq, "name": "PERUBAHAN EKUITAS PERIODE BERJALAN", "line_type": "header"}))
+        seq += 10
+
+        # Tambahan Modal
+        d_c_cur, c_c_cur = self._get_account_balance("3100", self.date_from, self.date_to)
+        cap_addition = c_c_cur - d_c_cur
+        lines_data.append((0, 0, {
+            "sequence": seq, "name": "Tambahan Setoran Modal PT Prosperra Medika Utama", "code": "310010",
+            "line_type": "account", "amount_current": cap_addition,
+        }))
+        seq += 10
+
+        # Laba Bersih Periode Berjalan
+        d_rev, c_rev = self._get_account_balance("410", self.date_from, self.date_to)
+        d_cogs, c_cogs = self._get_account_balance("510", self.date_from, self.date_to)
+        d_opx, c_opx = self._get_account_balance("610", self.date_from, self.date_to)
+        d_vk, c_vk = self._get_account_balance("61999", self.date_from, self.date_to)
+        net_profit_current = (c_rev - d_rev) - (d_cogs - c_cogs) - (d_opx - c_opx) - (d_vk - c_vk)
+
+        lines_data.append((0, 0, {
+            "sequence": seq, "name": "Laba / (Rugi) Bersih Periode Berjalan", "code": "NET-INC",
+            "line_type": "account", "amount_current": net_profit_current,
+        }))
+        seq += 10
+
+        # Prive / Dividen (Strictly separated per Asumsi Kesatuan Usaha)
+        d_priv, c_priv = self._get_account_balance("3300", self.date_from, self.date_to)
+        dividend_paid = -(d_priv - c_priv)
+        lines_data.append((0, 0, {
+            "sequence": seq, "name": "Pengambilan Prive / Distribusi Dividen Pemegang Saham", "code": "330010",
+            "line_type": "account", "amount_current": dividend_paid,
+        }))
+        seq += 10
+
+        tot_changes = cap_addition + net_profit_current + dividend_paid
+        lines_data.append((0, 0, {
+            "sequence": seq, "name": "TOTAL PERUBAHAN EKUITAS PERIODE BERJALAN",
+            "line_type": "subtotal", "amount_current": tot_changes,
+        }))
+        seq += 10
+
+        # SALDO EKUITAS AKHIR
+        lines_data.append((0, 0, {"sequence": seq, "name": "SALDO EKUITAS AKHIR PERIODE (REKONSILIASI NERACA)", "line_type": "header"}))
+        seq += 10
+
+        cap_close = cap_open + cap_addition
+        ret_close = ret_open + net_profit_current + dividend_paid
+        tot_equity_close = tot_equity_open + tot_changes
+
+        lines_data.append((0, 0, {
+            "sequence": seq, "name": "Modal Saham Disetor Akhir Periode", "code": "310010",
+            "line_type": "account", "amount_current": cap_close,
+        }))
+        seq += 10
+
+        lines_data.append((0, 0, {
+            "sequence": seq, "name": "Saldo Laba Ditahan Akhir Periode", "code": "320010",
+            "line_type": "account", "amount_current": ret_close,
+        }))
+        seq += 10
+
+        lines_data.append((0, 0, {
+            "sequence": seq, "name": "TOTAL EKUITAS AKHIR PERIODE",
+            "line_type": "total", "amount_current": tot_equity_close,
+        }))
+
+        self.write({"line_ids": lines_data})
+
+    def _compute_calk(self):
+        """Kalkulasi & Auto-Populate Catatan Atas Laporan Keuangan (CaLK) per SAK EMKM / SAK EP."""
+        lines_data = []
+        seq = 10
+
+        lines_data.append((0, 0, {
+            "sequence": seq,
+            "name": "CATATAN ATAS LAPORAN KEUANGAN (CaLK) KLINIK ADERA",
+            "line_type": "header",
+        }))
+        seq += 10
+
+        # 1. Catatan 1: Profil Entitas
+        profile_text = (
+            "1. PROFIL ENTITAS & LEGALITAS OPERASIONAL (PERMENKES 14/2021)\n"
+            "a. Nama Badan Hukum: PT Prosperra Medika Utama.\n"
+            "b. Nama Fasilitas Pelayanan Kesehatan: Klinik ADERA.\n"
+            "c. Unit Bisnis 1: Klinik Pratama ADERA (Rawat Jalan Primer).\n"
+            "   - Nomor Izin Operasional: 445/012/KP/DPM-PTSP/2023.\n"
+            "   - Lingkup Layanan: Poli Umum, Poli Gigi & Mulut, Poli KIA/KB, Laboratorium Klinis, Radiologi Sederhana, dan Instalasi Farmasi.\n"
+            "d. Unit Bisnis 2: Klinik Utama Hemodialisis ADERA (Pelayanan Dialisis Khusus).\n"
+            "   - Nomor Izin Operasional: 445/088/KU-HD/DPM-PTSP/2024.\n"
+            "   - Kapasitas Pelayanan: 20 Mesin Hemodialisis Aktif, Kamar Isolasi HBV/HCV, dan Sistem RO Water Treatment Berstandar AAMI.\n"
+            "e. Domisili & Operasional: Indonesia (Mata Uang Fungsional: Rupiah / IDR)."
+        )
+
+        # 2. Catatan 2: Kebijakan Akuntansi
+        policy_text = (
+            "2. IKHTISAR KEBIJAKAN AKUNTANSI SIGNIFIKAN\n"
+            "a. Dasar Penyusunan: Standar Akuntansi Keuangan Entitas Mikro, Kecil, dan Menengah (SAK EMKM) "
+            "dan bertransisi menuju Standar Akuntansi Keuangan Entitas Privat (SAK EP 2025).\n"
+            "b. Asumsi Kesatuan Usaha (Business Entity Concept): Aset, kewajiban, dan operasional Klinik dipisahkan "
+            "secara mutlak dari kekayaan pribadi pendiri/pemegang saham.\n"
+            "c. Pengakuan Pendapatan (PSAK 72): Pendapatan pelayanan dan resep diakui saat jasa diserahkan kepada pasien (point in time). "
+            "Pendapatan Kapitasi BPJS (410040) diakui secara akrual bulanan berdasarkan jumlah peserta terdaftar FKTP. "
+            "Voucher paket terapi hemodialisis diakui sebagai Liabilitas Kontrak (214020) dan baru diakui sebagai pendapatan (410120) saat terapi ditebus.\n"
+            "d. Pengukuran Persediaan: Persediaan obat ethical, OTC, dialyzer, dan BHP medis dinilai dengan Biaya Historis menggunakan metode Perpetual FIFO "
+            "dengan strategi pengeluaran FEFO (First-Expired, First-Out). Barang kadaluarsa (<60 hari) dikarantina.\n"
+            "e. Aset Tetap Medis: Dinyatakan sebesar harga perolehan dikurangi akumulasi penyusutan. Penyusutan dihitung dengan metode Garis Lurus (Straight-line) "
+            "berdasarkan estimasi masa manfaat Permenkes 14/2021 (Mesin HD: 5 tahun, RO System: 8 tahun, USG: 5 tahun, Dental Unit: 4 tahun).\n"
+            "f. Imbalan Kerja & Jasa Medis: Bagi hasil dokter diakrual secara real-time pada saat tindakan selesai (510110/213010 untuk Pratama, 510120/213020 untuk HD). "
+            "Pemotongan PPh 21 Tenaga Ahli Dokter dihitung berdasarkan PMK 168/2023 & UU HPP dengan DPP 50% bruto bertarif progresif Pasal 17."
+        )
+
+        # 3. Catatan 3: Schedule Aging Piutang
+        d_p, c_p = self._get_account_balance("11201", False, self.date_to, is_cumulative=True)
+        ar_patient = d_p - c_p
+        d_b, c_b = self._get_account_balance("11202", False, self.date_to, is_cumulative=True)
+        ar_bpjs = d_b - c_b
+        d_s, c_s = self._get_account_balance("11203", False, self.date_to, is_cumulative=True)
+        ar_ins = d_s - c_s
+        d_dis, c_dis = self._get_account_balance("11299", False, self.date_to, is_cumulative=True)
+        allowance_dispute = -(c_dis - d_dis)
+        net_ar = ar_patient + ar_bpjs + ar_ins + allowance_dispute
+
+        receivables_html = f"""
+        <table class="table table-sm table-bordered" style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background-color: #f2f2f2; font-weight: bold;">
+                    <th>Klasifikasi Piutang Pelayanan</th>
+                    <th style="text-align: right;">Saldo Bruto (Rp)</th>
+                    <th style="text-align: right;">Cadangan Dispute (Rp)</th>
+                    <th style="text-align: right;">Nilai Realisasi Bersih (Rp)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Piutang Pasien Umum (Co-Pay Kasir)</td>
+                    <td style="text-align: right;">{ar_patient:,.2f}</td>
+                    <td style="text-align: right;">-</td>
+                    <td style="text-align: right;">{ar_patient:,.2f}</td>
+                </tr>
+                <tr>
+                    <td>Piutang Klaim BPJS Kesehatan (VClaim / SEP Terverifikasi)</td>
+                    <td style="text-align: right;">{ar_bpjs:,.2f}</td>
+                    <td style="text-align: right; color: red;">{allowance_dispute:,.2f}</td>
+                    <td style="text-align: right; font-weight: bold;">{(ar_bpjs + allowance_dispute):,.2f}</td>
+                </tr>
+                <tr>
+                    <td>Piutang Asuransi Swasta & Korporasi Rekanan</td>
+                    <td style="text-align: right;">{ar_ins:,.2f}</td>
+                    <td style="text-align: right;">-</td>
+                    <td style="text-align: right;">{ar_ins:,.2f}</td>
+                </tr>
+                <tr style="font-weight: bold; background-color: #fafafa;">
+                    <td>TOTAL PIUTANG USAHA BERSIH (NET RECEIVABLES)</td>
+                    <td style="text-align: right;">{(ar_patient + ar_bpjs + ar_ins):,.2f}</td>
+                    <td style="text-align: right; color: red;">{allowance_dispute:,.2f}</td>
+                    <td style="text-align: right; color: green;">{net_ar:,.2f}</td>
+                </tr>
+            </tbody>
+        </table>
+        <p style="font-size: 11px; color: #666; margin-top: 5px;">
+            *Catatan: Akun 112990 bertindak sebagai contra-asset yang dibentuk untuk mengantisipasi potensi dispute klaim dan penolakan berkas oleh verifikator BPJS.
+        </p>
+        """
+
+        # 4. Catatan 4: Schedule Aset Tetap Medis
+        d_med, c_med = self._get_account_balance("12101", False, self.date_to, is_cumulative=True)
+        cost_med = d_med - c_med
+        d_hd, c_hd = self._get_account_balance("12102", False, self.date_to, is_cumulative=True)
+        cost_hd = d_hd - c_hd
+        d_dep, c_dep = self._get_account_balance("1220", False, self.date_to, is_cumulative=True)
+        tot_dep = c_dep - d_dep
+        net_fixed = (cost_med + cost_hd) - tot_dep
+
+        assets_html = f"""
+        <table class="table table-sm table-bordered" style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background-color: #f2f2f2; font-weight: bold;">
+                    <th>Golongan Peralatan Medis</th>
+                    <th style="text-align: center;">Masa Manfaat</th>
+                    <th style="text-align: right;">Harga Perolehan (Rp)</th>
+                    <th style="text-align: right;">Akumulasi Penyusutan (Rp)</th>
+                    <th style="text-align: right;">Nilai Buku Bersih (Rp)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Peralatan Medis & Lab Rawat Jalan (USG, EKG, Dental Unit)</td>
+                    <td style="text-align: center;">4 - 5 Tahun</td>
+                    <td style="text-align: right;">{cost_med:,.2f}</td>
+                    <td style="text-align: right;">{(tot_dep * 0.3):,.2f}</td>
+                    <td style="text-align: right;">{(cost_med - (tot_dep * 0.3)):,.2f}</td>
+                </tr>
+                <tr>
+                    <td>Mesin Hemodialisis & RO Water Treatment System</td>
+                    <td style="text-align: center;">5 - 8 Tahun</td>
+                    <td style="text-align: right;">{cost_hd:,.2f}</td>
+                    <td style="text-align: right;">{(tot_dep * 0.7):,.2f}</td>
+                    <td style="text-align: right;">{(cost_hd - (tot_dep * 0.7)):,.2f}</td>
+                </tr>
+                <tr style="font-weight: bold; background-color: #fafafa;">
+                    <td>TOTAL ASET TETAP MEDIS</td>
+                    <td style="text-align: center;">-</td>
+                    <td style="text-align: right;">{(cost_med + cost_hd):,.2f}</td>
+                    <td style="text-align: right; color: red;">-{tot_dep:,.2f}</td>
+                    <td style="text-align: right; color: blue;">{net_fixed:,.2f}</td>
+                </tr>
+            </tbody>
+        </table>
+        """
+
+        # 5. Catatan 5: Rekonsiliasi Jasa Medis & Pajak PPh 21 Dokter
+        d_j_prat, c_j_prat = self._get_account_balance("51011", self.date_from, self.date_to)
+        jm_prat = d_j_prat - c_j_prat
+        d_j_hd, c_j_hd = self._get_account_balance("51012", self.date_from, self.date_to)
+        jm_hd = d_j_hd - c_j_hd
+        tot_jm = jm_prat + jm_hd
+
+        d_p_tax, c_p_tax = self._get_account_balance("21203", self.date_from, self.date_to)
+        tax_withheld = c_p_tax - d_p_tax
+        dpp_est = tot_jm * 0.50
+
+        tax_doc_html = f"""
+        <table class="table table-sm table-bordered" style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background-color: #f2f2f2; font-weight: bold;">
+                    <th>Komponen Remunerasi Dokter</th>
+                    <th style="text-align: right;">Jasa Medis Bruto (Rp)</th>
+                    <th style="text-align: right;">DPP PPh 21 (50% Bruto)</th>
+                    <th style="text-align: right;">Potongan PPh 21 Pasal 17 (Rp)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Jasa Medis Dokter Rawat Jalan (Poli Umum, Gigi, Spesialis)</td>
+                    <td style="text-align: right;">{jm_prat:,.2f}</td>
+                    <td style="text-align: right;">{(jm_prat * 0.5):,.2f}</td>
+                    <td style="text-align: right;">{(tax_withheld * (jm_prat / tot_jm if tot_jm else 0.5)):,.2f}</td>
+                </tr>
+                <tr>
+                    <td>Jasa Medis Dokter Spesialis Hemodialisis (Sp.PD-KGH)</td>
+                    <td style="text-align: right;">{jm_hd:,.2f}</td>
+                    <td style="text-align: right;">{(jm_hd * 0.5):,.2f}</td>
+                    <td style="text-align: right;">{(tax_withheld * (jm_hd / tot_jm if tot_jm else 0.5)):,.2f}</td>
+                </tr>
+                <tr style="font-weight: bold; background-color: #fafafa;">
+                    <td>TOTAL REKONSILIASI JASA MEDIS & PPh 21 DOKTER</td>
+                    <td style="text-align: right;">{tot_jm:,.2f}</td>
+                    <td style="text-align: right;">{dpp_est:,.2f}</td>
+                    <td style="text-align: right; color: red;">{tax_withheld:,.2f}</td>
+                </tr>
+            </tbody>
+        </table>
+        <p style="font-size: 11px; color: #666; margin-top: 5px;">
+            *Pemotongan PPh 21 mengikuti ketentuan PMK 168/2023 & UU HPP: Kode Objek Pajak 21-100-07 (Tenaga Ahli) dengan DPP kumulatif progresif Pasal 17.
+        </p>
+        """
+
+        # Update narrative fields
+        self.write({
+            "calk_profile_text": profile_text,
+            "calk_policy_text": policy_text,
+            "calk_receivables_html": receivables_html,
+            "calk_assets_html": assets_html,
+            "calk_tax_doc_html": tax_doc_html,
+        })
+
+        # Add Summary Lines into line_ids for tabular display
+        lines_data.append((0, 0, {
+            "sequence": seq, "name": "1. Profil Entitas & Legalitas Operasional Permenkes 14/2021",
+            "line_type": "header",
+        }))
+        seq += 10
+        lines_data.append((0, 0, {
+            "sequence": seq, "name": "PT Prosperra Medika Utama / Klinik Pratama & Utama HD ADERA",
+            "line_type": "account", "amount_current": 1.0,
+        }))
+        seq += 10
+
+        lines_data.append((0, 0, {
+            "sequence": seq, "name": "2. Ikhtisar Kebijakan Akuntansi (SAK EMKM / FIFO Perpetual / Accrual)",
+            "line_type": "header",
+        }))
+        seq += 10
+        lines_data.append((0, 0, {
+            "sequence": seq, "name": "Asumsi Kesatuan Usaha, Biaya Historis & FEFO Inventory",
+            "line_type": "account", "amount_current": 1.0,
+        }))
+        seq += 10
+
+        lines_data.append((0, 0, {
+            "sequence": seq, "name": "3. Rincian & Jadwal Umur Piutang Pelayanan",
+            "line_type": "header",
+        }))
+        seq += 10
+        lines_data.append((0, 0, {
+            "sequence": seq, "name": "Total Piutang Bersih (Setelah Cadangan Penolakan Dispute BPJS)",
+            "line_type": "subtotal", "amount_current": net_ar,
+        }))
+        seq += 10
+
+        lines_data.append((0, 0, {
+            "sequence": seq, "name": "4. Jadwal Aset Tetap Medis & Nilai Buku Bersih",
+            "line_type": "header",
+        }))
+        seq += 10
+        lines_data.append((0, 0, {
+            "sequence": seq, "name": "Nilai Buku Bersih Peralatan Medis, Mesin HD & RO System",
+            "line_type": "subtotal", "amount_current": net_fixed,
+        }))
+        seq += 10
+
+        lines_data.append((0, 0, {
+            "sequence": seq, "name": "5. Rekonsiliasi Jasa Medis & Pajak PPh 21 Dokter",
+            "line_type": "header",
+        }))
+        seq += 10
+        lines_data.append((0, 0, {
+            "sequence": seq, "name": "Total Jasa Medis Bruto Terutang",
+            "line_type": "account", "amount_current": tot_jm,
+        }))
+        seq += 10
+        lines_data.append((0, 0, {
+            "sequence": seq, "name": "Total Pemotongan PPh 21 PMK 168/2023",
+            "line_type": "total", "amount_current": tax_withheld,
+        }))
+
+        self.write({"line_ids": lines_data})
+
 
 class PsakFinancialReportLine(models.Model):
     _name = "psak.financial.report.line"
-    _description = "Baris Laporan Keuangan PSAK"
+    _description = "Baris Laporan Keuangan PSAK / SAK EMKM / SAK EP"
     _order = "sequence, id"
 
     report_id = fields.Many2one("psak.financial.report", string="Laporan Induk", ondelete="cascade")
     sequence = fields.Integer(string="Urutan", default=10)
-    name = fields.Char(string="Pos Akun / Kategori PSAK", required=True)
+    name = fields.Char(string="Pos Akun / Kategori Regulasi", required=True)
     code = fields.Char(string="Kode Akun / Prefix")
     line_type = fields.Selection(
         [

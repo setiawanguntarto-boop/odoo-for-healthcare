@@ -6,17 +6,38 @@ from datetime import date
 
 class PsakReportWizard(models.TransientModel):
     _name = "psak.report.wizard"
-    _description = "Wizard Laporan Keuangan PSAK Klinik ADERA"
+    _description = "Wizard Laporan Keuangan PSAK / SAK EMKM / SAK EP Klinik ADERA"
+
+    framework_standard = fields.Selection(
+        [
+            ("emkm", "SAK EMKM (Phase 1 Baseline - Standar Entitas Mikro, Kecil, Menengah)"),
+            ("sak_ep", "SAK EP / PSAK (Phase 2 Roadmap - Standar Entitas Privat)"),
+        ],
+        string="Standar Akuntansi Regulasi",
+        default="emkm",
+        required=True,
+    )
 
     report_type = fields.Selection(
         [
             ("profit_loss", "Laporan Laba Rugi (Statement of Profit or Loss)"),
             ("balance_sheet", "Neraca Keuangan (Statement of Financial Position)"),
-            ("cash_flow", "Laporan Arus Kas (Statement of Cash Flows)"),
+            ("cash_flow", "Laporan Arus Kas (Statement of Cash Flows - SAK EP)"),
+            ("equity_change", "Laporan Perubahan Ekuitas (Statement of Changes in Equity - SAK EP)"),
+            ("calk", "Catatan Atas Laporan Keuangan (CaLK - SAK EMKM / SAK EP)"),
         ],
         string="Jenis Laporan PSAK",
         required=True,
         default="profit_loss",
+    )
+
+    cash_flow_method = fields.Selection(
+        [
+            ("direct", "Metode Langsung (Direct Method)"),
+            ("indirect", "Metode Tidak Langsung (Indirect Method)"),
+        ],
+        string="Metode Arus Kas",
+        default="direct",
     )
 
     date_preset = fields.Selection(
@@ -61,7 +82,7 @@ class PsakReportWizard(models.TransientModel):
     analytic_account_id = fields.Many2one(
         "account.analytic.account",
         string="Filter Unit Bisnis Analitik",
-        help="Kosongkan untuk Laporan Konsolidasi Seluruh Klinik, atau pilih unit (Pratama vs HD)",
+        help="Kosongkan untuk Laporan Konsolidasi Seluruh Klinik, atau pilih unit (ACC-PRATAMA vs ACC-HD)",
     )
 
     journal_ids = fields.Many2many(
@@ -106,14 +127,19 @@ class PsakReportWizard(models.TransientModel):
         report_titles = {
             "profit_loss": "Laporan Laba Rugi Komprehensif",
             "balance_sheet": "Laporan Posisi Keuangan (Neraca)",
-            "cash_flow": "Laporan Arus Kas",
+            "cash_flow": f"Laporan Arus Kas ({'Tidak Langsung' if self.cash_flow_method == 'indirect' else 'Langsung'})",
+            "equity_change": "Laporan Perubahan Ekuitas (SAK EP)",
+            "calk": "Catatan Atas Laporan Keuangan (CaLK)",
         }
+        std_label = "[SAK EMKM] " if self.framework_standard == "emkm" else "[SAK EP] "
         unit_label = f"[{self.analytic_account_id.name}] " if self.analytic_account_id else "[Konsolidasi Klinik] "
-        name = f"{unit_label}{report_titles.get(self.report_type)} ({self.date_from.strftime('%d/%m/%Y')} - {self.date_to.strftime('%d/%m/%Y')})"
+        name = f"{std_label}{unit_label}{report_titles.get(self.report_type)} ({self.date_from.strftime('%d/%m/%Y')} - {self.date_to.strftime('%d/%m/%Y')})"
 
         report = self.env["psak.financial.report"].create({
             "name": name,
+            "framework_standard": self.framework_standard,
             "report_type": self.report_type,
+            "cash_flow_method": self.cash_flow_method,
             "date_from": self.date_from,
             "date_to": self.date_to,
             "target_move": self.target_move,

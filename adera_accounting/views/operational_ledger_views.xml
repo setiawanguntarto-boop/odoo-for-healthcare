@@ -94,3 +94,4 @@
         <field name="domain">[('journal_id.type', 'in', ('bank', 'cash'))]</field>
     </record>
 </odoo>
+

@@ -5,34 +5,38 @@
         <field name="name">psak.financial.report.form</field>
         <field name="model">psak.financial.report</field>
         <field name="arch" type="xml">
-            <form string="Laporan Keuangan PSAK">
+            <form string="Laporan Keuangan PSAK / SAK EMKM / SAK EP">
                 <header>
                     <button name="action_recompute" string="Hitung Ulang (Refresh Data)" type="object" class="btn-primary" icon="fa-refresh"/>
-                    <button name="%(action_psak_wizard_profit_loss)d" string="Ubah Filter Parameter" type="action" class="btn-secondary" invisible="report_type != 'profit_loss'"/>
-                    <button name="%(action_psak_wizard_balance_sheet)d" string="Ubah Filter Parameter" type="action" class="btn-secondary" invisible="report_type != 'balance_sheet'"/>
-                    <button name="%(action_psak_wizard_cash_flow)d" string="Ubah Filter Parameter" type="action" class="btn-secondary" invisible="report_type != 'cash_flow'"/>
+                    <button name="%(action_psak_wizard_profit_loss)d" string="Ubah Filter" type="action" class="btn-secondary" invisible="report_type != 'profit_loss'"/>
+                    <button name="%(action_psak_wizard_balance_sheet)d" string="Ubah Filter" type="action" class="btn-secondary" invisible="report_type != 'balance_sheet'"/>
+                    <button name="%(action_psak_wizard_cash_flow)d" string="Ubah Filter" type="action" class="btn-secondary" invisible="report_type != 'cash_flow'"/>
+                    <button name="%(action_psak_wizard_equity_change)d" string="Ubah Filter" type="action" class="btn-secondary" invisible="report_type != 'equity_change'"/>
+                    <button name="%(action_psak_wizard_calk)d" string="Ubah Filter" type="action" class="btn-secondary" invisible="report_type != 'calk'"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
-                        <span class="o_form_label text-muted">Laporan Keuangan PSAK Klinik ADERA</span>
+                        <span class="o_form_label text-muted">Klinik ADERA - PT Prosperra Medika Utama</span>
                         <h1 class="text-primary">
                             <field name="name" readonly="1"/>
                         </h1>
                     </div>
                     <group>
-                        <group string="Informasi Periode &amp; Filter">
+                        <group string="Informasi Regulasi &amp; Standar">
+                            <field name="framework_standard" readonly="1"/>
                             <field name="report_type" readonly="1"/>
+                            <field name="cash_flow_method" readonly="1" invisible="report_type != 'cash_flow'"/>
+                            <field name="analytic_account_id" readonly="1"/>
+                        </group>
+                        <group string="Periode &amp; Filter">
                             <label for="date_from" string="Periode Pelaporan"/>
                             <div class="o_row">
                                 <field name="date_from" readonly="1"/> s/d <field name="date_to" readonly="1"/>
                             </div>
-                            <field name="analytic_account_id" readonly="1"/>
-                        </group>
-                        <group string="Standar &amp; Pembanding">
                             <field name="target_move" readonly="1"/>
-                            <field name="comparison_type" readonly="1"/>
-                            <label for="date_from_cmp" string="Periode Pembanding" invisible="comparison_type == 'none'"/>
-                            <div class="o_row" invisible="comparison_type == 'none'">
+                            <field name="comparison_type" readonly="1" invisible="report_type in ('calk', 'equity_change')"/>
+                            <label for="date_from_cmp" string="Periode Pembanding" invisible="comparison_type == 'none' or report_type in ('calk', 'equity_change')"/>
+                            <div class="o_row" invisible="comparison_type == 'none' or report_type in ('calk', 'equity_change')">
                                 <field name="date_from_cmp" readonly="1"/> s/d <field name="date_to_cmp" readonly="1"/>
                             </div>
                             <field name="company_id" readonly="1" groups="base.group_multi_company"/>
@@ -40,14 +44,14 @@
                     </group>
 
                     <notebook>
-                        <page string="Tabel Laporan Keuangan PSAK" name="report_lines">
+                        <page string="Tabel Laporan Keuangan" name="report_lines">
                             <field name="line_ids" readonly="1">
                                 <list decoration-bf="line_type in ('subtotal', 'total', 'header')"
                                       decoration-muted="line_type == 'header'"
                                       decoration-primary="line_type == 'total'">
                                     <field name="sequence" column_invisible="1"/>
                                     <field name="code" string="Akun / Ref"/>
-                                    <field name="name" string="Pos Keuangan PSAK"/>
+                                    <field name="name" string="Pos Keuangan / Standar"/>
                                     <field name="amount_current" string="Periode Berjalan" widget="monetary" sum="Total"/>
                                     <field name="amount_comparison" string="Pembanding" widget="monetary" column_invisible="parent.comparison_type == 'none'"/>
                                     <field name="variance_amount" string="Selisih (Rp)" widget="monetary" column_invisible="parent.comparison_type == 'none'"/>
@@ -56,6 +60,24 @@
                                     <field name="line_type" column_invisible="1"/>
                                 </list>
                             </field>
+                        </page>
+
+                        <page string="Rincian Pengungkapan CaLK (Permenkes 14/2021 &amp; SAK EMKM)" name="calk_notes" invisible="report_type != 'calk'">
+                            <group string="Catatan 1: Profil Entitas &amp; Legalitas Operasional">
+                                <field name="calk_profile_text" readonly="1" nolabel="1"/>
+                            </group>
+                            <group string="Catatan 2: Ikhtisar Kebijakan Akuntansi Signifikan">
+                                <field name="calk_policy_text" readonly="1" nolabel="1"/>
+                            </group>
+                            <group string="Catatan 3: Rincian &amp; Jadwal Umur Piutang Pasien &amp; Klaim BPJS">
+                                <field name="calk_receivables_html" readonly="1" widget="html" nolabel="1"/>
+                            </group>
+                            <group string="Catatan 4: Jadwal Aset Tetap Medis &amp; Penyusutan">
+                                <field name="calk_assets_html" readonly="1" widget="html" nolabel="1"/>
+                            </group>
+                            <group string="Catatan 5: Rekonsiliasi Jasa Medis &amp; Pajak PPh 21 Dokter">
+                                <field name="calk_tax_doc_html" readonly="1" widget="html" nolabel="1"/>
+                            </group>
                         </page>
                     </notebook>
                 </sheet>
@@ -68,8 +90,9 @@
         <field name="name">psak.financial.report.tree</field>
         <field name="model">psak.financial.report</field>
         <field name="arch" type="xml">
-            <list string="Daftar Riwayat Laporan PSAK">
+            <list string="Daftar Riwayat Laporan Keuangan PSAK / SAK EMKM / SAK EP">
                 <field name="name"/>
+                <field name="framework_standard"/>
                 <field name="report_type"/>
                 <field name="date_from"/>
                 <field name="date_to"/>

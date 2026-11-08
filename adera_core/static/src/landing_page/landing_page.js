@@ -49,3 +49,4 @@ export class AderaLandingPage extends Component {
 }
 
 registry.category("actions").add("adera_core.landing_page", AderaLandingPage);
+

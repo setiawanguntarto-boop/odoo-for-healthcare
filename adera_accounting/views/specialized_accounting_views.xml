@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Medical Fixed Asset Views -->
+    <record id="view_medical_fixed_asset_tree" model="ir.ui.view">
+        <field name="name">medical.fixed.asset.tree</field>
+        <field name="model">medical.fixed.asset</field>
+        <field name="arch" type="xml">
+            <list string="Aset Tetap Peralatan Medis (Permenkes 14/2021)">
+                <field name="asset_code"/>
+                <field name="name"/>
+                <field name="category"/>
+                <field name="acquisition_date"/>
+                <field name="acquisition_cost" widget="monetary"/>
+                <field name="monthly_depreciation" widget="monetary"/>
+                <field name="accumulated_depreciation" widget="monetary"/>
+                <field name="net_book_value" widget="monetary"/>
+                <field name="analytic_account_id"/>
+                <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'running'" decoration-muted="state == 'closed'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_medical_fixed_asset_form" model="ir.ui.view">
+        <field name="name">medical.fixed.asset.form</field>
+        <field name="model">medical.fixed.asset</field>
+        <field name="arch" type="xml">
+            <form string="Peralatan Medis &amp; Penyusutan">
+                <header>
+                    <button name="action_confirm_running" string="Aktifkan &amp; Operasikan Aset" type="object" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_post_monthly_depreciation" string="Bukukan Penyusutan Bulan Ini" type="object" class="btn-success" invisible="state != 'running'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,running,closed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" string="Nama Aset Medis"/>
+                        <h1>
+                            <field name="name" placeholder="Contoh: Mesin Hemodialisis Fresenius 4008S - Unit 01"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Spesifikasi &amp; Regulasi Permenkes 14/2021">
+                            <field name="asset_code"/>
+                            <field name="category"/>
+                            <field name="acquisition_date"/>
+                            <field name="useful_life_months"/>
+                            <field name="depreciation_method"/>
+                        </group>
+                        <group string="Penilaian Finansial (Historical Cost)">
+                            <field name="acquisition_cost" widget="monetary"/>
+                            <field name="salvage_value" widget="monetary"/>
+                            <field name="monthly_depreciation" widget="monetary"/>
+                            <field name="accumulated_depreciation" widget="monetary"/>
+                            <field name="net_book_value" widget="monetary"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <group string="Pemetaan Akun PSAK &amp; Unit Bisnis">
+                        <group>
+                            <field name="asset_account_id"/>
+                            <field name="accumulated_depreciation_account_id"/>
+                        </group>
+                        <group>
+                            <field name="depreciation_expense_account_id"/>
+                            <field name="analytic_account_id"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Riwayat Entri Jurnal Penyusutan" name="deprec_moves">
+                            <field name="depreciation_move_ids" readonly="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="date"/>
+                                    <field name="ref"/>
+                                    <field name="amount_total" widget="monetary"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_medical_fixed_assets" model="ir.actions.act_window">
+        <field name="name">Peralatan Medis &amp; Penyusutan</field>
+        <field name="res_model">medical.fixed.asset</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- BPJS Capitation Recognition Wizard View -->
+    <record id="view_bpjs_capitation_recognition_form" model="ir.ui.view">
+        <field name="name">bpjs.capitation.recognition.form</field>
+        <field name="model">bpjs.capitation.recognition</field>
+        <field name="arch" type="xml">
+            <form string="Pengakuan Akrual Pendapatan Kapitasi BPJS Kesehatan FKTP">
+                <sheet>
+                    <div class="oe_title">
+                        <h2>Pengakuan Akrual Pendapatan Kapitasi BPJS Kesehatan (FKTP)</h2>
+                    </div>
+                    <group>
+                        <group string="Cakupan Periode &amp; Kepesertaan">
+                            <field name="name"/>
+                            <field name="period_month"/>
+                            <field name="period_year"/>
+                            <field name="recognition_date"/>
+                            <field name="registered_participants"/>
+                            <field name="rate_per_participant" widget="monetary"/>
+                        </group>
+                        <group string="Finansial &amp; Akun PSAK">
+                            <field name="total_amount" widget="monetary"/>
+                            <field name="bank_journal_id"/>
+                            <field name="income_account_id"/>
+                            <field name="analytic_account_id"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_post_capitation" string="Bukukan Pendapatan Kapitasi" type="object" class="btn-primary"/>
+                    <button string="Batal" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_bpjs_capitation_wizard" model="ir.actions.act_window">
+        <field name="name">Pengakuan Kapitasi BPJS</field>
+        <field name="res_model">bpjs.capitation.recognition</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- BPJS Dispute Provision Wizard View -->
+    <record id="view_bpjs_dispute_provision_form" model="ir.ui.view">
+        <field name="name">bpjs.dispute.provision.form</field>
+        <field name="model">bpjs.dispute.provision</field>
+        <field name="arch" type="xml">
+            <form string="Pembentukan Cadangan Penolakan / Dispute Klaim BPJS (112990)">
+                <sheet>
+                    <div class="oe_title">
+                        <h2>Cadangan Dispute Klaim BPJS (Contra-Asset 112990)</h2>
+                    </div>
+                    <group>
+                        <group string="Rincian Berkas Klaim Terdispute">
+                            <field name="name" placeholder="Nomor SEP / Berita Acara Rekonsiliasi..."/>
+                            <field name="date"/>
+                            <field name="dispute_amount" widget="monetary"/>
+                            <field name="reason" placeholder="Contoh: Dispute pending verifikasi kelayakan tindakan HD berkas rekam medis..."/>
+                        </group>
+                        <group string="Pemetaan Jurnal &amp; Contra-Asset">
+                            <field name="expense_account_id"/>
+                            <field name="allowance_account_id"/>
+                            <field name="analytic_account_id"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_post_provision" string="Bukukan Cadangan Dispute" type="object" class="btn-warning"/>
+                    <button string="Batal" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_bpjs_dispute_wizard" model="ir.actions.act_window">
+        <field name="name">Cadangan Dispute Klaim BPJS</field>
+        <field name="res_model">bpjs.dispute.provision</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- Clinic Prepaid Dialysis Package Views (PSAK 72) -->
+    <record id="view_clinic_prepaid_dialysis_package_tree" model="ir.ui.view">
+        <field name="name">clinic.prepaid.dialysis.package.tree</field>
+        <field name="model">clinic.prepaid.dialysis.package</field>
+        <field name="arch" type="xml">
+            <list string="Paket Terapi Hemodialisis (PSAK 72)">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="purchase_date"/>
+                <field name="package_type"/>
+                <field name="total_sessions"/>
+                <field name="sessions_used"/>
+                <field name="sessions_remaining"/>
+                <field name="package_price" widget="monetary"/>
+                <field name="price_per_session" widget="monetary"/>
+                <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'active'" decoration-muted="state == 'depleted'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_clinic_prepaid_dialysis_package_form" model="ir.ui.view">
+        <field name="name">clinic.prepaid.dialysis.package.form</field>
+        <field name="model">clinic.prepaid.dialysis.package</field>
+        <field name="arch" type="xml">
+            <form string="Paket Terapi Hemodialisis (PSAK 72)">
+                <header>
+                    <button name="action_confirm_payment" string="Konfirmasi Penerimaan Uang Dimuka (214020)" type="object" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_redeem_single_session" string="Tebus 1 Sesi Terapi (Akui Pendapatan 410120)" type="object" class="btn-success" invisible="state != 'active'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,active,depleted"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" string="Nomor Voucher Paket"/>
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Informasi Pasien &amp; Pembelian">
+                            <field name="partner_id"/>
+                            <field name="purchase_date"/>
+                            <field name="package_type"/>
+                            <field name="payment_journal_id"/>
+                        </group>
+                        <group string="Kuota Sesi &amp; Nilai PSAK 72">
+                            <field name="total_sessions"/>
+                            <field name="sessions_used"/>
+                            <field name="sessions_remaining"/>
+                            <field name="package_price" widget="monetary"/>
+                            <field name="price_per_session" widget="monetary"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <group string="Akun PSAK 72 Pendapatan Diterima Dimuka">
+                        <field name="deferred_revenue_account_id"/>
+                        <field name="earned_income_account_id"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_clinic_prepaid_dialysis_packages" model="ir.actions.act_window">
+        <field name="name">Paket Dialisis Dimuka (PSAK 72)</field>
+        <field name="res_model">clinic.prepaid.dialysis.package</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

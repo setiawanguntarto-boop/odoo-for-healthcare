@@ -15,6 +15,7 @@
         'account',
         'analytic',
         'adera_core',
+        'adera_doctor_remuneration',
         'account_financial_report',
     ],
     'data': [
@@ -22,7 +23,9 @@
         'wizard/psak_report_wizard_view.xml',
         'views/account_report_views.xml',
         'views/operational_ledger_views.xml',
+        'views/specialized_accounting_views.xml',
         'views/menu_views.xml',
         'reports/psak_report_templates.xml',
     ],
 }
+

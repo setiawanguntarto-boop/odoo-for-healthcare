@@ -60,7 +60,7 @@
 
         <record id="account_112990" model="account.account">
             <field name="code">112990</field>
-            <field name="name">Cadangan Kerugian Penurunan Nilai Piutang Klaim</field>
+            <field name="name">Cadangan Kerugian Penolakan / Dispute Klaim BPJS</field>
             <field name="account_type">asset_current</field>
         </record>
 
@@ -89,6 +89,27 @@
             <field name="code">114040</field>
             <field name="name">Persediaan Reagen Lab &amp; Konsumabel Penunjang</field>
             <field name="account_type">asset_current</field>
+        </record>
+
+        <!-- ===================================================================
+             1-2000 to 1-2999: ASET TIDAK LANCAR (account_type = asset_non_current)
+             =================================================================== -->
+        <record id="account_121010" model="account.account">
+            <field name="code">121010</field>
+            <field name="name">Peralatan Medis &amp; Laboratorium (USG, EKG, Dental)</field>
+            <field name="account_type">asset_non_current</field>
+        </record>
+
+        <record id="account_121020" model="account.account">
+            <field name="code">121020</field>
+            <field name="name">Mesin Hemodialisis &amp; RO Water Treatment System</field>
+            <field name="account_type">asset_non_current</field>
+        </record>
+
+        <record id="account_122010" model="account.account">
+            <field name="code">122010</field>
+            <field name="name">Akumulasi Penyusutan Peralatan Medis &amp; Mesin HD</field>
+            <field name="account_type">asset_non_current</field>
         </record>
 
         <!-- ===================================================================
@@ -171,9 +192,24 @@
 
         <record id="account_214020" model="account.account">
             <field name="code">214020</field>
-            <field name="name">Deposit &amp; Voucher Saldo Pasien</field>
+            <field name="name">Pendapatan Diterima Dimuka Paket Dialisis (PSAK 72)</field>
             <field name="account_type">liability_current</field>
             <field name="reconcile" eval="True"/>
+        </record>
+
+        <!-- ===================================================================
+             3-1000 to 3-9999: EKUITAS (account_type = equity)
+             =================================================================== -->
+        <record id="account_310010" model="account.account">
+            <field name="code">310010</field>
+            <field name="name">Modal Saham Disetor PT Prosperra Medika Utama</field>
+            <field name="account_type">equity</field>
+        </record>
+
+        <record id="account_320010" model="account.account">
+            <field name="code">320010</field>
+            <field name="name">Saldo Laba Ditahan (Retained Earnings)</field>
+            <field name="account_type">equity_unaffected</field>
         </record>
 
         <!-- ===================================================================
@@ -199,7 +235,7 @@
 
         <record id="account_410040" model="account.account">
             <field name="code">410040</field>
-            <field name="name">Pendapatan Layanan Laboratorium</field>
+            <field name="name">Pendapatan Kapitasi BPJS Kesehatan FKTP</field>
             <field name="account_type">income</field>
         </record>
 
@@ -302,6 +338,12 @@
         <record id="account_610040" model="account.account">
             <field name="code">610040</field>
             <field name="name">Beban Lisensi IT, Integrasi EHR &amp; SATUSEHAT</field>
+            <field name="account_type">expense</field>
+        </record>
+
+        <record id="account_619000" model="account.account">
+            <field name="code">619000</field>
+            <field name="name">Beban Operasional Umum &amp; Beban Dispute Klaim BPJS</field>
             <field name="account_type">expense</field>
         </record>
 

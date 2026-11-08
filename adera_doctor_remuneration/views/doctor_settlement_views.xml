@@ -10,8 +10,11 @@
                 <field name="date_settlement"/>
                 <field name="total_gross_fee" sum="Total Bruto"/>
                 <field name="dpp_amount" sum="Total DPP"/>
+                <field name="cumulative_dpp_total" optional="show"/>
                 <field name="pph21_amount" sum="Total PPh 21"/>
+                <field name="effective_tax_rate" widget="percentage" optional="show"/>
                 <field name="net_fee_payable" sum="Total Net"/>
+                <field name="ebupot_bupot_number" optional="hide"/>
                 <field name="state" widget="badge"
                        decoration-info="state == 'draft'"
                        decoration-warning="state == 'calculated'"
@@ -24,7 +27,7 @@
         <field name="name">doctor.settlement.form</field>
         <field name="model">doctor.settlement</field>
         <field name="arch" type="xml">
-            <form string="Settlement Remunerasi &amp; PPh 21 Dokter">
+            <form string="Settlement Remunerasi &amp; PPh 21 Dokter (PMK 168/2023)">
                 <header>
                     <button name="action_load_fee_lines" string="Tarik Jasa Medis (Load Accruals)"
                             type="object" class="oe_highlight" invisible="state != 'draft'"/>
@@ -36,12 +39,13 @@
                 </header>
                 <sheet>
                     <div class="oe_title">
+                        <span class="o_form_label text-muted">Bukti Potong PPh 21 &amp; Settlement Dokter</span>
                         <h1>
                             <field name="name" readonly="1"/>
                         </h1>
                     </div>
                     <group>
-                        <group string="Identitas Dokter &amp; Periode">
+                        <group string="Identitas Dokter &amp; Periode Pelayanan">
                             <field name="doctor_id" readonly="state != 'draft'"/>
                             <field name="date_settlement" readonly="state in ('paid', 'cancelled')"/>
                             <label for="date_from" string="Periode Pelayanan"/>
@@ -49,11 +53,25 @@
                                 <field name="date_from" readonly="state != 'draft'"/> s/d <field name="date_to" readonly="state != 'draft'"/>
                             </div>
                         </group>
-                        <group string="Akun Pengeluaran Kas">
+                        <group string="Penyaluran Dana &amp; Jurnal Bank">
                             <field name="bank_journal_id" readonly="state in ('paid', 'cancelled')"/>
                             <field name="payment_move_id" readonly="1"/>
+                            <field name="ebupot_bupot_number" readonly="1"/>
                         </group>
                     </group>
+
+                    <group string="Perhitungan Pajak Progresif PMK 168/2023 &amp; UU HPP">
+                        <group>
+                            <field name="cumulative_gross_prior" widget="monetary" readonly="1"/>
+                            <field name="cumulative_dpp_prior" widget="monetary" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="dpp_amount" widget="monetary" readonly="1"/>
+                            <field name="cumulative_dpp_total" widget="monetary" readonly="1"/>
+                            <field name="effective_tax_rate" readonly="1"/>
+                        </group>
+                    </group>
+
                     <notebook>
                         <page string="Rincian Pelayanan Medis" name="fee_lines">
                             <field name="fee_line_ids" readonly="state in ('paid', 'cancelled')">
@@ -71,9 +89,21 @@
                                 <field name="dpp_amount" widget="monetary"/>
                                 <field name="pph21_amount" widget="monetary"/>
                                 <div class="oe_subtotal_footer_separator oe_inline o_td_label">
-                                    <label for="net_fee_payable" string="Take Home Pay (Net)"/>
+                                    <label for="net_fee_payable" string="Take Home Pay (Net Transfer)"/>
                                 </div>
                                 <field name="net_fee_payable" nolabel="1" class="oe_subtotal_footer_separator" widget="monetary"/>
+                            </group>
+                        </page>
+
+                        <page string="Integrasi DJP e-Bupot 21/26 Unifikasi" name="ebupot_integration">
+                            <group>
+                                <group string="Atribut Bukti Potong Elektronik">
+                                    <field name="ebupot_tax_code"/>
+                                    <field name="ebupot_bupot_number"/>
+                                </group>
+                            </group>
+                            <group string="Payload Terstruktur JSON DJP e-Bupot">
+                                <field name="ebupot_json_data" widget="text" readonly="1" nolabel="1"/>
                             </group>
                         </page>
                     </notebook>
@@ -94,4 +124,3 @@
     <menuitem id="menu_medical_fee_accrual_action" name="Daftar Akrual Jasa Medis" parent="menu_doctor_remuneration_root" action="action_medical_fee_accrual" sequence="20"/>
     <menuitem id="menu_medical_fee_rule_action" name="Aturan Bagi Hasil" parent="menu_doctor_remuneration_root" action="action_medical_fee_rule" sequence="30"/>
 </odoo>
-

@@ -26,3 +26,4 @@ class AccountMove(models.Model):
                 line.account_id.code and line.account_id.code.startswith("112020")
                 for line in move.line_ids
             )
+

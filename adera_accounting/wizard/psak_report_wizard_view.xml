@@ -5,14 +5,16 @@
         <field name="name">psak.report.wizard.form</field>
         <field name="model">psak.report.wizard</field>
         <field name="arch" type="xml">
-            <form string="Parameter Laporan Keuangan PSAK">
+            <form string="Parameter Laporan Keuangan PSAK / SAK EMKM / SAK EP">
                 <sheet>
                     <div class="oe_title">
-                        <h2>Parameter Filter &amp; Eksekusi Laporan PSAK</h2>
+                        <h2>Parameter Filter &amp; Eksekusi Laporan Regulasi</h2>
                     </div>
                     <group>
-                        <group string="Konfigurasi Laporan">
+                        <group string="Konfigurasi Kerangka Standar">
+                            <field name="framework_standard" widget="radio"/>
                             <field name="report_type" widget="radio"/>
+                            <field name="cash_flow_method" invisible="report_type != 'cash_flow'"/>
                             <field name="analytic_account_id" placeholder="Konsolidasi Seluruh Klinik (ACC-PRATAMA vs ACC-HD)"/>
                             <field name="target_move" widget="radio"/>
                         </group>
@@ -25,7 +27,7 @@
                         </group>
                     </group>
 
-                    <group string="Analisis Komparatif (Comparative Analysis)">
+                    <group string="Analisis Komparatif (Comparative Analysis)" invisible="report_type in ('calk', 'equity_change')">
                         <group>
                             <field name="comparison_type"/>
                         </group>
@@ -49,7 +51,7 @@
         </field>
     </record>
 
-    <!-- Specific Actions for P&L, Balance Sheet, Cash Flow -->
+    <!-- Specific Actions for P&L, Balance Sheet, Cash Flow, Equity Change, CaLK -->
     <record id="action_psak_wizard_profit_loss" model="ir.actions.act_window">
         <field name="name">Laporan Laba Rugi (P&amp;L)</field>
         <field name="res_model">psak.report.wizard</field>
@@ -72,5 +74,21 @@
         <field name="view_mode">form</field>
         <field name="target">new</field>
         <field name="context">{'default_report_type': 'cash_flow'}</field>
+    </record>
+
+    <record id="action_psak_wizard_equity_change" model="ir.actions.act_window">
+        <field name="name">Laporan Perubahan Ekuitas (SAK EP)</field>
+        <field name="res_model">psak.report.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'default_report_type': 'equity_change', 'default_framework_standard': 'sak_ep'}</field>
+    </record>
+
+    <record id="action_psak_wizard_calk" model="ir.actions.act_window">
+        <field name="name">Catatan Atas Laporan Keuangan (CaLK)</field>
+        <field name="res_model">psak.report.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'default_report_type': 'calk'}</field>
     </record>
 </odoo>

@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 from odoo import models, fields, api
 from odoo.exceptions import UserError
+import json
 
 
 class DoctorSettlement(models.Model):
     _name = 'doctor.settlement'
-    _description = 'Rekapitulasi Remunerasi & Bukti Potong PPh 21 Dokter'
+    _description = 'Rekapitulasi Remunerasi & Bukti Potong PPh 21 Dokter (PMK 168/2023 & UU HPP)'
     _order = 'date_settlement desc, id desc'
 
     name = fields.Char(string='Nomor Rekap Settlement', required=True, copy=False, default='/')
@@ -28,9 +29,36 @@ class DoctorSettlement(models.Model):
         compute='_compute_totals',
         store=True,
     )
-    pph21_amount = fields.Monetary(
-        string='Potongan PPh 21 Tenaga Ahli (Pasal 17)',
+
+    # PMK 168/2023 & UU HPP Cumulative YTD Tracking
+    cumulative_gross_prior = fields.Monetary(
+        string='Penghasilan Bruto Kumulatif Sebelumnya YTD',
         currency_field='currency_id',
+        compute='_compute_totals',
+        store=True,
+        help='Akumulasi penghasilan bruto yang telah dibayarkan kepada dokter ini sejak 1 Januari tahun pajak berjalan.',
+    )
+    cumulative_dpp_prior = fields.Monetary(
+        string='DPP Kumulatif Sebelumnya YTD',
+        currency_field='currency_id',
+        compute='_compute_totals',
+        store=True,
+    )
+    cumulative_dpp_total = fields.Monetary(
+        string='Total DPP Kumulatif Sampai Periode Ini',
+        currency_field='currency_id',
+        compute='_compute_totals',
+        store=True,
+    )
+
+    pph21_amount = fields.Monetary(
+        string='Potongan PPh 21 Tenaga Ahli (Pasal 17 / PMK 168)',
+        currency_field='currency_id',
+        compute='_compute_totals',
+        store=True,
+    )
+    effective_tax_rate = fields.Float(
+        string='Tarif Pajak Efektif (%)',
         compute='_compute_totals',
         store=True,
     )
@@ -38,6 +66,24 @@ class DoctorSettlement(models.Model):
         string='Jasa Medis Bersih (Take Home Pay)',
         currency_field='currency_id',
         compute='_compute_totals',
+        store=True,
+    )
+
+    # DJP e-Bupot Unifikasi 21/26 Integration Fields
+    ebupot_tax_code = fields.Char(
+        string='Kode Objek Pajak DJP',
+        default='21-100-07',
+        readonly=True,
+        help='21-100-07: Imbalan Kepada Tenaga Ahli yang Melakukan Pekerjaan Bebas (Dokter Spesialis/Umum)',
+    )
+    ebupot_bupot_number = fields.Char(
+        string='Nomor Bukti Potong DJP',
+        compute='_compute_ebupot_number',
+        store=True,
+    )
+    ebupot_json_data = fields.Text(
+        string='Payload JSON e-Bupot 21/26',
+        compute='_compute_ebupot_payload',
         store=True,
     )
 
@@ -78,7 +124,7 @@ class DoctorSettlement(models.Model):
         lines.write({'settlement_id': self.id, 'state': 'in_settlement'})
         self.state = 'calculated'
 
-    @api.depends('fee_line_ids.doctor_fee_amount', 'doctor_id.has_npwp')
+    @api.depends('fee_line_ids.doctor_fee_amount', 'doctor_id', 'date_settlement')
     def _compute_totals(self):
         for rec in self:
             gross = sum(rec.fee_line_ids.mapped('doctor_fee_amount'))
@@ -87,22 +133,42 @@ class DoctorSettlement(models.Model):
             dpp = gross * 0.50
             rec.dpp_amount = dpp
 
-            # Perhitungan PPh 21 Progresif Pasal 17 UU HPP
-            pph = rec._calculate_pph21_progressive(dpp, has_npwp=rec.doctor_id.has_npwp)
+            # Hitung penghasilan bruto dan DPP kumulatif tahun berjalan (YTD) per PMK 168/2023
+            target_year = (rec.date_settlement or fields.Date.today()).year
+            prior_settlements = self.search([
+                ('doctor_id', '=', rec.doctor_id.id),
+                ('id', '!=', rec.id or 0),
+                ('state', 'in', ('approved', 'paid')),
+                ('date_settlement', '>=', f"{target_year}-01-01"),
+                ('date_settlement', '<=', rec.date_settlement or fields.Date.today()),
+            ])
+
+            prior_gross = sum(prior_settlements.mapped('total_gross_fee'))
+            prior_dpp = prior_gross * 0.50
+            rec.cumulative_gross_prior = prior_gross
+            rec.cumulative_dpp_prior = prior_dpp
+            total_cum_dpp = prior_dpp + dpp
+            rec.cumulative_dpp_total = total_cum_dpp
+
+            # Perhitungan PPh 21 Progresif Pasal 17 UU HPP pada Lapisan Kumulatif Marginal
+            pph = rec._calculate_pph21_marginal(prior_dpp, total_cum_dpp, has_npwp=rec.doctor_id.has_npwp)
             rec.pph21_amount = pph
+            rec.effective_tax_rate = (pph / gross * 100.0) if gross > 0 else 0.0
             rec.net_fee_payable = gross - pph
 
-    def _calculate_pph21_progressive(self, dpp, has_npwp=True):
-        """Menghitung tarif progresif PPh 21 Non-Pegawai Tenaga Ahli Dokter:
-           0 - 60 juta: 5%
-           60 - 250 juta: 15%
-           250 - 500 juta: 25%
-           500 juta - 5 M: 30%
-           > 5 M: 35%
-           Jika tidak ber-NPWP dikenakan tarif 20% lebih tinggi (120%).
+    def _tax_for_dpp_bracket(self, dpp_value):
+        """Menghitung total pajak akumulatif untuk suatu nilai DPP berdasarkan tarif Pasal 17 UU HPP:
+           - s.d 60 juta: 5%
+           - > 60 juta s.d 250 juta: 15%
+           - > 250 juta s.d 500 juta: 25%
+           - > 500 juta s.d 5 milyar: 30%
+           - > 5 milyar: 35%
         """
+        if dpp_value <= 0:
+            return 0.0
+
         tax = 0.0
-        rem = dpp
+        rem = dpp_value
 
         brackets = [
             (60000000.0, 0.05),
@@ -112,17 +178,71 @@ class DoctorSettlement(models.Model):
             (float('inf'), 0.35),
         ]
 
-        for limit, rate in brackets:
+        for slice_limit, rate in brackets:
             if rem <= 0:
                 break
-            taxable_slice = min(rem, limit)
+            taxable_slice = min(rem, slice_limit)
             tax += taxable_slice * rate
             rem -= taxable_slice
 
-        if not has_npwp:
-            tax *= 1.20
-
         return tax
+
+    def _calculate_pph21_marginal(self, prior_dpp, total_cum_dpp, has_npwp=True):
+        """Menghitung pajak marginal untuk transaksi berjalan sesuai PMK 168/2023:
+           Pajak = Total Pajak(DPP Total Kumulatif) - Total Pajak(DPP Kumulatif Sebelumnya).
+           Penalti non-NPWP = 120% (1.2x).
+        """
+        tax_total = self._tax_for_dpp_bracket(total_cum_dpp)
+        tax_prior = self._tax_for_dpp_bracket(prior_dpp)
+        marginal_tax = tax_total - tax_prior
+
+        if not has_npwp:
+            marginal_tax *= 1.20
+
+        return marginal_tax
+
+    @api.depends('name', 'date_settlement')
+    def _compute_ebupot_number(self):
+        for rec in self:
+            dt = rec.date_settlement or fields.Date.today()
+            seq_num = rec.name.replace('/', '').replace('-', '')[-5:] if rec.name else '00001'
+            rec.ebupot_bupot_number = f"BP-21/{dt.strftime('%Y/%m')}/{seq_num}"
+
+    @api.depends('name', 'doctor_id', 'total_gross_fee', 'pph21_amount', 'date_settlement')
+    def _compute_ebupot_payload(self):
+        for rec in self:
+            dt = rec.date_settlement or fields.Date.today()
+            payload = {
+                "header": {
+                    "kode_transaksi": "EBUPOT-2126",
+                    "tahun_pajak": dt.year,
+                    "masa_pajak": dt.month,
+                    "nomor_bukti_potong": rec.ebupot_bupot_number or "",
+                    "tanggal_bukti_potong": dt.strftime('%Y-%m-%d'),
+                },
+                "pemotong": {
+                    "npwp": "01.234.567.8-012.000",
+                    "nama": "PT Prosperra Medika Utama / Klinik ADERA",
+                },
+                "penerima_penghasilan": {
+                    "nama": rec.doctor_id.name or "",
+                    "npwp_nik": rec.doctor_id.npwp_nik or "",
+                    "has_npwp": rec.doctor_id.has_npwp,
+                    "jenis_wajib_pajak": "Orang Pribadi (Bukan Pegawai / Tenaga Ahli Dokter)",
+                    "nomor_sip": rec.doctor_id.sip_number or "",
+                },
+                "rincian_pajak": {
+                    "kode_objek_pajak": rec.ebupot_tax_code,
+                    "deskripsi_objek_pajak": "Imbalan Kepada Tenaga Ahli yang Melakukan Pekerjaan Bebas",
+                    "penghasilan_bruto": rec.total_gross_fee,
+                    "dpp_persentase": 50.0,
+                    "dasar_pengenaan_pajak": rec.dpp_amount,
+                    "dpp_kumulatif_ytd": rec.cumulative_dpp_total,
+                    "pph_21_terutang": rec.pph21_amount,
+                    "penalti_non_npwp": not rec.doctor_id.has_npwp,
+                }
+            }
+            rec.ebupot_json_data = json.dumps(payload, indent=2)
 
     def action_approve(self):
         self.write({'state': 'approved'})
@@ -159,32 +279,34 @@ class DoctorSettlement(models.Model):
                     'debit': self.total_gross_fee,
                     'credit': 0.0,
                 }),
-                # 2. Pemotongan Pajak PPh 21 Tenaga Ahli (Kredit Kas Negara / Utang Pajak PPh 21)
+                # 2. Pengeluaran Kas Bank (Credit Net Take Home Pay)
                 (0, 0, {
-                    'name': f"Utang PPh 21 Tenaga Ahli Dokter: {self.doctor_id.name} (DPP: Rp {self.dpp_amount:,.2f})",
-                    'account_id': tax_acc.id,
-                    'partner_id': self.doctor_id.id,
-                    'debit': 0.0,
-                    'credit': self.pph21_amount,
-                }),
-                # 3. Pengeluaran Rekening Bank (Kredit Net Pay)
-                (0, 0, {
-                    'name': f"Transfer Bank Take Home Pay ke {self.doctor_id.name}",
+                    'name': f"Transfer Bank Net Take-Home Pay Dokter: {self.doctor_id.name}",
                     'account_id': bank_acc.id,
                     'partner_id': self.doctor_id.id,
                     'debit': 0.0,
                     'credit': self.net_fee_payable,
                 }),
+                # 3. Kewajiban Pemotongan Pajak PPh 21 (Credit Utang Pajak PPh 21)
+                (0, 0, {
+                    'name': f"Utang PPh 21 Ps 17/PMK 168 (DJP): {self.doctor_id.name}",
+                    'account_id': tax_acc.id,
+                    'partner_id': self.doctor_id.id,
+                    'debit': 0.0,
+                    'credit': self.pph21_amount,
+                }),
             ]
         }
 
-        payment_move = self.env['account.move'].create(move_vals)
-        payment_move.action_post()
-        self.payment_move_id = payment_move.id
-        self.fee_line_ids.write({'state': 'disbursed'})
-        
-        # Update YTD cumulative figures pada record dokter
-        self.doctor_id.ytd_gross_fee += self.total_gross_fee
-        self.doctor_id.ytd_dpp_cumulative += self.dpp_amount
+        # Filter jika pph21_amount 0, hapus baris tax jika tidak ada nominal
+        if self.pph21_amount == 0.0:
+            move_vals['line_ids'].pop()
 
-        self.state = 'paid'
+        move = self.env['account.move'].create(move_vals)
+        move.action_post()
+
+        self.fee_line_ids.write({'state': 'paid'})
+        self.write({
+            'payment_move_id': move.id,
+            'state': 'paid',
+        })
