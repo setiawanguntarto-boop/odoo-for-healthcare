@@ -27,7 +27,6 @@ Executive Management & Financial KPI Dashboard for Klinik ADERA
         'adera_accounting',
     ],
     'data': [
-        'security/ir.model.access.csv',
         'views/dashboard_views.xml',
     ],
     'assets': {

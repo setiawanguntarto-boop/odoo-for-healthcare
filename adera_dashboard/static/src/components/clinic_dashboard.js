@@ -103,6 +103,11 @@ export class ClinicDashboard extends Component {
             const end = new Date(y, m + 1, 0);
             this.state.dateFrom = formatDate(start);
             this.state.dateTo = formatDate(end);
+        } else if (preset === "last_30_days") {
+            const start = new Date();
+            start.setDate(now.getDate() - 30);
+            this.state.dateFrom = formatDate(start);
+            this.state.dateTo = formatDate(now);
         } else if (preset === "this_quarter") {
             const qMonth = Math.floor(m / 3) * 3;
             const start = new Date(y, qMonth, 1);
@@ -147,10 +152,10 @@ export class ClinicDashboard extends Component {
     }
 
     get sortedPoliMatrix() {
-        if (!this.state.metrics || !this.state.metrics.poli_profitability_matrix) {
+        if (!this.state.metrics || !this.state.metrics.clinical_volume_financial_correlation) {
             return [];
         }
-        const list = [...this.state.metrics.poli_profitability_matrix];
+        const list = [...this.state.metrics.clinical_volume_financial_correlation];
         const col = this.state.sortColumn;
         const asc = this.state.sortAsc;
 
@@ -223,7 +228,7 @@ export class ClinicDashboard extends Component {
                         tooltip: {
                             callbacks: {
                                 label: (context) => {
-                                    return `${context.dataset.label}: ${this.formatCurrency(context.parsed.y)}`;
+                                    return `${context.dataset.label}: ${this.formatCompactCurrency(context.parsed.y)}`;
                                 },
                             },
                         },
@@ -233,9 +238,7 @@ export class ClinicDashboard extends Component {
                             beginAtZero: true,
                             ticks: {
                                 callback: (val) => {
-                                    if (val >= 1000000000) return `Rp ${(val / 1000000000).toFixed(1)} M`;
-                                    if (val >= 1000000) return `Rp ${(val / 1000000).toFixed(0)} Jt`;
-                                    return `Rp ${val}`;
+                                    return this.formatCompactCurrency(val);
                                 },
                             },
                         },
@@ -282,7 +285,7 @@ export class ClinicDashboard extends Component {
                                     const val = context.raw || 0;
                                     const total = context.dataset.data.reduce((a, b) => a + b, 0);
                                     const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
-                                    return `${context.label}: ${this.formatCurrency(val)} (${pct}%)`;
+                                    return `${context.label}: ${this.formatCompactCurrency(val)} (${pct}%)`;
                                 },
                             },
                         },
@@ -343,8 +346,42 @@ export class ClinicDashboard extends Component {
         }
     }
 
-    formatCurrency(val) {
-        if (val === null || val === undefined) return "Rp 0";
+    /**
+     * Format Rupiah ringkas berstandar eksekutif:
+     * - >= 1 Miliar: Rp X,XX M
+     * - >= 1 Juta: Rp X,XX Jt
+     * - < 1 Juta: Rp XXX.XXX
+     */
+    formatCompactCurrency(val) {
+        if (val === null || val === undefined || isNaN(val)) return "Rp 0";
+        const isNegative = val < 0;
+        const absVal = Math.abs(val);
+        let formatted = "";
+
+        if (absVal >= 1000000000) {
+            const num = (absVal / 1000000000).toLocaleString("id-ID", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+            });
+            formatted = `Rp ${num} M`;
+        } else if (absVal >= 1000000) {
+            const num = (absVal / 1000000).toLocaleString("id-ID", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+            });
+            formatted = `Rp ${num} Jt`;
+        } else {
+            formatted = `Rp ${Math.round(absVal).toLocaleString("id-ID")}`;
+        }
+
+        return isNegative ? `-${formatted}` : formatted;
+    }
+
+    /**
+     * Format mata uang lengkap untuk tooltip dan rincian tabel
+     */
+    formatFullCurrency(val) {
+        if (val === null || val === undefined || isNaN(val)) return "Rp 0";
         return new Intl.NumberFormat("id-ID", {
             style: "currency",
             currency: "IDR",
@@ -354,7 +391,7 @@ export class ClinicDashboard extends Component {
     }
 
     formatNumber(val) {
-        if (val === null || val === undefined) return "0";
+        if (val === null || val === undefined || isNaN(val)) return "0";
         return new Intl.NumberFormat("id-ID").format(val);
     }
 }
