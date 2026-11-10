@@ -198,17 +198,16 @@ class PsakFinancialReport(models.Model):
 
         # Update dynamic name to reflect current filters
         report_titles = {
-            "profit_loss": "Laporan Laba Rugi Komprehensif",
-            "balance_sheet": "Laporan Posisi Keuangan (Neraca)",
+            "profit_loss": "Laporan Laba Rugi",
+            "balance_sheet": "Laporan Posisi Keuangan",
             "cash_flow": f"Laporan Arus Kas ({'Tidak Langsung' if self.cash_flow_method == 'indirect' else 'Langsung'})",
-            "equity_change": "Laporan Perubahan Ekuitas (SAK EP)",
+            "equity_change": "Laporan Perubahan Ekuitas",
             "calk": "Catatan Atas Laporan Keuangan (CaLK)",
         }
-        std_label = "[SAK EMKM] " if self.framework_standard == "emkm" else "[SAK EP] "
         unit_label = f"[{self.analytic_account_id.name}] " if self.analytic_account_id else "[Konsolidasi Klinik] "
         date_from_str = self.date_from.strftime('%d/%m/%Y') if self.date_from else ''
         date_to_str = self.date_to.strftime('%d/%m/%Y') if self.date_to else ''
-        self.name = f"{std_label}{unit_label}{report_titles.get(self.report_type, 'Laporan Keuangan')} ({date_from_str} - {date_to_str})"
+        self.name = f"{unit_label}{report_titles.get(self.report_type, 'Laporan Keuangan')} ({date_from_str} - {date_to_str})"
 
         self.line_ids.unlink()
 
@@ -1118,11 +1117,10 @@ class PsakFinancialReport(models.Model):
         # 2. Catatan 2: Kebijakan Akuntansi
         policy_text = (
             "2. IKHTISAR KEBIJAKAN AKUNTANSI SIGNIFIKAN\n"
-            "a. Dasar Penyusunan: Standar Akuntansi Keuangan Entitas Mikro, Kecil, dan Menengah (SAK EMKM) "
-            "dan bertransisi menuju Standar Akuntansi Keuangan Entitas Privat (SAK EP 2025).\n"
+            "a. Dasar Penyusunan: Standar Akuntansi Keuangan yang berlaku umum di Indonesia berbasis akrual penuh.\n"
             "b. Asumsi Kesatuan Usaha (Business Entity Concept): Aset, kewajiban, dan operasional Klinik dipisahkan "
             "secara mutlak dari kekayaan pribadi pendiri/pemegang saham.\n"
-            "c. Pengakuan Pendapatan (PSAK 72): Pendapatan pelayanan dan resep diakui saat jasa diserahkan kepada pasien (point in time). "
+            "c. Pengakuan Pendapatan: Pendapatan pelayanan dan resep diakui saat jasa diserahkan kepada pasien (point in time). "
             "Pendapatan Kapitasi BPJS (410040) diakui secara akrual bulanan berdasarkan jumlah peserta terdaftar FKTP. "
             "Voucher paket terapi hemodialisis diakui sebagai Liabilitas Kontrak (214020) dan baru diakui sebagai pendapatan (410120) saat terapi ditebus.\n"
             "d. Pengukuran Persediaan: Persediaan obat ethical, OTC, dialyzer, dan BHP medis dinilai dengan Biaya Historis menggunakan metode Perpetual FIFO "

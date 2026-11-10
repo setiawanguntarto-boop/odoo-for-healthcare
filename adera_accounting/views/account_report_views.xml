@@ -5,7 +5,7 @@
         <field name="name">psak.financial.report.form</field>
         <field name="model">psak.financial.report</field>
         <field name="arch" type="xml">
-            <form string="Laporan Keuangan PSAK / SAK EMKM">
+            <form string="Laporan Keuangan">
                 <header>
                     <button name="action_recalculate" string="Hitung Ulang (Refresh Data)" type="object" class="btn-primary" icon="fa-refresh"/>
                     <button name="%(action_report_psak_financial_statement)d" string="Cetak Dokumen Resmi (PDF)" type="action" class="btn-secondary" icon="fa-print"/>
@@ -26,7 +26,7 @@
                                     <field name="name" readonly="1"/>
                                 </h2>
                                 <p class="text-muted small mb-0 mt-1">
-                                    Standar Akuntansi Keuangan Entitas Mikro, Kecil, dan Menengah (SAK EMKM) / SAK EP • Disajikan dalam Rupiah (IDR)
+                                    Disajikan dalam Rupiah (IDR), kecuali dinyatakan lain
                                 </p>
                             </div>
                             <div class="text-end">
@@ -160,7 +160,7 @@
                             <group string="Catatan 1: Profil Entitas &amp; Legalitas Operasional (Permenkes 14/2021)">
                                 <field name="calk_profile_text" readonly="1" nolabel="1"/>
                             </group>
-                            <group string="Catatan 2: Ikhtisar Kebijakan Akuntansi Signifikan (PSAK / SAK EMKM)">
+                            <group string="Catatan 2: Ikhtisar Kebijakan Akuntansi Signifikan">
                                 <field name="calk_policy_text" readonly="1" nolabel="1"/>
                             </group>
                             <group string="Catatan 3: Rincian &amp; Jadwal Umur Piutang Pasien &amp; Klaim BPJS">
@@ -184,7 +184,7 @@
         <field name="name">psak.financial.report.tree</field>
         <field name="model">psak.financial.report</field>
         <field name="arch" type="xml">
-            <list string="Daftar Riwayat Laporan Keuangan PSAK / SAK EMKM">
+            <list string="Daftar Riwayat Laporan Keuangan">
                 <field name="name"/>
                 <field name="framework_standard"/>
                 <field name="report_type"/>

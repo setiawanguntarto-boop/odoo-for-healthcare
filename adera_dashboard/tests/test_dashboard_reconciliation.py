@@ -283,3 +283,4 @@ class TestDashboardReconciliation(TransactionCase):
         enc_pratama = m_pratama['scorecards']['total_encounters']
         enc_hd = m_hd['scorecards']['total_encounters']
         self.assertGreaterEqual(self.metrics['scorecards']['total_encounters'], enc_pratama + enc_hd)
+

@@ -15,7 +15,7 @@ class ClinicDashboardKPI(models.AbstractModel):
     @api.model
     def get_dashboard_metrics(self, date_from=False, date_to=False, business_unit=False, poli_code=False):
         """
-        Kalkulasi dinamis KPI Eksekutif Klinik ADERA berstandar SAK EMKM / PSAK.
+        Kalkulasi dinamis KPI Eksekutif Klinik ADERA (Standard Akuntansi & Operasional).
         Strictly zero mutations (Read-Only Analytical Aggregator).
         """
         today = date.today()

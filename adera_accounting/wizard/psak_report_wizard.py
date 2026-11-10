@@ -125,15 +125,14 @@ class PsakReportWizard(models.TransientModel):
         self.ensure_one()
 
         report_titles = {
-            "profit_loss": "Laporan Laba Rugi Komprehensif",
-            "balance_sheet": "Laporan Posisi Keuangan (Neraca)",
+            "profit_loss": "Laporan Laba Rugi",
+            "balance_sheet": "Laporan Posisi Keuangan",
             "cash_flow": f"Laporan Arus Kas ({'Tidak Langsung' if self.cash_flow_method == 'indirect' else 'Langsung'})",
-            "equity_change": "Laporan Perubahan Ekuitas (SAK EP)",
+            "equity_change": "Laporan Perubahan Ekuitas",
             "calk": "Catatan Atas Laporan Keuangan (CaLK)",
         }
-        std_label = "[SAK EMKM] " if self.framework_standard == "emkm" else "[SAK EP] "
         unit_label = f"[{self.analytic_account_id.name}] " if self.analytic_account_id else "[Konsolidasi Klinik] "
-        name = f"{std_label}{unit_label}{report_titles.get(self.report_type)} ({self.date_from.strftime('%d/%m/%Y')} - {self.date_to.strftime('%d/%m/%Y')})"
+        name = f"{unit_label}{report_titles.get(self.report_type)} ({self.date_from.strftime('%d/%m/%Y')} - {self.date_to.strftime('%d/%m/%Y')})"
 
         report = self.env["psak.financial.report"].create({
             "name": name,

@@ -343,3 +343,4 @@ if __name__ == '__main__':
         env = odoo.api.Environment(cr, odoo.SUPERUSER_ID, {})
         ingestor = AderaVendorBillsIngestor(env)
         ingestor.run_import()
+

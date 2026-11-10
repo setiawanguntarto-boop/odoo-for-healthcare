@@ -2,7 +2,7 @@
 <odoo>
     <!-- QWeb Report Action -->
     <record id="action_report_psak_financial_statement" model="ir.actions.report">
-        <field name="name">Laporan Keuangan Resmi SAK EMKM / PSAK (PDF)</field>
+        <field name="name">Laporan Keuangan Resmi (PDF)</field>
         <field name="model">psak.financial.report</field>
         <field name="report_type">qweb-pdf</field>
         <field name="report_name">adera_accounting.report_psak_financial_document</field>
@@ -29,14 +29,11 @@
                                 <t t-esc="o.name"/>
                             </h3>
                             <div style="font-size: 10px; color: #495057; margin-top: 4px;">
-                                <span><strong>Periode Pelaporan:</strong> <t t-esc="o.date_from" t-options='{"widget": "date"}'/> s/d <t t-esc="o.date_to" t-options='{"widget": "date"}'/></span>
+                                <span><strong>Periode:</strong> <t t-esc="o.date_from" t-options='{"widget": "date"}'/> s/d <t t-esc="o.date_to" t-options='{"widget": "date"}'/></span>
                                 <span style="margin: 0 8px;">•</span>
-                                <span><strong>Unit Bisnis:</strong> <t t-esc="o.analytic_account_id.name if o.analytic_account_id else 'Konsolidasi Seluruh Unit Klinik'"/></span>
+                                <span><strong>Unit Pelaporan:</strong> <t t-esc="o.analytic_account_id.name if o.analytic_account_id else 'Konsolidasi Seluruh Unit Klinik'"/></span>
                                 <span style="margin: 0 8px;">•</span>
-                                <span><strong>Mata Uang:</strong> Rupiah (IDR)</span>
-                            </div>
-                            <div style="font-size: 9px; color: #6c757d; margin-top: 2px;">
-                                Standar Akuntansi Keuangan: <t t-esc="'SAK EMKM (Standar Entitas Mikro, Kecil, dan Menengah)' if o.framework_standard == 'emkm' else 'SAK EP / PSAK (Standar Entitas Privat)'"/> — Sesuai Regulasi Permenkes No. 14/2021
+                                <span>(Dinyatakan dalam Rupiah, kecuali dinyatakan lain)</span>
                             </div>
                         </div>
 
@@ -65,7 +62,7 @@
                             <thead>
                                 <tr style="background-color: #e9ecef; border-bottom: 2px solid #343a40; font-weight: 700;">
                                     <th style="width: 14%; padding: 6px 8px; border: 1px solid #dee2e6;">Kode Akun</th>
-                                    <th style="width: 48%; padding: 6px 8px; border: 1px solid #dee2e6;">Pos Keuangan / Standar Akuntansi</th>
+                                    <th style="width: 48%; padding: 6px 8px; border: 1px solid #dee2e6;">Pos Keuangan</th>
                                     <th class="text-end" style="width: 19%; padding: 6px 8px; border: 1px solid #dee2e6;">Periode Berjalan</th>
                                     <t t-if="o.comparison_type != 'none' and o.report_type not in ('calk', 'equity_change')">
                                         <th class="text-end" style="width: 19%; padding: 6px 8px; border: 1px solid #dee2e6;">Pembanding</th>
@@ -120,7 +117,7 @@
                                 </div>
 
                                 <div style="margin-top: 15px;">
-                                    <h5 style="font-weight: bold; color: #212529;">Catatan 2: Ikhtisar Kebijakan Akuntansi Signifikan (PSAK / SAK EMKM)</h5>
+                                    <h5 style="font-weight: bold; color: #212529;">Catatan 2: Ikhtisar Kebijakan Akuntansi Signifikan</h5>
                                     <p style="white-space: pre-line; line-height: 1.5; color: #333;">
                                         <t t-esc="o.calk_policy_text"/>
                                     </p>

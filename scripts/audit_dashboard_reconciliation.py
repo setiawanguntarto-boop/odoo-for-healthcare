@@ -153,7 +153,7 @@ def run_audit(env):
         ("Cost of Goods Sold (COGS)", format_idr(sc['cogs']), format_idr(sot_cogs), abs(sc['cogs'] - sot_cogs), True),
         ("Doctor Fee Remuneration", format_idr(sc['doctor_fees']), format_idr(sot_doc_fees), abs(sc['doctor_fees'] - sot_doc_fees), True),
         ("Operating Expenses (OPEX)", format_idr(sc['opex']), format_idr(sot_opex), abs(sc['opex'] - sot_opex), True),
-        ("Net Operating Profit (SAK)", format_idr(sc['net_profit']), format_idr(sot_net_profit), abs(sc['net_profit'] - sot_net_profit), True),
+        ("Net Operating Profit", format_idr(sc['net_profit']), format_idr(sot_net_profit), abs(sc['net_profit'] - sot_net_profit), True),
         ("Total Receivables (AR)", format_idr(sc['total_ar']), format_idr(sot_total_ar), abs(sc['total_ar'] - sot_total_ar), True),
         ("GR/IR Clearing Balance", format_idr(flags['grir_clearing_balance']), format_idr(sot_grir), abs(flags['grir_clearing_balance'] - sot_grir), True),
         ("Cashier Shift Variance YTD", format_idr(flags['cashier_variance_ytd']), format_idr(sot_cashier_var), abs(flags['cashier_variance_ytd'] - sot_cashier_var), True),
@@ -257,3 +257,4 @@ if __name__ == '__main__':
         import traceback
         traceback.print_exc()
         sys.exit(1)
+

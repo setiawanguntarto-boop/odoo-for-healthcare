@@ -1,66 +1,66 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- ===================================================================
-         ROOT APPLICATION MENU: Akuntansi & Keuangan PSAK (Sequence 10)
+         ROOT APPLICATION MENU: Akuntansi & Keuangan (Sequence 10)
          Promoted to top-level Root Application on Enterprise App Switcher
          =================================================================== -->
     <menuitem id="menu_adera_accounting_root"
-              name="Akuntansi &amp; Keuangan PSAK"
+              name="Akuntansi &amp; Keuangan"
               sequence="10"
               web_icon="adera_accounting,static/description/icon.png"/>
 
     <!-- ===================================================================
-         1. LAPORAN KEUANGAN REGULASI (SAK EMKM / SAK EP / PSAK)
+         1. LAPORAN KEUANGAN
          =================================================================== -->
     <menuitem id="menu_psak_reports_categ"
-              name="Laporan Keuangan Regulasi"
+              name="Laporan Keuangan"
               parent="menu_adera_accounting_root"
               sequence="10"/>
 
     <menuitem id="menu_psak_profit_loss"
-              name="Laporan Laba Rugi (P&amp;L)"
+              name="Laporan Laba Rugi"
               parent="menu_psak_reports_categ"
               action="action_psak_wizard_profit_loss"
               sequence="10"/>
 
     <menuitem id="menu_psak_balance_sheet"
-              name="Neraca Keuangan (Balance Sheet)"
+              name="Laporan Posisi Keuangan"
               parent="menu_psak_reports_categ"
               action="action_psak_wizard_balance_sheet"
               sequence="20"/>
 
     <menuitem id="menu_psak_cash_flow"
-              name="Laporan Arus Kas (Cash Flow - SAK EP)"
+              name="Laporan Arus Kas"
               parent="menu_psak_reports_categ"
               action="action_psak_wizard_cash_flow"
               sequence="30"/>
 
     <menuitem id="menu_psak_equity_change"
-              name="Laporan Perubahan Ekuitas (SAK EP)"
+              name="Laporan Perubahan Ekuitas"
               parent="menu_psak_reports_categ"
               action="action_psak_wizard_equity_change"
               sequence="35"/>
 
     <menuitem id="menu_psak_calk"
-              name="Catatan Atas Lap. Keuangan (CaLK)"
+              name="Catatan Atas Laporan Keuangan"
               parent="menu_psak_reports_categ"
               action="action_psak_wizard_calk"
               sequence="38"/>
 
     <menuitem id="menu_psak_general_ledger"
-              name="Buku Besar &amp; Neraca Saldo (OCA)"
+              name="Buku Besar"
               parent="menu_psak_reports_categ"
               action="account_financial_report.action_general_ledger_wizard"
               sequence="40"/>
 
     <menuitem id="menu_psak_trial_balance"
-              name="Neraca Saldo / Trial Balance (OCA)"
+              name="Neraca Saldo"
               parent="menu_psak_reports_categ"
               action="account_financial_report.action_trial_balance_wizard"
               sequence="50"/>
 
     <menuitem id="menu_psak_report_history"
-              name="Arsip Riwayat Laporan PSAK"
+              name="Riwayat Laporan Keuangan"
               parent="menu_psak_reports_categ"
               action="action_psak_financial_report_history"
               sequence="60"/>
@@ -98,7 +98,7 @@
               sequence="30"/>
 
     <menuitem id="menu_prepaid_package_action"
-              name="Paket Dialisis Dimuka (PSAK 72)"
+              name="Paket Dialisis Dimuka"
               parent="menu_ar_billing_categ"
               action="action_clinic_prepaid_dialysis_packages"
               sequence="40"/>
