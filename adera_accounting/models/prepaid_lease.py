@@ -11,7 +11,7 @@ _logger = logging.getLogger(__name__)
 class ClinicPrepaidLease(models.Model):
     _name = "clinic.prepaid.lease"
     _description = "Jadwal Amortisasi Sewa Gedung & Biaya Dibayar di Muka"
-    _inherit = ["mail.thread", "mail.activity.mixin"]
+    _inherit = ["mail.thread", "mail.activity.mixin", "analytic.mixin"]
     _order = "start_date desc, id desc"
 
     name = fields.Char(string="Nama Kontrak / Lokasi Gedung", required=True, tracking=True)
@@ -107,6 +107,11 @@ class ClinicPrepaidLease(models.Model):
     analytic_distribution = fields.Json(
         string="Unit Bisnis / Cabang Analitik",
         help="Alokasi biaya sewa ke unit bisnis (ACC-PRATAMA, ACC-HD, ACC-HOLDING)",
+    )
+    analytic_precision = fields.Integer(
+        string="Analytic Precision",
+        store=False,
+        default=lambda self: self.env['decimal.precision'].precision_get('Percentage Analytic') or 2,
     )
 
     line_ids = fields.One2many(

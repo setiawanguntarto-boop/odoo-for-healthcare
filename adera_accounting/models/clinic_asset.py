@@ -11,7 +11,7 @@ _logger = logging.getLogger(__name__)
 class ClinicAsset(models.Model):
     _name = "clinic.asset"
     _description = "Aset Tetap & Peralatan Medis Klinik"
-    _inherit = ["mail.thread", "mail.activity.mixin"]
+    _inherit = ["mail.thread", "mail.activity.mixin", "analytic.mixin"]
     _order = "purchase_date desc, id desc"
 
     name = fields.Char(string="Nama Aset / Peralatan", required=True, tracking=True)
@@ -36,6 +36,11 @@ class ClinicAsset(models.Model):
     analytic_distribution = fields.Json(
         string="Distribusi Analitik Unit",
         help="Tagging alokasi unit bisnis (misal: ACC-PRATAMA vs ACC-HD)",
+    )
+    analytic_precision = fields.Integer(
+        string="Analytic Precision",
+        store=False,
+        default=lambda self: self.env['decimal.precision'].precision_get('Percentage Analytic') or 2,
     )
 
     purchase_date = fields.Date(
