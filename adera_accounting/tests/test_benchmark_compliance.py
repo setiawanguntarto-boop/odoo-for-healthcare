@@ -323,4 +323,34 @@ class TestBenchmarkCompliance(TransactionCase):
                 ],
             })
 
+    def test_12_sinking_fund_reserve_allocation(self):
+        """Uji Alokasi Sinking Fund: Pembatasan Maks 10% Laba & Jurnal Dr 320010 / Cr 320020."""
+        wizard = self.env["clinic.sinking.fund.wizard"].create({
+            "fiscal_year": 2026,
+            "period_month": "11",
+            "net_operating_profit": 50000000.0,
+            "allocation_percentage": 10.0,
+            "purpose": "device_overhaul",
+        })
+        self.assertEqual(wizard.allocation_amount, 5000000.0, "Alokasi 10% dari 50 Juta harus 5 Juta!")
+
+        # Uji pembatasan tata kelola maksimal 10%
+        with self.assertRaises(ValidationError):
+            wizard.write({"allocation_percentage": 15.0})
+
+        # Kembalikan ke 10% dan konfirmasi posting GL
+        wizard.write({"allocation_percentage": 10.0})
+        res = wizard.action_confirm_allocation()
+        move_id = res.get("res_id")
+        move = self.env["account.move"].browse(move_id)
+        self.assertEqual(move.state, "posted")
+
+        dr_line = move.line_ids.filtered(lambda l: l.debit > 0)
+        cr_line = move.line_ids.filtered(lambda l: l.credit > 0)
+        self.assertEqual(dr_line.account_id.code, "320010", "Debit harus Akun 320010 (Saldo Laba Ditahan)!")
+        self.assertEqual(cr_line.account_id.code, "320020", "Kredit harus Akun 320020 (Cadangan Sinking Fund)!")
+        self.assertEqual(dr_line.debit, 5000000.0)
+        self.assertEqual(cr_line.credit, 5000000.0)
+
+
 

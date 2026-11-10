@@ -295,3 +295,64 @@ class TestDashboardReconciliation(TransactionCase):
         enc_hd = m_hd['scorecards']['total_encounters']
         self.assertGreaterEqual(self.metrics['scorecards']['total_encounters'], enc_pratama + enc_hd)
 
+    # =========================================================================
+    # SECTION 6: HEALTHCARE FINANCIAL GOLDEN RATIOS & ANTI-FRAUD
+    # =========================================================================
+    def test_13_golden_ratios_scorecard_integrity(self):
+        """Uji 5 Rasio Emas Finansial Klinik (Labor, Pharma, OpEx, NPM, Cash Runway)."""
+        self.assertIn('golden_ratios', self.metrics)
+        gr = self.metrics['golden_ratios']
+
+        # 1. Labor Cost Ratio
+        self.assertIn('labor_cost_ratio', gr)
+        self.assertIn(gr['labor_cost_ratio']['rag'], ['success', 'warning', 'danger'])
+        self.assertGreaterEqual(gr['labor_cost_ratio']['value'], 0.0)
+
+        # 2. Pharma Cost Ratio
+        self.assertIn('pharma_cost_ratio', gr)
+        self.assertIn(gr['pharma_cost_ratio']['rag'], ['success', 'warning', 'danger'])
+        self.assertGreaterEqual(gr['pharma_cost_ratio']['value'], 0.0)
+
+        # 3. Overhead Ratio
+        self.assertIn('overhead_cost_ratio', gr)
+        self.assertIn(gr['overhead_cost_ratio']['rag'], ['success', 'warning', 'danger'])
+        self.assertGreaterEqual(gr['overhead_cost_ratio']['value'], 0.0)
+
+        # 4. Net Profit Margin
+        self.assertIn('net_margin_pct', gr)
+        self.assertIn(gr['net_margin_pct']['rag'], ['success', 'warning', 'danger'])
+
+        # 5. Cash Runway
+        self.assertIn('cash_runway_months', gr)
+        self.assertIn(gr['cash_runway_months']['rag'], ['success', 'warning', 'danger'])
+        self.assertGreaterEqual(gr['cash_runway_months']['value'], 0.0)
+
+    def test_14_pareto_80_20_service_profitability(self):
+        """Uji Matriks Profitabilitas Layanan Medis Pareto 80/20."""
+        self.assertIn('pareto_procedures', self.metrics)
+        pareto = self.metrics['pareto_procedures']
+        self.assertIsInstance(pareto, list)
+
+        if len(pareto) > 0:
+            first = pareto[0]
+            self.assertIn('procedure_name', first)
+            self.assertIn('gross_profit', first)
+            self.assertIn('pareto_class', first)
+            self.assertIn(first['pareto_badge'], ['success', 'warning', 'secondary'])
+            # Verify sorted descending by gross profit
+            for i in range(len(pareto) - 1):
+                self.assertGreaterEqual(pareto[i]['gross_profit'], pareto[i+1]['gross_profit'])
+
+    def test_15_cashless_penetration_and_anti_fraud_monitor(self):
+        """Uji Monitor Penetrasi Transaksi Non-Tunai dan Deteksi Risiko Fraud."""
+        self.assertIn('cashless_monitor', self.metrics)
+        cm = self.metrics['cashless_monitor']
+        self.assertIn('cashless_pct', cm)
+        self.assertIn('cash_pct', cm)
+        self.assertIsInstance(cm['cash_fraud_alert'], bool)
+
+        if cm['total_collections'] > 0:
+            total_pct = round(cm['cashless_pct'] + cm['cash_pct'], 1)
+            self.assertAlmostEqual(total_pct, 100.0, delta=0.5)
+
+

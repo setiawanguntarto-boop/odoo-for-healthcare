@@ -123,6 +123,55 @@ class ClinicDashboardKPI(models.AbstractModel):
         net_margin_rag = "success" if net_margin_pct >= 20.0 else ("warning" if net_margin_pct >= 10.0 else "danger")
 
         # -------------------------------------------------------------
+        # HEALTHCARE FINANCIAL "GOLDEN RATIOS" SCORECARD
+        # -------------------------------------------------------------
+        # 1. Labor Cost Ratio: Staff Salaries (610010) + Doctor Remuneration (510110 + 510120) / Revenue
+        staff_salaries_lines = period_lines.filtered(
+            lambda l: l.account_id.code and (l.account_id.code == '610010' or l.account_id.code.startswith('61001'))
+        )
+        if target_analytic_ids:
+            staff_salaries_lines = staff_salaries_lines.filtered(_matches_analytic)
+        staff_salaries = float(sum(staff_salaries_lines.mapped('debit')) - sum(staff_salaries_lines.mapped('credit')))
+
+        labor_cost = float(staff_salaries + doctor_fees)
+        labor_cost_ratio_pct = float(round((labor_cost / total_revenue * 100.0), 2)) if total_revenue > 0 else 0.0
+        if labor_cost_ratio_pct <= 30.0:
+            labor_cost_rag = "success"
+        elif labor_cost_ratio_pct <= 38.0:
+            labor_cost_rag = "warning"
+        else:
+            labor_cost_rag = "danger"
+
+        # 2. Pharmaceutical & Consumables Cost Ratio: 510010 + 510020 / Revenue
+        pharma_cogs_lines = period_lines.filtered(
+            lambda l: l.account_id.code and (
+                l.account_id.code in ['510010', '510020'] or l.account_id.code.startswith(('51001', '51002'))
+            )
+        )
+        if target_analytic_ids:
+            pharma_cogs_lines = pharma_cogs_lines.filtered(_matches_analytic)
+        pharma_cogs = float(sum(pharma_cogs_lines.mapped('debit')) - sum(pharma_cogs_lines.mapped('credit')))
+        if pharma_cogs <= 0.0 and cogs > 0:
+            pharma_cogs = cogs
+        pharma_cost_ratio_pct = float(round((pharma_cogs / total_revenue * 100.0), 2)) if total_revenue > 0 else 0.0
+        if pharma_cost_ratio_pct <= 25.0:
+            pharma_cost_rag = "success"
+        elif pharma_cost_ratio_pct <= 30.0:
+            pharma_cost_rag = "warning"
+        else:
+            pharma_cost_rag = "danger"
+
+        # 3. Routine Operational Overhead Ratio: 610020 - 619990 excl. Salaries / Revenue
+        overhead_opex = float(max(0.0, opex - staff_salaries))
+        overhead_cost_ratio_pct = float(round((overhead_opex / total_revenue * 100.0), 2)) if total_revenue > 0 else 0.0
+        if overhead_cost_ratio_pct <= 10.0:
+            overhead_cost_rag = "success"
+        elif overhead_cost_ratio_pct <= 15.0:
+            overhead_cost_rag = "warning"
+        else:
+            overhead_cost_rag = "danger"
+
+        # -------------------------------------------------------------
         # 2. ENCOUNTERS QUERY
         # -------------------------------------------------------------
         enc_domain = [
@@ -207,6 +256,36 @@ class ClinicDashboardKPI(models.AbstractModel):
         stock_valuation = float(max(0.0, sum(stock_lines.mapped('debit')) - sum(stock_lines.mapped('credit'))))
         inventory_days = float(max(0.0, round(stock_valuation / daily_cogs, 1))) if daily_cogs > 0 and stock_valuation > 0 else 0.0
 
+        # Operational Cash Runway Buffer (Accounts 111xxx / Trailing 3-Month Outflow)
+        cash_bank_lines = cum_lines.filtered(
+            lambda l: l.account_id.code and l.account_id.code.startswith('111')
+        )
+        total_liquid_cash = float(max(0.0, sum(cash_bank_lines.mapped('debit')) - sum(cash_bank_lines.mapped('credit'))))
+
+        # Trailing 3-Month Outflow burn rate
+        trailing_start = (today.replace(day=1) - relativedelta(months=3)).strftime('%Y-%m-%d')
+        trailing_lines = self.env['account.move.line'].search([
+            ('company_id', '=', company_id),
+            ('parent_state', '=', 'posted'),
+            ('date', '>=', trailing_start),
+            ('date', '<=', date_to),
+        ])
+        trailing_outflow_lines = trailing_lines.filtered(
+            lambda l: l.account_id.code and (l.account_id.code.startswith('51') or l.account_id.code.startswith('61'))
+        )
+        trailing_burn = float(sum(trailing_outflow_lines.mapped('debit')) - sum(trailing_outflow_lines.mapped('credit')))
+        monthly_burn_rate = float(round(trailing_burn / 3.0, 2)) if trailing_burn > 0 else float(round(cogs + doctor_fees + opex, 2))
+        if monthly_burn_rate <= 0.0:
+            monthly_burn_rate = 1.0
+
+        cash_runway_months = float(round(total_liquid_cash / monthly_burn_rate, 1))
+        if cash_runway_months >= 2.5:
+            cash_runway_rag = "success"
+        elif cash_runway_months >= 1.5:
+            cash_runway_rag = "warning"
+        else:
+            cash_runway_rag = "danger"
+
         # -------------------------------------------------------------
         # 4. HEALTHCARE WIDGET: TOP 5 CLINICAL SERVICES & PROCEDURES
         # -------------------------------------------------------------
@@ -240,6 +319,63 @@ class ClinicDashboardKPI(models.AbstractModel):
                     'type_label': type_label_map.get(row[1], 'Prosedur Medis'),
                     'qty': float(row[2]),
                     'revenue': float(row[3]),
+                })
+
+        # -------------------------------------------------------------
+        # 4B. PARETO 80/20 CLINICAL SERVICE PROFITABILITY MATRIX
+        # -------------------------------------------------------------
+        pareto_procedures = []
+        if enc_ids:
+            query_pareto = """
+                SELECT COALESCE(p.name->>'en_US', p.name->>'id_ID', 'Layanan Medis') as proc_name,
+                       COALESCE(SUM(el.qty), 0) as volume,
+                       COALESCE(SUM(el.unit_price * el.qty), 0) as total_rev,
+                       COALESCE(SUM(el.qty * COALESCE((pp.standard_price->>'1')::numeric, (pp.standard_price->>'default')::numeric, el.unit_price * 0.35)), 0) as direct_cost
+                FROM clinic_encounter_line el
+                JOIN product_product pp ON pp.id = el.product_id
+                JOIN product_template p ON p.id = pp.product_tmpl_id
+                WHERE el.encounter_id IN %s
+                  AND el.line_type IN ('procedure', 'consultation', 'lab', 'rad')
+                GROUP BY COALESCE(p.name->>'en_US', p.name->>'id_ID', 'Layanan Medis')
+                ORDER BY (SUM(el.unit_price * el.qty) - SUM(el.qty * COALESCE((pp.standard_price->>'1')::numeric, (pp.standard_price->>'default')::numeric, el.unit_price * 0.35))) DESC
+            """
+            self.env.cr.execute(query_pareto, (tuple(enc_ids),))
+            rows = self.env.cr.fetchall()
+
+            total_service_profit = sum(float(r[2] - r[3]) for r in rows)
+            cum_profit = 0.0
+
+            for r in rows:
+                p_name = r[0]
+                vol = float(r[1])
+                rev = float(r[2])
+                cost = float(r[3])
+                profit = float(rev - cost)
+                margin = float(round((profit / rev * 100.0), 2)) if rev > 0 else 0.0
+
+                cum_profit += max(0.0, profit)
+                cum_pct = float(round((cum_profit / total_service_profit * 100.0), 2)) if total_service_profit > 0 else 100.0
+
+                if cum_pct <= 80.0 or len(pareto_procedures) == 0:
+                    p_class = "A - Core Driver (80% Profit)"
+                    p_badge = "success"
+                elif cum_pct <= 95.0:
+                    p_class = "B - Moderate Yield"
+                    p_badge = "warning"
+                else:
+                    p_class = "C - Low Yield"
+                    p_badge = "secondary"
+
+                pareto_procedures.append({
+                    "procedure_name": p_name,
+                    "volume": vol,
+                    "revenue": rev,
+                    "direct_cost": cost,
+                    "gross_profit": profit,
+                    "margin_pct": margin,
+                    "cumulative_pct": min(100.0, cum_pct),
+                    "pareto_class": p_class,
+                    "pareto_badge": p_badge,
                 })
 
         # -------------------------------------------------------------
@@ -518,6 +654,34 @@ class ClinicDashboardKPI(models.AbstractModel):
         bpjs_dispute_allowance = float(max(0.0, sum(dispute_lines.mapped('credit')) - sum(dispute_lines.mapped('debit'))))
 
         # -------------------------------------------------------------
+        # CASHLESS PENETRATION & ANTI-FRAUD RISK MONITOR
+        # -------------------------------------------------------------
+        cash_item = next((p for p in payer_mix if p['key'] == 'cash'), None)
+        cash_coll = cash_item['amount'] if cash_item else 0.0
+        cashless_coll = float(max(0.0, total_payer_amount - cash_coll))
+
+        cash_pct = float(round((cash_coll / total_payer_amount * 100.0), 1)) if total_payer_amount > 0 else 0.0
+        cashless_pct = float(round((cashless_coll / total_payer_amount * 100.0), 1)) if total_payer_amount > 0 else 0.0
+
+        cash_fraud_alert = cash_pct > 40.0
+        variance_to_cash_pct = float(round((cashier_variance_ytd / cash_coll * 100.0), 2)) if cash_coll > 0 else 0.0
+
+        cashless_monitor = {
+            'cashless_amount': cashless_coll,
+            'cashless_pct': cashless_pct,
+            'cash_amount': cash_coll,
+            'cash_pct': cash_pct,
+            'total_collections': total_payer_amount,
+            'cash_fraud_alert': cash_fraud_alert,
+            'cashier_variance_ytd': cashier_variance_ytd,
+            'variance_to_cash_pct': variance_to_cash_pct,
+            'alert_message': (
+                f"Peringatan Risiko Fraud: Transaksi Tunai Fisik ({cash_pct}%) melebihi ambang batas toleransi 40.0%. "
+                f"Segera alihkan kasir ke QRIS / EDC."
+            ) if cash_fraud_alert else "Tingkat penetrasi non-tunai optimal dan risiko kecurangan kasir terkendali.",
+        }
+
+        # -------------------------------------------------------------
         # 10. SECTION F: 12-MONTH TIME-SERIES DATA (SQL COALESCE & NULLIF)
         # -------------------------------------------------------------
         twelve_months_data = []
@@ -655,5 +819,36 @@ class ClinicDashboardKPI(models.AbstractModel):
                 'unsettled_doctor_alert': unsettled_doctor_alert,
                 'bpjs_dispute_allowance': bpjs_dispute_allowance,
             },
+            'golden_ratios': {
+                'labor_cost_ratio': {
+                    'value': labor_cost_ratio_pct,
+                    'rag': labor_cost_rag,
+                    'staff_salaries': staff_salaries,
+                    'doctor_fees': doctor_fees,
+                    'total_labor': labor_cost,
+                },
+                'pharma_cost_ratio': {
+                    'value': pharma_cost_ratio_pct,
+                    'rag': pharma_cost_rag,
+                    'pharma_cogs': pharma_cogs,
+                },
+                'overhead_cost_ratio': {
+                    'value': overhead_cost_ratio_pct,
+                    'rag': overhead_cost_rag,
+                    'overhead_opex': overhead_opex,
+                },
+                'net_margin_pct': {
+                    'value': net_margin_pct,
+                    'rag': net_margin_rag,
+                },
+                'cash_runway_months': {
+                    'value': cash_runway_months,
+                    'rag': cash_runway_rag,
+                    'total_liquid_cash': total_liquid_cash,
+                    'monthly_burn_rate': monthly_burn_rate,
+                },
+            },
+            'pareto_procedures': pareto_procedures,
+            'cashless_monitor': cashless_monitor,
             'time_series_12m': twelve_months_data,
         }

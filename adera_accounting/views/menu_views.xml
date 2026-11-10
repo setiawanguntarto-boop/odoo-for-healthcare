@@ -53,6 +53,12 @@
               action="action_clinic_fiscal_reconciliation"
               sequence="39"/>
 
+    <menuitem id="menu_sinking_fund_wizard_action"
+              name="Alokasi Cadangan &amp; Sinking Fund (320020)"
+              parent="menu_psak_reports_categ"
+              action="action_clinic_sinking_fund_wizard"
+              sequence="39"/>
+
     <menuitem id="menu_psak_general_ledger"
               name="Buku Besar"
               parent="menu_psak_reports_categ"

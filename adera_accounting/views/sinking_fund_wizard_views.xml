@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Sinking Fund Allocation Wizard View -->
+    <record id="view_clinic_sinking_fund_wizard_form" model="ir.ui.view">
+        <field name="name">clinic.sinking.fund.wizard.form</field>
+        <field name="model">clinic.sinking.fund.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Alokasi Cadangan Sinking Fund &amp; Pemeliharaan Sarpras">
+                <sheet>
+                    <div class="oe_title">
+                        <h2>Alokasi Cadangan Pemeliharaan Sarana, Prasarana &amp; Akreditasi</h2>
+                        <p class="text-muted">
+                            Tata Kelola Keuangan Klinik: Alokasi maksimal 10% dari Laba Bersih Operasional (Dr 320010 / Cr 320020)
+                            untuk mengamankan cadangan overhaul mesin, akreditasi LAFKESPRI/Kemenkes, dan renovasi tanpa menguras modal kerja.
+                        </p>
+                    </div>
+                    <group>
+                        <group string="Periode &amp; Cut-Off Pembukuan">
+                            <field name="period_month"/>
+                            <field name="fiscal_year"/>
+                            <field name="date"/>
+                            <field name="company_id" options="{'no_create': True}"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                        <group string="Perhitungan Laba &amp; Alokasi (Maks 10%)">
+                            <field name="net_operating_profit" widget="monetary" style="font-weight: bold;"/>
+                            <field name="allocation_percentage"/>
+                            <field name="allocation_amount" widget="monetary" style="font-weight: bold; color: green;"/>
+                            <field name="purpose"/>
+                        </group>
+                    </group>
+                    <group string="Pemetaan Akun Buku Besar">
+                        <group>
+                            <field name="debit_account_id" options="{'no_create': True}"/>
+                            <field name="credit_account_id" options="{'no_create': True}"/>
+                        </group>
+                        <group>
+                            <field name="journal_id" options="{'no_create': True}"/>
+                        </group>
+                    </group>
+                    <group string="Catatan Keputusan Manajemen">
+                        <field name="notes" placeholder="Contoh: Sesuai hasil rapat Direksi, cadangan dialokasikan untuk persiapan peremajaan membrane RO HD dan kalibrasi tahunan."/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_confirm_allocation"
+                            string="Posting Alokasi Cadangan ke GL"
+                            type="object"
+                            class="btn-primary"/>
+                    <button string="Batal" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action Window for Sinking Fund Wizard -->
+    <record id="action_clinic_sinking_fund_wizard" model="ir.actions.act_window">
+        <field name="name">Alokasi Cadangan Sinking Fund</field>
+        <field name="res_model">clinic.sinking.fund.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>
