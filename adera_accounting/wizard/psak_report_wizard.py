@@ -153,9 +153,18 @@ class FinancialReportWizard(models.TransientModel):
             self.date_from_cmp = self.date_from - relativedelta(years=1)
             self.date_to_cmp = self.date_to - relativedelta(years=1)
         elif self.comparison_mode == "prev_period":
-            diff_days = (self.date_to - self.date_from).days + 1
-            self.date_to_cmp = self.date_from - relativedelta(days=1)
-            self.date_from_cmp = self.date_to_cmp - relativedelta(days=diff_days - 1)
+            # Smart Month-to-Date (MTD) Alignment:
+            # If starting on 1st of month (e.g. 01/11 to 10/11), align comparison to same days of previous month (01/10 to 10/10)
+            if self.date_from.day == 1 and self.date_from.month == self.date_to.month:
+                prev_month_first = self.date_from - relativedelta(months=1)
+                last_day_prev = (self.date_from - relativedelta(days=1)).day
+                target_day = min(self.date_to.day, last_day_prev)
+                self.date_from_cmp = prev_month_first
+                self.date_to_cmp = prev_month_first.replace(day=target_day)
+            else:
+                diff_days = (self.date_to - self.date_from).days + 1
+                self.date_to_cmp = self.date_from - relativedelta(days=1)
+                self.date_from_cmp = self.date_to_cmp - relativedelta(days=diff_days - 1)
 
     def _map_report_type_to_engine(self):
         mapping = {

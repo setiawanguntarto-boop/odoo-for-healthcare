@@ -144,10 +144,10 @@
                                       decoration-muted="line_type == 'header'"
                                       decoration-success="line_type == 'total'">
                                     <field name="sequence" column_invisible="1"/>
-                                    <field name="code" string="Kode Akun / Ref" style="font-family: monospace; font-size: 11px;"/>
-                                    <field name="name" string="Pos Keuangan / Standar Akuntansi"/>
-                                    <field name="amount_current" string="Periode Berjalan (Rp)" widget="monetary" style="text-align: right; font-family: monospace; font-weight: 600;"/>
-                                    <field name="amount_comparison" string="Pembanding (Rp)" widget="monetary" column_invisible="parent.comparison_type == 'none'" style="text-align: right; font-family: monospace;"/>
+                                    <field name="code" string="Kode Akun" style="font-family: monospace; font-size: 11px; width: 12%;"/>
+                                    <field name="name" string="Pos Keuangan / Standar Akuntansi" style="width: 48%;"/>
+                                    <field name="amount_current" string="Periode Berjalan (Rp)" widget="monetary" style="text-align: right; font-family: monospace; font-weight: 600; width: 20%;"/>
+                                    <field name="amount_comparison" string="Pembanding (Rp)" widget="monetary" column_invisible="parent.comparison_type == 'none'" style="text-align: right; font-family: monospace; width: 20%;"/>
                                     <field name="variance_amount" string="Selisih (Rp)" widget="monetary" column_invisible="parent.comparison_type == 'none'" style="text-align: right; font-family: monospace;"/>
                                     <field name="variance_percent" string="Selisih (%)" widget="percentage" column_invisible="parent.comparison_type == 'none'" style="text-align: right; font-family: monospace;"/>
                                     <field name="currency_id" column_invisible="1"/>

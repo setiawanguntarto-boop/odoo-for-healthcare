@@ -108,6 +108,75 @@ class PsakFinancialReport(models.Model):
     total_cogs = fields.Monetary(string="Total HPP (Beban Pokok)", compute="_compute_report_totals", store=True)
     total_opex = fields.Monetary(string="Total Beban Operasional", compute="_compute_report_totals", store=True)
 
+    # Dynamic Column Labels for Reports and Views
+    current_period_label = fields.Char(
+        string="Label Periode Berjalan",
+        compute="_compute_column_labels",
+    )
+    comparison_period_label = fields.Char(
+        string="Label Periode Pembanding",
+        compute="_compute_column_labels",
+    )
+    comparison_basis_label = fields.Char(
+        string="Basis Komparasi",
+        compute="_compute_column_labels",
+    )
+
+    @api.depends("date_from", "date_to", "comparison_type", "date_from_cmp", "date_to_cmp")
+    def _compute_column_labels(self):
+        month_names = {
+            1: "Januari", 2: "Februari", 3: "Maret", 4: "April",
+            5: "Mei", 6: "Juni", 7: "Juli", 8: "Agustus",
+            9: "September", 10: "Oktober", 11: "November", 12: "Desember",
+        }
+        month_names_short = {
+            1: "Jan", 2: "Feb", 3: "Mar", 4: "Apr",
+            5: "Mei", 6: "Jun", 7: "Jul", 8: "Agu",
+            9: "Sep", 10: "Okt", 11: "Nov", 12: "Des",
+        }
+
+        def format_period_label(d_from, d_to):
+            if not d_from or not d_to:
+                return "Periode Berjalan"
+            m_name = month_names.get(d_to.month, "")
+            m_short = month_names_short.get(d_to.month, "")
+            y = d_to.year
+
+            # Cek apakah sebulan penuh
+            is_start_of_month = (d_from.day == 1)
+            next_day = d_to + relativedelta(days=1)
+            is_end_of_month = (next_day.day == 1)
+
+            if is_start_of_month and is_end_of_month and d_from.month == d_to.month and d_from.year == d_to.year:
+                return f"{m_name} {y}"
+            elif is_start_of_month and d_from.month == d_to.month and d_from.year == d_to.year:
+                return f"{m_name} {y} (s/d {d_to.day} {m_short})"
+            elif d_from == d_to:
+                return f"{d_to.day} {m_short} {y}"
+            else:
+                return f"{d_from.day} {month_names_short.get(d_from.month, '')} {d_from.year} - {d_to.day} {m_short} {y}"
+
+        for rec in self:
+            rec.current_period_label = format_period_label(rec.date_from, rec.date_to)
+
+            if rec.comparison_type == "none" or not rec.date_from_cmp or not rec.date_to_cmp:
+                rec.comparison_period_label = ""
+                rec.comparison_basis_label = ""
+            else:
+                rec.comparison_period_label = format_period_label(rec.date_from_cmp, rec.date_to_cmp)
+                if rec.comparison_type == "previous_year":
+                    rec.comparison_basis_label = "YoY: Year-over-Year"
+                elif rec.comparison_type == "previous_period":
+                    if rec.date_from and rec.date_to and rec.date_from_cmp and rec.date_to_cmp:
+                        if rec.date_from.year == rec.date_to.year and rec.date_from.month != rec.date_from_cmp.month:
+                            rec.comparison_basis_label = "MoM: Month-over-Month"
+                        else:
+                            rec.comparison_basis_label = "Perbandingan Periode Sebelumnya"
+                    else:
+                        rec.comparison_basis_label = "Perbandingan Periode Sebelumnya"
+                else:
+                    rec.comparison_basis_label = ""
+
     @api.depends("line_ids.amount_current", "report_type")
     def _compute_report_totals(self):
         for rec in self:
@@ -177,9 +246,19 @@ class PsakFinancialReport(models.Model):
             self.date_from_cmp = self.date_from - relativedelta(years=1)
             self.date_to_cmp = self.date_to - relativedelta(years=1)
         elif self.comparison_type == "previous_period":
-            diff_days = (self.date_to - self.date_from).days + 1
-            self.date_to_cmp = self.date_from - relativedelta(days=1)
-            self.date_from_cmp = self.date_to_cmp - relativedelta(days=diff_days - 1)
+            # Smart Month-to-Date (MTD) Alignment:
+            # If starting on 1st of month (e.g. 01/11 to 10/11), align comparison to same days of previous month (01/10 to 10/10)
+            if self.date_from.day == 1 and self.date_from.month == self.date_to.month:
+                prev_month_first = self.date_from - relativedelta(months=1)
+                # Cap day to maximum days of previous month
+                last_day_prev = (self.date_from - relativedelta(days=1)).day
+                target_day = min(self.date_to.day, last_day_prev)
+                self.date_from_cmp = prev_month_first
+                self.date_to_cmp = prev_month_first.replace(day=target_day)
+            else:
+                diff_days = (self.date_to - self.date_from).days + 1
+                self.date_to_cmp = self.date_from - relativedelta(days=1)
+                self.date_from_cmp = self.date_to_cmp - relativedelta(days=diff_days - 1)
 
     # Narrative CaLK Disclosures per SAK EMKM / SAK EP & Permenkes 14/2021
     calk_profile_text = fields.Text(string="Catatan 1: Profil Entitas & Legalitas Operasional")
