@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Sub-lokasi Internal Penyimpanan Medis Klinik ADERA di bawah WH/Stock -->
+        <record id="stock_location_farmasi" model="stock.location">
+            <field name="name">Farmasi</field>
+            <field name="usage">internal</field>
+            <field name="location_id" ref="stock.stock_location_stock"/>
+            <field name="removal_strategy_id" ref="product_expiry.removal_fefo"/>
+        </record>
+
+        <record id="stock_location_bhp" model="stock.location">
+            <field name="name">BHP</field>
+            <field name="usage">internal</field>
+            <field name="location_id" ref="stock.stock_location_stock"/>
+            <field name="removal_strategy_id" ref="product_expiry.removal_fefo"/>
+        </record>
+
+        <record id="stock_location_hd" model="stock.location">
+            <field name="name">HD</field>
+            <field name="usage">internal</field>
+            <field name="location_id" ref="stock.stock_location_stock"/>
+            <field name="removal_strategy_id" ref="product_expiry.removal_fefo"/>
+        </record>
+
+        <!-- Lokasi Karantina Produk Kadaluarsa / Rusak (Scrap/Quarantine) di bawah WH -->
+        <record id="stock_location_pharma_quarantine" model="stock.location">
+            <field name="name">Karantina Farmasi (Expired / Reject)</field>
+            <field name="usage">inventory</field>
+            <field name="location_id" ref="stock.stock_location_stock"/>
+        </record>
+
+        <!-- Pastikan default WH/Stock juga menggunakan FEFO removal strategy -->
+        <record id="stock.stock_location_stock" model="stock.location">
+            <field name="removal_strategy_id" ref="product_expiry.removal_fefo"/>
+        </record>
+    </data>
+</odoo>

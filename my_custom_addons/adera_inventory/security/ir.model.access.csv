@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_stock_lot_user,stock.lot.user,stock.model_stock_lot,stock.group_stock_user,1,1,1,1
+access_stock_scrap_clinic_user,stock.scrap.clinic.user,model_stock_scrap_clinic,stock.group_stock_user,1,1,1,1
+access_clinic_inventory_dashboard_user,clinic.inventory.dashboard.user,model_clinic_inventory_dashboard,stock.group_stock_user,1,1,1,1
+access_clinic_inventory_dashboard_manager,clinic.inventory.dashboard.manager,model_clinic_inventory_dashboard,stock.group_stock_manager,1,1,1,1

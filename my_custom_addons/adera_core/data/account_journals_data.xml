@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- ===================================================================
+             CASH & BANK JOURNALS
+             =================================================================== -->
+        <record id="journal_kas_ksr" model="account.journal">
+            <field name="name">Kas Kasir Rawat Jalan</field>
+            <field name="code">KKSR</field>
+            <field name="type">cash</field>
+            <field name="default_account_id" ref="account_111010"/>
+        </record>
+
+        <record id="journal_bank_bca" model="account.journal">
+            <field name="name">Bank BCA Operasional</field>
+            <field name="code">BBCA</field>
+            <field name="type">bank</field>
+            <field name="default_account_id" ref="account_111110"/>
+        </record>
+
+        <record id="journal_pg_midtrans" model="account.journal">
+            <field name="name">Payment Gateway &amp; QRIS Online</field>
+            <field name="code">PGATE</field>
+            <field name="type">bank</field>
+            <field name="default_account_id" ref="account_111210"/>
+        </record>
+
+        <record id="journal_qris_edc" model="account.journal">
+            <field name="name">Kliring EDC &amp; QRIS Kasir</field>
+            <field name="code">QRIS</field>
+            <field name="type">bank</field>
+            <field name="default_account_id" ref="account_111220"/>
+        </record>
+
+        <record id="journal_ar_bpjs" model="account.journal">
+            <field name="name">Kliring Klaim BPJS Kesehatan</field>
+            <field name="code">JBPJS</field>
+            <field name="type">general</field>
+        </record>
+
+        <!-- ===================================================================
+             CLINICAL SALES JOURNALS
+             =================================================================== -->
+        <record id="journal_inv_out" model="account.journal">
+            <field name="name">Penjualan Pelayanan Rawat Jalan</field>
+            <field name="code">INVOUT</field>
+            <field name="type">sale</field>
+            <field name="default_account_id" ref="account_410010"/>
+        </record>
+
+        <record id="journal_inv_hd" model="account.journal">
+            <field name="name">Penjualan Pelayanan Hemodialisis</field>
+            <field name="code">INVHD</field>
+            <field name="type">sale</field>
+            <field name="default_account_id" ref="account_410110"/>
+        </record>
+
+        <!-- ===================================================================
+             PURCHASE & OPERATIONAL JOURNALS
+             =================================================================== -->
+        <record id="journal_bill_med" model="account.journal">
+            <field name="name">Faktur Pembelian Pemasok Medis</field>
+            <field name="code">BMED</field>
+            <field name="type">purchase</field>
+            <field name="default_account_id" ref="account_510010"/>
+        </record>
+
+        <record id="journal_misc_clinic" model="account.journal">
+            <field name="name">Jurnal Memorial &amp; Akrual Jasa Medis</field>
+            <field name="code">MISCL</field>
+            <field name="type">general</field>
+        </record>
+    </data>
+</odoo>

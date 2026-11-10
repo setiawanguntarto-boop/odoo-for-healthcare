@@ -1,0 +1,427 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- ===================================================================
+             1-1100 to 1-1199: KAS DAN SETARA KAS (account_type = asset_cash)
+             =================================================================== -->
+        <record id="account_111010" model="account.account">
+            <field name="code">111010</field>
+            <field name="name">Kas Kasir Klinik Pratama (Cash Safe)</field>
+            <field name="account_type">asset_cash</field>
+        </record>
+
+        <record id="account_111020" model="account.account">
+            <field name="code">111020</field>
+            <field name="name">Kas Kasir Hemodialisis (Cash Safe HD)</field>
+            <field name="account_type">asset_cash</field>
+        </record>
+
+        <record id="account_111110" model="account.account">
+            <field name="code">111110</field>
+            <field name="name">Bank BCA Operasional Klinik</field>
+            <field name="account_type">asset_cash</field>
+        </record>
+
+        <record id="account_111210" model="account.account">
+            <field name="code">111210</field>
+            <field name="name">Kliring Payment Gateway Midtrans / Doku</field>
+            <field name="account_type">asset_cash</field>
+        </record>
+
+        <record id="account_111220" model="account.account">
+            <field name="code">111220</field>
+            <field name="name">Kliring EDC / QRIS Statis &amp; Dinamis</field>
+            <field name="account_type">asset_cash</field>
+        </record>
+
+        <!-- ===================================================================
+             1-1200 to 1-1299: PIUTANG USAHA (account_type = asset_receivable)
+             =================================================================== -->
+        <record id="account_112010" model="account.account">
+            <field name="code">112010</field>
+            <field name="name">Piutang Pasien Umum (Co-Pay / Pending Self-Pay)</field>
+            <field name="account_type">asset_receivable</field>
+            <field name="reconcile" eval="True"/>
+        </record>
+
+        <record id="account_112020" model="account.account">
+            <field name="code">112020</field>
+            <field name="name">Piutang Klaim BPJS Kesehatan (VClaim / SEP)</field>
+            <field name="account_type">asset_receivable</field>
+            <field name="reconcile" eval="True"/>
+        </record>
+
+        <record id="account_112030" model="account.account">
+            <field name="code">112030</field>
+            <field name="name">Piutang Klaim Asuransi Swasta &amp; Korporasi</field>
+            <field name="account_type">asset_receivable</field>
+            <field name="reconcile" eval="True"/>
+        </record>
+
+        <record id="account_112040" model="account.account">
+            <field name="code">112040</field>
+            <field name="name">Piutang Pihak Berelasi / Pemegang Saham</field>
+            <field name="account_type">asset_receivable</field>
+            <field name="reconcile" eval="True"/>
+        </record>
+
+        <record id="account_112990" model="account.account">
+            <field name="code">112990</field>
+            <field name="name">Cadangan Kerugian Penolakan / Dispute Klaim BPJS</field>
+            <field name="account_type">asset_current</field>
+        </record>
+
+        <!-- ===================================================================
+             1-1400 to 1-1499: PERSEDIAAN (account_type = asset_current)
+             =================================================================== -->
+        <record id="account_113010" model="account.account">
+            <field name="code">113010</field>
+            <field name="name">Persediaan Farmasi &amp; Obat-obatan Rawat Jalan</field>
+            <field name="account_type">asset_current</field>
+        </record>
+
+        <record id="account_113020" model="account.account">
+            <field name="code">113020</field>
+            <field name="name">Persediaan BMHP Medis &amp; Dialyzer Hemodialisis</field>
+            <field name="account_type">asset_current</field>
+        </record>
+
+        <record id="account_114010" model="account.account">
+            <field name="code">114010</field>
+            <field name="name">Persediaan Obat Farmasi (Ethical &amp; OTC)</field>
+            <field name="account_type">asset_current</field>
+        </record>
+
+        <record id="account_114020" model="account.account">
+            <field name="code">114020</field>
+            <field name="name">Persediaan BHP Medis &amp; Konsumabel Rawat Jalan</field>
+            <field name="account_type">asset_current</field>
+        </record>
+
+        <record id="account_114030" model="account.account">
+            <field name="code">114030</field>
+            <field name="name">Persediaan Dialyzer &amp; BHP Khusus Hemodialisis</field>
+            <field name="account_type">asset_current</field>
+        </record>
+
+        <record id="account_114040" model="account.account">
+            <field name="code">114040</field>
+            <field name="name">Persediaan Reagen Lab &amp; Konsumabel Penunjang</field>
+            <field name="account_type">asset_current</field>
+        </record>
+
+        <!-- ===================================================================
+             1-1500: BIAYA DIBAYAR DI MUKA / PREPAID (account_type = asset_current)
+             =================================================================== -->
+        <record id="account_115010" model="account.account">
+            <field name="code">115010</field>
+            <field name="name">Sewa Gedung Klinik Dibayar di Muka (Prepaid Lease)</field>
+            <field name="account_type">asset_current</field>
+        </record>
+
+        <!-- ===================================================================
+             1-2000 to 1-2999: ASET TIDAK LANCAR (account_type = asset_non_current)
+             =================================================================== -->
+        <record id="account_121010" model="account.account">
+            <field name="code">121010</field>
+            <field name="name">Peralatan Medis &amp; Laboratorium (USG, EKG, Dental)</field>
+            <field name="account_type">asset_non_current</field>
+        </record>
+
+        <record id="account_121020" model="account.account">
+            <field name="code">121020</field>
+            <field name="name">Mesin Hemodialisis &amp; RO Water Treatment System</field>
+            <field name="account_type">asset_non_current</field>
+        </record>
+
+        <record id="account_122010" model="account.account">
+            <field name="code">122010</field>
+            <field name="name">Akumulasi Penyusutan Peralatan Medis &amp; Mesin HD</field>
+            <field name="account_type">asset_non_current</field>
+        </record>
+
+        <!-- ===================================================================
+             2-1100 to 2-1199: UTANG USAHA & CLEARING (liability_payable / liability_current)
+             =================================================================== -->
+        <record id="account_211010" model="account.account">
+            <field name="code">211010</field>
+            <field name="name">Utang Usaha Pemasok &amp; Distributor Farmasi</field>
+            <field name="account_type">liability_payable</field>
+            <field name="reconcile" eval="True"/>
+        </record>
+
+        <!-- Account 2-1150: GR/IR Interim Clearing -->
+        <record id="account_211500" model="account.account">
+            <field name="code">211500</field>
+            <field name="name">Utang Belum Ditagih (GR/IR Interim Clearing)</field>
+            <field name="account_type">liability_current</field>
+            <field name="reconcile" eval="True"/>
+        </record>
+
+        <!-- ===================================================================
+             2-1200 to 2-1299: UTANG PAJAK OPERASIONAL (account_type = liability_current)
+             =================================================================== -->
+        <record id="account_212010" model="account.account">
+            <field name="code">212010</field>
+            <field name="name">Utang PPN Keluaran</field>
+            <field name="account_type">liability_current</field>
+        </record>
+
+        <record id="account_212020" model="account.account">
+            <field name="code">212020</field>
+            <field name="name">PPN Masukan (Dapat Dikreditkan)</field>
+            <field name="account_type">asset_current</field>
+        </record>
+
+        <record id="account_212030" model="account.account">
+            <field name="code">212030</field>
+            <field name="name">Utang PPh 21 Tenaga Ahli Dokter</field>
+            <field name="account_type">liability_current</field>
+        </record>
+
+        <record id="account_212040" model="account.account">
+            <field name="code">212040</field>
+            <field name="name">Utang PPh 21 Karyawan &amp; Tenaga Medis Tetap</field>
+            <field name="account_type">liability_current</field>
+        </record>
+
+        <record id="account_212050" model="account.account">
+            <field name="code">212050</field>
+            <field name="name">Utang PPh 23 (Jasa Pemeliharaan / IT / Alat)</field>
+            <field name="account_type">liability_current</field>
+        </record>
+
+        <!-- ===================================================================
+             2-1300: UTANG JASA MEDIS & BAGI HASIL DOKTER (account_type = liability_current)
+             =================================================================== -->
+        <record id="account_213010" model="account.account">
+            <field name="code">213010</field>
+            <field name="name">Utang Jasa Medis Dokter Rawat Jalan</field>
+            <field name="account_type">liability_current</field>
+            <field name="reconcile" eval="True"/>
+        </record>
+
+        <record id="account_213020" model="account.account">
+            <field name="code">213020</field>
+            <field name="name">Utang Jasa Medis Dokter Spesialis Hemodialisis</field>
+            <field name="account_type">liability_current</field>
+            <field name="reconcile" eval="True"/>
+        </record>
+
+        <!-- ===================================================================
+             2-1400: PENDAPATAN DITERIMA DIMUKA & DEPOSIT PASIEN (liability_current)
+             =================================================================== -->
+        <record id="account_214010" model="account.account">
+            <field name="code">214010</field>
+            <field name="name">Pendapatan Diterima Dimuka - Paket HD &amp; Tindakan</field>
+            <field name="account_type">liability_current</field>
+            <field name="reconcile" eval="True"/>
+        </record>
+
+        <record id="account_214020" model="account.account">
+            <field name="code">214020</field>
+            <field name="name">Pendapatan Diterima Dimuka Paket Dialisis (PSAK 72)</field>
+            <field name="account_type">liability_current</field>
+            <field name="reconcile" eval="True"/>
+        </record>
+
+        <!-- ===================================================================
+             3-1000 to 3-9999: EKUITAS (account_type = equity)
+             =================================================================== -->
+        <record id="account_310010" model="account.account">
+            <field name="code">310010</field>
+            <field name="name">Modal Saham Disetor PT Prosperra Medika Utama</field>
+            <field name="account_type">equity</field>
+        </record>
+
+        <record id="account_320010" model="account.account">
+            <field name="code">320010</field>
+            <field name="name">Saldo Laba Ditahan (Retained Earnings)</field>
+            <field name="account_type">equity_unaffected</field>
+        </record>
+
+        <record id="account_320020" model="account.account">
+            <field name="code">320020</field>
+            <field name="name">Cadangan Pengembangan Sarana, Prasarana &amp; Akreditasi (Sinking Fund)</field>
+            <field name="account_type">equity_unaffected</field>
+        </record>
+
+        <!-- ===================================================================
+             4-xxxx: PENDAPATAN OPERASIONAL PELAYANAN (account_type = income)
+             =================================================================== -->
+        <record id="account_410010" model="account.account">
+            <field name="code">410010</field>
+            <field name="name">Pendapatan Poli Umum &amp; Konsultasi</field>
+            <field name="account_type">income</field>
+        </record>
+
+        <record id="account_410020" model="account.account">
+            <field name="code">410020</field>
+            <field name="name">Pendapatan Tindakan Poli Gigi</field>
+            <field name="account_type">income</field>
+        </record>
+
+        <record id="account_410030" model="account.account">
+            <field name="code">410030</field>
+            <field name="name">Pendapatan Poli KIA &amp; Kebidanan</field>
+            <field name="account_type">income</field>
+        </record>
+
+        <record id="account_410040" model="account.account">
+            <field name="code">410040</field>
+            <field name="name">Pendapatan Kapitasi BPJS Kesehatan FKTP</field>
+            <field name="account_type">income</field>
+        </record>
+
+        <record id="account_410050" model="account.account">
+            <field name="code">410050</field>
+            <field name="name">Pendapatan Layanan Radiologi</field>
+            <field name="account_type">income</field>
+        </record>
+
+        <record id="account_410060" model="account.account">
+            <field name="code">410060</field>
+            <field name="name">Pendapatan Penjualan Obat Farmasi Rawat Jalan</field>
+            <field name="account_type">income</field>
+        </record>
+
+        <record id="account_410070" model="account.account">
+            <field name="code">410070</field>
+            <field name="name">Pendapatan Tuslah / Embalase Resep</field>
+            <field name="account_type">income</field>
+        </record>
+
+        <record id="account_410110" model="account.account">
+            <field name="code">410110</field>
+            <field name="name">Pendapatan Tindakan Hemodialisis Rutin</field>
+            <field name="account_type">income</field>
+        </record>
+
+        <record id="account_410120" model="account.account">
+            <field name="code">410120</field>
+            <field name="name">Pendapatan Paket Hemodialisis Khusus / VIP</field>
+            <field name="account_type">income</field>
+        </record>
+
+        <!-- ===================================================================
+             4-2000: PENDAPATAN LAIN-LAIN & BUNGA BANK (account_type = income_other)
+             Objek PPh Final Pasal 4 ayat (2)
+             =================================================================== -->
+        <record id="account_420010" model="account.account">
+            <field name="code">420010</field>
+            <field name="name">Pendapatan Bunga Bank &amp; Jasa Giro (Objek PPh Final)</field>
+            <field name="account_type">income_other</field>
+        </record>
+
+        <!-- ===================================================================
+             5-xxxx: BEBAN POKOK PENDAPATAN / HPP (account_type = expense_direct_cost)
+             Kemenkes 2025 & Permenkes 14/2021 Direct Cost Segmentation
+             =================================================================== -->
+        <record id="account_510010" model="account.account">
+            <field name="code">510010</field>
+            <field name="name">HPP Obat Farmasi &amp; BMHP Rawat Jalan (Direct Medical Consumables)</field>
+            <field name="account_type">expense_direct_cost</field>
+        </record>
+
+        <record id="account_510020" model="account.account">
+            <field name="code">510020</field>
+            <field name="name">HPP BMHP Dialisis, Dialyzer &amp; Cairan HD (Hemodialysis Direct Consumables)</field>
+            <field name="account_type">expense_direct_cost</field>
+        </record>
+
+        <record id="account_510030" model="account.account">
+            <field name="code">510030</field>
+            <field name="name">Beban Penyusutan Langsung Mesin HD &amp; RO Plant (Direct Medical Equipment Depreciation)</field>
+            <field name="account_type">expense_direct_cost</field>
+        </record>
+
+        <record id="account_510040" model="account.account">
+            <field name="code">510040</field>
+            <field name="name">Beban Rujukan Medis, Laboratorium &amp; Radiologi Luar (External Referral Expenses)</field>
+            <field name="account_type">expense_direct_cost</field>
+        </record>
+
+        <record id="account_510110" model="account.account">
+            <field name="code">510110</field>
+            <field name="name">Beban Jasa Medis Dokter Poli Pratama</field>
+            <field name="account_type">expense_direct_cost</field>
+        </record>
+
+        <record id="account_510120" model="account.account">
+            <field name="code">510120</field>
+            <field name="name">Beban Jasa Medis Dokter Spesialis Hemodialisis</field>
+            <field name="account_type">expense_direct_cost</field>
+        </record>
+
+        <record id="account_510130" model="account.account">
+            <field name="code">510130</field>
+            <field name="name">Beban Jasa Paramedis &amp; Perawat Dialisis</field>
+            <field name="account_type">expense_direct_cost</field>
+        </record>
+
+        <!-- ===================================================================
+             6-xxxx: BEBAN OPERASIONAL & ADMINISTRASI (account_type = expense)
+             =================================================================== -->
+        <record id="account_610010" model="account.account">
+            <field name="code">610010</field>
+            <field name="name">Beban Gaji &amp; Tunjangan Non-Medis</field>
+            <field name="account_type">expense</field>
+        </record>
+
+        <record id="account_610020" model="account.account">
+            <field name="code">610020</field>
+            <field name="name">Beban Listrik, Air &amp; Utilitas Khusus RO HD</field>
+            <field name="account_type">expense</field>
+        </record>
+
+        <record id="account_610030" model="account.account">
+            <field name="code">610030</field>
+            <field name="name">Beban Pemeliharaan &amp; Kalibrasi Mesin HD / Medis</field>
+            <field name="account_type">expense</field>
+        </record>
+
+        <record id="account_610040" model="account.account">
+            <field name="code">610040</field>
+            <field name="name">Beban Lisensi IT, Integrasi EHR &amp; SATUSEHAT</field>
+            <field name="account_type">expense</field>
+        </record>
+
+        <record id="account_619000" model="account.account">
+            <field name="code">619000</field>
+            <field name="name">Beban Operasional Umum &amp; Beban Dispute Klaim BPJS</field>
+            <field name="account_type">expense</field>
+        </record>
+
+        <record id="account_619020" model="account.account">
+            <field name="code">619020</field>
+            <field name="name">Beban Kerugian Penghapusan Aset Tetap Medis &amp; Fasilitas</field>
+            <field name="account_type">expense</field>
+        </record>
+
+        <record id="account_619990" model="account.account">
+            <field name="code">619990</field>
+            <field name="name">Beban Selisih Rekonsiliasi Kas Kasir (Blind Count Variance)</field>
+            <field name="account_type">expense</field>
+        </record>
+
+        <!-- Akun Pos Penyesuaian Koreksi Fiskal Positif Form 1771 -->
+        <record id="account_619100" model="account.account">
+            <field name="code">619100</field>
+            <field name="name">Beban Kenikmatan &amp; Natura Non-Deductible (Tanpa Daftar Nominatif)</field>
+            <field name="account_type">expense</field>
+        </record>
+
+        <record id="account_619200" model="account.account">
+            <field name="code">619200</field>
+            <field name="name">Beban Sumbangan &amp; Donasi Non-Deductible</field>
+            <field name="account_type">expense</field>
+        </record>
+
+        <record id="account_619300" model="account.account">
+            <field name="code">619300</field>
+            <field name="name">Beban Sanksi Administrasi &amp; Denda Pajak</field>
+            <field name="account_type">expense</field>
+        </record>
+    </data>
+</odoo>
+

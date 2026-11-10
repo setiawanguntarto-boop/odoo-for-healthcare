@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_pos_order_form_inherit_adera" model="ir.ui.view">
+        <field name="name">pos.order.form.inherit.adera</field>
+        <field name="model">pos.order</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_pos_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="medical_record_no" placeholder="Contoh: RM-088219"/>
+                <field name="sep_claim_number" placeholder="Contoh: SEP-0021R0011126V0001"/>
+                <field name="encounter_reference" placeholder="Contoh: ENC-2026-11-0042"/>
+                <field name="payer_type" widget="badge"
+                       decoration-info="payer_type == 'self_pay'"
+                       decoration-success="payer_type == 'bpjs'"
+                       decoration-warning="payer_type == 'insurance'"
+                       decoration-primary="payer_type == 'split'"/>
+                <field name="package_deposit_redeemed"/>
+            </xpath>
+            <xpath expr="//field[@name='lines']/list/field[@name='product_id']" position="after">
+                <field name="doctor_id"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
+

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Account Groups for PSAK Structure (Odoo 19: code_prefix_start and code_prefix_end MUST have the exact same character length) -->
+        <record id="group_kas_setara_kas" model="account.group">
+            <field name="name">Kas dan Setara Kas</field>
+            <field name="code_prefix_start">1110</field>
+            <field name="code_prefix_end">1119</field>
+        </record>
+
+        <record id="group_piutang_usaha" model="account.group">
+            <field name="name">Piutang Usaha &amp; Pelayanan</field>
+            <field name="code_prefix_start">1120</field>
+            <field name="code_prefix_end">1129</field>
+        </record>
+
+        <record id="group_persediaan" model="account.group">
+            <field name="name">Persediaan Farmasi &amp; BHP</field>
+            <field name="code_prefix_start">1140</field>
+            <field name="code_prefix_end">1149</field>
+        </record>
+
+        <record id="group_aset_tidak_lancar" model="account.group">
+            <field name="name">Aset Tetap &amp; Peralatan Medis</field>
+            <field name="code_prefix_start">1200</field>
+            <field name="code_prefix_end">1299</field>
+        </record>
+
+        <record id="group_utang_usaha_clearing" model="account.group">
+            <field name="name">Utang Usaha &amp; Clearing Akun</field>
+            <field name="code_prefix_start">2110</field>
+            <field name="code_prefix_end">2119</field>
+        </record>
+
+        <record id="group_utang_pajak" model="account.group">
+            <field name="name">Utang Pajak Operasional</field>
+            <field name="code_prefix_start">2120</field>
+            <field name="code_prefix_end">2129</field>
+        </record>
+
+        <record id="group_akrual_jasa_medis" model="account.group">
+            <field name="name">Akrual Jasa Medis &amp; Bagi Hasil Dokter</field>
+            <field name="code_prefix_start">2130</field>
+            <field name="code_prefix_end">2139</field>
+        </record>
+
+        <record id="group_pendapatan_dimuka" model="account.group">
+            <field name="name">Pendapatan Diterima Dimuka &amp; Deposit Pasien</field>
+            <field name="code_prefix_start">2140</field>
+            <field name="code_prefix_end">2149</field>
+        </record>
+
+        <record id="group_ekuitas_modal" model="account.group">
+            <field name="name">Ekuitas &amp; Saldo Laba</field>
+            <field name="code_prefix_start">3100</field>
+            <field name="code_prefix_end">3999</field>
+        </record>
+
+        <record id="group_pendapatan_pelayanan" model="account.group">
+            <field name="name">Pendapatan Pelayanan &amp; Tindakan</field>
+            <field name="code_prefix_start">4100</field>
+            <field name="code_prefix_end">4199</field>
+        </record>
+
+        <record id="group_beban_pokok" model="account.group">
+            <field name="name">Beban Pokok Pendapatan (HPP &amp; Jasa Medis)</field>
+            <field name="code_prefix_start">5100</field>
+            <field name="code_prefix_end">5199</field>
+        </record>
+
+        <record id="group_beban_operasional" model="account.group">
+            <field name="name">Beban Operasional &amp; Administrasi</field>
+            <field name="code_prefix_start">6100</field>
+            <field name="code_prefix_end">6199</field>
+        </record>
+    </data>
+</odoo>

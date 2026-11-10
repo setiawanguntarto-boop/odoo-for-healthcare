@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_stock_scrap_spoilage_bast" model="ir.actions.report">
+        <field name="name">Berita Acara Pemusnahan Sisa Obat Terbuka</field>
+        <field name="model">stock.scrap.clinic</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">adera_inventory.report_stock_scrap_spoilage_document</field>
+        <field name="report_file">adera_inventory.report_stock_scrap_spoilage_document</field>
+        <field name="print_report_name">'BAST_Pemusnahan_Obat_%s' % (object.lot_id.name or 'Spoilage')</field>
+    </record>
+
+    <template id="report_stock_scrap_spoilage_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page" style="font-family: Arial, sans-serif; font-size: 13px;">
+                        <div class="text-center mb-4 border-bottom pb-2">
+                            <h3 class="fw-bold mb-0">PT PROSPERRA MEDIKA UTAMA / KLINIK ADERA</h3>
+                            <h4 class="text-danger fw-bold mt-1">BERITA ACARA PEMUSNAHAN OBAT &amp; SISA VIAL TERBUKA</h4>
+                            <p class="text-muted small mb-0">
+                                Berita Acara Pemusnahan Sediaan Farmasi Kadaluarsa Pasca Buka (Open-Vial Spoilage Protocol)
+                            </p>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <table class="table table-borderless table-sm mb-0">
+                                    <tr>
+                                        <td class="fw-bold" style="width: 45%;">Sediaan Farmasi:</td>
+                                        <td><span t-field="o.product_id.name"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Nomor Batch / Lot:</td>
+                                        <td><span t-field="o.lot_id.name"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Waktu Buka Segel:</td>
+                                        <td><span t-field="o.opened_datetime"/></td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-6">
+                                <table class="table table-borderless table-sm mb-0">
+                                    <tr>
+                                        <td class="fw-bold" style="width: 45%;">Dosis Dimusnahkan:</td>
+                                        <td><span t-field="o.dose_scrap_quantity"/> Dosis (<span t-field="o.vial_unit_quantity"/> Unit)</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Alasan Pemusnahan:</td>
+                                        <td><span t-field="o.spoilage_reason"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Unit Bisnis (Analytic):</td>
+                                        <td><span t-field="o.analytic_account_id.name"/></td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="card mb-4">
+                            <div class="card-header fw-bold bg-light">
+                                Penilaian Kerugian HPP Farmasi (Debit 510010 / Credit 113010)
+                            </div>
+                            <div class="card-body p-0">
+                                <table class="table table-bordered mb-0">
+                                    <tr>
+                                        <td class="fw-bold" style="width: 50%;">Harga Pokok Satuan (Standard Cost):</td>
+                                        <td class="text-end"><span t-field="o.unit_cost" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                    </tr>
+                                    <tr class="table-danger fw-bold">
+                                        <td>Total Estimasi Kerugian Spoilage (HPP 510010):</td>
+                                        <td class="text-end text-danger"><span t-field="o.total_spoilage_cost" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="row text-center mt-5">
+                            <div class="col-6">
+                                <p class="mb-1">Petugas Farmasi yang Memusnahkan,</p>
+                                <p class="text-muted small">Apoteker / PJ Farmasi</p>
+                                <div style="height: 60px;"/>
+                                <p class="fw-bold mb-0 border-top pt-1 mx-4">
+                                    <span t-field="o.pharmacist_id.name"/>
+                                </p>
+                            </div>
+                            <div class="col-6">
+                                <p class="mb-1">Disetujui Oleh,</p>
+                                <p class="text-muted small">
+                                    <t t-if="o.requires_medical_manager">Manajer Pelayanan Medis / Direktur</t>
+                                    <t t-else="">Apoteker Penanggung Jawab</t>
+                                </p>
+                                <div style="height: 60px;"/>
+                                <p class="fw-bold mb-0 border-top pt-1 mx-4">
+                                    <t t-if="o.approver_id"><span t-field="o.approver_id.name"/></t>
+                                    <t t-else=""><span t-field="o.pharmacist_id.name"/></t>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>
+

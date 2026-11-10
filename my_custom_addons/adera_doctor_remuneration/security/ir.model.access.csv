@@ -1,0 +1,6 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_medical_fee_rule_user,medical.fee.rule.user,model_medical_fee_rule,base.group_user,1,1,1,1
+access_medical_fee_accrual_user,medical.fee.accrual.user,model_medical_fee_accrual,base.group_user,1,1,1,1
+access_doctor_settlement_user,doctor.settlement.user,model_doctor_settlement,base.group_user,1,1,1,1
+access_medical_fee_settlement_batch_user,medical.fee.settlement.batch.user,model_medical_fee_settlement_batch,base.group_user,1,1,1,1
+access_medical_fee_settlement_line_user,medical.fee.settlement.line.user,model_medical_fee_settlement_line,base.group_user,1,1,1,1

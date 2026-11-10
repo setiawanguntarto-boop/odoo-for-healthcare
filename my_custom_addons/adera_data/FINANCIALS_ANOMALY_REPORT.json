@@ -1,0 +1,181 @@
+{
+  "timestamp": "2026-11-08T09:32:19.108512",
+  "statistics": {
+    "rincian_lines": {
+      "total_rows": 2289,
+      "valid": 416,
+      "discarded": 1873,
+      "created": 0,
+      "skipped": 407
+    },
+    "fee_accruals": {
+      "total_rows": 5,
+      "valid": 5,
+      "created": 0,
+      "skipped": 5
+    },
+    "other_income": {
+      "total_rows": 9,
+      "valid": 8,
+      "linked_to_encounter": 0,
+      "standalone": 2,
+      "discarded": 1
+    }
+  },
+  "anomalies_summary": {
+    "discarded_rincian_count": 1873,
+    "discarded_other_income_count": 1
+  },
+  "sample_discarded_rincian": [
+    {
+      "row": 3,
+      "faktur": "2608000006",
+      "item": "-",
+      "price": 0.0,
+      "reasons": [
+        "Zero / Administrative Non-Revenue Item (Rp 0.0)"
+      ]
+    },
+    {
+      "row": 4,
+      "faktur": "2608000005",
+      "item": "FDC-DRG - BEHEL LUXURY DIAMOND METAL",
+      "price": 9900000.0,
+      "reasons": [
+        "Test Insurance ('test bpjs')"
+      ]
+    },
+    {
+      "row": 5,
+      "faktur": "2608000004",
+      "item": "BIAYA ADMIN",
+      "price": 20000.0,
+      "reasons": [
+        "Test Insurance ('test bpjs')"
+      ]
+    },
+    {
+      "row": 6,
+      "faktur": "2608000003",
+      "item": "Daftar JKN Mobile",
+      "price": 0.0,
+      "reasons": [
+        "Zero / Administrative Non-Revenue Item (Rp 0.0)"
+      ]
+    },
+    {
+      "row": 8,
+      "faktur": "2608000001",
+      "item": "BHP VAKSIN UMUM",
+      "price": 1000.0,
+      "reasons": [
+        "Test Patient Name ('riobintest03')"
+      ]
+    },
+    {
+      "row": 10,
+      "faktur": "2607000042",
+      "item": "BHP",
+      "price": 0.0,
+      "reasons": [
+        "Zero / Administrative Non-Revenue Item (Rp 0.0)",
+        "Test Patient Name ('riobintest02')"
+      ]
+    },
+    {
+      "row": 11,
+      "faktur": "2607000041",
+      "item": "Perpanjang rujukan",
+      "price": 1000.0,
+      "reasons": [
+        "Test Patient Name ('riobintest03')"
+      ]
+    },
+    {
+      "row": 12,
+      "faktur": "2607000040",
+      "item": "BHP",
+      "price": 0.0,
+      "reasons": [
+        "Zero / Administrative Non-Revenue Item (Rp 0.0)",
+        "Test Patient Name ('riobintest03')"
+      ]
+    },
+    {
+      "row": 13,
+      "faktur": "2607000039",
+      "item": "BHP",
+      "price": 0.0,
+      "reasons": [
+        "Zero / Administrative Non-Revenue Item (Rp 0.0)",
+        "Test Patient Name ('riobintest03')"
+      ]
+    },
+    {
+      "row": 14,
+      "faktur": "2607000038",
+      "item": "BHP",
+      "price": 0.0,
+      "reasons": [
+        "Zero / Administrative Non-Revenue Item (Rp 0.0)",
+        "Test Patient Name ('riobintest03')"
+      ]
+    },
+    {
+      "row": 15,
+      "faktur": "2607000037",
+      "item": "BHP",
+      "price": 0.0,
+      "reasons": [
+        "Zero / Administrative Non-Revenue Item (Rp 0.0)",
+        "Test Patient Name ('riobintest03')"
+      ]
+    },
+    {
+      "row": 16,
+      "faktur": "2607000036",
+      "item": "BHP",
+      "price": 0.0,
+      "reasons": [
+        "Zero / Administrative Non-Revenue Item (Rp 0.0)",
+        "Test Patient Name ('riobintest03')"
+      ]
+    },
+    {
+      "row": 17,
+      "faktur": "2607000035",
+      "item": "BHP",
+      "price": 0.0,
+      "reasons": [
+        "Zero / Administrative Non-Revenue Item (Rp 0.0)",
+        "Test Patient Name ('riobintest03')"
+      ]
+    },
+    {
+      "row": 18,
+      "faktur": "2607000034",
+      "item": "BHP",
+      "price": 0.0,
+      "reasons": [
+        "Zero / Administrative Non-Revenue Item (Rp 0.0)"
+      ]
+    },
+    {
+      "row": 19,
+      "faktur": "2607000033",
+      "item": "BHP",
+      "price": 0.0,
+      "reasons": [
+        "Zero / Administrative Non-Revenue Item (Rp 0.0)"
+      ]
+    }
+  ],
+  "sample_discarded_other_income": [
+    {
+      "row": 12,
+      "catatan": "testing",
+      "amount": 10000000.0,
+      "reason": "Test / Dummy Income Entry"
+    }
+  ]
+}

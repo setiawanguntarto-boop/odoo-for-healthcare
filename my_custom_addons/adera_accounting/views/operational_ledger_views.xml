@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ===================================================================
+         1. PIUTANG & BILLING KLINIK
+         =================================================================== -->
+    <!-- Faktur Pasien Rawat Jalan (INVOUT) -->
+    <record id="action_invoice_outpatient_invout" model="ir.actions.act_window">
+        <field name="name">Faktur Pasien Rawat Jalan (INVOUT)</field>
+        <field name="res_model">account.move</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('move_type', '=', 'out_invoice'), ('journal_id.code', '=', 'INVOUT')]</field>
+        <field name="context">{'default_move_type': 'out_invoice'}</field>
+    </record>
+
+    <!-- Piutang Klaim BPJS (112020) -->
+    <record id="action_ar_bpjs_claim_ledger" model="ir.actions.act_window">
+        <field name="name">Buku Pembantu Piutang Klaim BPJS (112020)</field>
+        <field name="res_model">account.move.line</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('account_id.code_store', 'like', '112020')]</field>
+        <field name="context">{'search_default_unreconciled': 1}</field>
+    </record>
+
+    <!-- Settlement Co-Pay POS -->
+    <record id="action_pos_copay_settlement_ledger" model="ir.actions.act_window">
+        <field name="name">Settlement &amp; Pembayaran Kasir POS</field>
+        <field name="res_model">pos.order</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ===================================================================
+         2. HUTANG & PENGADAAN
+         =================================================================== -->
+    <!-- Tagihan Distributor / Vendor (BMED) -->
+    <record id="action_vendor_bills_medical_procure" model="ir.actions.act_window">
+        <field name="name">Tagihan Distributor Farmasi / Vendor (BMED)</field>
+        <field name="res_model">account.move</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('move_type', '=', 'in_invoice'), ('journal_id.code', '=', 'BMED')]</field>
+        <field name="context">{'default_move_type': 'in_invoice'}</field>
+    </record>
+
+    <!-- Rekonsiliasi GR/IR Clearing (211500) -->
+    <record id="action_gr_ir_clearing_ledger" model="ir.actions.act_window">
+        <field name="name">Rekonsiliasi GR/IR Clearing (211500)</field>
+        <field name="res_model">account.move.line</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('account_id.code_store', 'like', '211500')]</field>
+        <field name="context">{'search_default_unreconciled': 1}</field>
+    </record>
+
+    <!-- ===================================================================
+         3. JASA MEDIS & PERPAJAKAN
+         =================================================================== -->
+    <!-- Akrual Utang Jasa Dokter (2130xx) -->
+    <record id="action_doctor_fee_accrual_lines" model="ir.actions.act_window">
+        <field name="name">Akrual Utang Jasa Medis Dokter (2130xx)</field>
+        <field name="res_model">account.move.line</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('account_id.code_store', 'like', '2130%')]</field>
+    </record>
+
+    <!-- Buku Besar PPh 21 Tenaga Ahli Dokter (212030) -->
+    <record id="action_pph21_tax_withholding_ledger" model="ir.actions.act_window">
+        <field name="name">Buku Besar PPh 21 Tenaga Ahli Dokter (212030)</field>
+        <field name="res_model">account.move.line</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('account_id.code_store', 'like', '212030')]</field>
+    </record>
+
+    <!-- Log Ekspor e-Bupot DJP -->
+    <record id="action_ebupot_settlement_log" model="ir.actions.act_window">
+        <field name="name">Log Settlement &amp; Bukti Potong e-Bupot DJP</field>
+        <field name="res_model">doctor.settlement</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ===================================================================
+         4. KAS & BANK
+         =================================================================== -->
+    <!-- Audit Selisih Kasir (619990) -->
+    <record id="action_cashier_variance_audit_ledger" model="ir.actions.act_window">
+        <field name="name">Audit Beban Selisih Kasir (619990)</field>
+        <field name="res_model">account.move.line</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('account_id.code_store', 'like', '619990')]</field>
+    </record>
+
+    <!-- Rekonsiliasi Bank -->
+    <record id="action_bank_journal_reconciliation" model="ir.actions.act_window">
+        <field name="name">Rekonsiliasi Bank &amp; Kas Operasional</field>
+        <field name="res_model">account.move</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('journal_id.type', 'in', ('bank', 'cash'))]</field>
+    </record>
+</odoo>
+

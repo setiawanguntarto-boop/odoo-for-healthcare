@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Sequence for Asset Disposal -->
+        <record id="seq_clinic_asset_disposal" model="ir.sequence">
+            <field name="name">Berita Acara Penghapusan Aset Medis</field>
+            <field name="code">clinic.asset.disposal</field>
+            <field name="prefix">BAST-AST/%(year)s/%(month)s/</field>
+            <field name="padding">4</field>
+        </record>
+
+        <!-- 1. Mesin Hemodialisis Nipro Surdial X - Unit 01 -->
+        <record id="asset_nipro_surdial_01" model="clinic.asset">
+            <field name="name">Mesin Hemodialisis Nipro Surdial X - Unit 01</field>
+            <field name="asset_code">AST-HD-001</field>
+            <field name="asset_category">medical_device_hd</field>
+            <field name="expense_account_id" ref="adera_core.account_510030"/>
+            <field name="purchase_date">2024-01-15</field>
+            <field name="purchase_value">240000000.0</field>
+            <field name="salvage_value">0.0</field>
+            <field name="useful_life_months">60</field>
+            <field name="depreciation_method">straight_line</field>
+            <field name="state">running</field>
+            <field name="analytic_distribution" eval="{'%s' % ref('adera_core.analytic_account_hd_root', raise_if_not_found=False): 100.0}"/>
+        </record>
+
+        <!-- 2. RO Water Treatment System HD AAMI Standard -->
+        <record id="asset_ro_water_system_01" model="clinic.asset">
+            <field name="name">Sistem Pengolahan Air RO Water Treatment HD (AAMI Standard)</field>
+            <field name="asset_code">AST-RO-001</field>
+            <field name="asset_category">medical_device_hd</field>
+            <field name="expense_account_id" ref="adera_core.account_510030"/>
+            <field name="purchase_date">2023-06-01</field>
+            <field name="purchase_value">180000000.0</field>
+            <field name="salvage_value">0.0</field>
+            <field name="useful_life_months">96</field>
+            <field name="depreciation_method">straight_line</field>
+            <field name="state">running</field>
+            <field name="analytic_distribution" eval="{'%s' % ref('adera_core.analytic_account_hd_root', raise_if_not_found=False): 100.0}"/>
+        </record>
+
+        <!-- 3. USG 4D Mindray DC-30 -->
+        <record id="asset_usg_mindray_01" model="clinic.asset">
+            <field name="name">USG 4D Mindray DC-30 Diagnostik Medis</field>
+            <field name="asset_code">AST-PRAT-USG</field>
+            <field name="asset_category">medical_device_pratama</field>
+            <field name="expense_account_id" ref="adera_core.account_610030"/>
+            <field name="purchase_date">2024-03-01</field>
+            <field name="purchase_value">120000000.0</field>
+            <field name="salvage_value">0.0</field>
+            <field name="useful_life_months">60</field>
+            <field name="depreciation_method">straight_line</field>
+            <field name="state">running</field>
+            <field name="analytic_distribution" eval="{'%s' % ref('adera_core.analytic_account_pratama_root', raise_if_not_found=False): 100.0}"/>
+        </record>
+
+        <!-- 4. Dental Chair Unit & Kompresor Medis -->
+        <record id="asset_dental_chair_01" model="clinic.asset">
+            <field name="name">Dental Chair Unit &amp; Kompresor Medis Poli Gigi</field>
+            <field name="asset_code">AST-PRAT-DENT</field>
+            <field name="asset_category">medical_device_pratama</field>
+            <field name="expense_account_id" ref="adera_core.account_610030"/>
+            <field name="purchase_date">2024-02-15</field>
+            <field name="purchase_value">65000000.0</field>
+            <field name="salvage_value">0.0</field>
+            <field name="useful_life_months">48</field>
+            <field name="depreciation_method">straight_line</field>
+            <field name="state">running</field>
+            <field name="analytic_distribution" eval="{'%s' % ref('adera_core.analytic_account_pratama_root', raise_if_not_found=False): 100.0}"/>
+        </record>
+
+        <!-- 5. Autoclave Sterilisasi Vakum Medis Kelas B -->
+        <record id="asset_autoclave_01" model="clinic.asset">
+            <field name="name">Autoclave Sterilisasi Vakum Medis Kelas B</field>
+            <field name="asset_code">AST-PRAT-AUTO</field>
+            <field name="asset_category">medical_device_pratama</field>
+            <field name="expense_account_id" ref="adera_core.account_610030"/>
+            <field name="purchase_date">2024-04-01</field>
+            <field name="purchase_value">35000000.0</field>
+            <field name="salvage_value">0.0</field>
+            <field name="useful_life_months">48</field>
+            <field name="depreciation_method">straight_line</field>
+            <field name="state">running</field>
+            <field name="analytic_distribution" eval="{'%s' % ref('adera_core.analytic_account_pratama_root', raise_if_not_found=False): 100.0}"/>
+        </record>
+    </data>
+</odoo>
+

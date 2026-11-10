@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_medical_fee_rule_tree" model="ir.ui.view">
+        <field name="name">medical.fee.rule.tree</field>
+        <field name="model">medical.fee.rule</field>
+        <field name="arch" type="xml">
+            <list string="Aturan Bagi Hasil Jasa Medis">
+                <field name="name"/>
+                <field name="doctor_type"/>
+                <field name="product_id"/>
+                <field name="doctor_share_type"/>
+                <field name="doctor_share_rate"/>
+                <field name="fixed_amount"/>
+                <field name="expense_account_id"/>
+                <field name="payable_account_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_medical_fee_rule_form" model="ir.ui.view">
+        <field name="name">medical.fee.rule.form</field>
+        <field name="model">medical.fee.rule</field>
+        <field name="arch" type="xml">
+            <form string="Aturan Bagi Hasil Jasa Medis">
+                <sheet>
+                    <group>
+                        <group string="Konfigurasi Layanan">
+                            <field name="name" placeholder="Misal: Supervisi HD Spesialis 70%"/>
+                            <field name="doctor_type"/>
+                            <field name="product_id"/>
+                        </group>
+                        <group string="Skema Pembagian">
+                            <field name="doctor_share_type"/>
+                            <field name="doctor_share_rate" invisible="doctor_share_type != 'percentage'"/>
+                            <field name="fixed_amount" invisible="doctor_share_type != 'fixed_amount'"/>
+                        </group>
+                    </group>
+                    <group string="Akun Akuntansi Terkait">
+                        <group>
+                            <field name="expense_account_id"/>
+                        </group>
+                        <group>
+                            <field name="payable_account_id"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_medical_fee_rule" model="ir.actions.act_window">
+        <field name="name">Aturan Bagi Hasil Jasa Medis</field>
+        <field name="res_model">medical.fee.rule</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>
+

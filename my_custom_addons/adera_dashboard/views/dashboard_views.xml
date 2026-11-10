@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Client Action: Executive Management Dashboard -->
+    <record id="action_clinic_management_dashboard" model="ir.actions.client">
+        <field name="name">Executive Management Dashboard</field>
+        <field name="tag">adera_dashboard.main_dashboard</field>
+        <field name="target">current</field>
+    </record>
+
+    <!-- Top-Level Root Application on App Switcher -->
+    <menuitem id="menu_adera_dashboard_root"
+              name="Executive Dashboard"
+              action="action_clinic_management_dashboard"
+              sequence="5"
+              web_icon="adera_dashboard,static/description/icon.png"
+              groups="account.group_account_user,account.group_account_manager"/>
+
+    <!-- Deactivate generic Odoo Spreadsheet Dashboards to avoid cluttering Executive Healthcare UI -->
+    <record id="spreadsheet_dashboard.spreadsheet_dashboard_menu_root" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+</odoo>
+

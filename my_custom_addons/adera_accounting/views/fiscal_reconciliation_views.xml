@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Tree View -->
+    <record id="view_clinic_fiscal_reconciliation_tree" model="ir.ui.view">
+        <field name="name">clinic.fiscal.reconciliation.tree</field>
+        <field name="model">clinic.fiscal.reconciliation</field>
+        <field name="arch" type="xml">
+            <list string="Rekonsiliasi Fiskal SPT Form 1771" decoration-info="state == 'draft'" decoration-success="state == 'approved'">
+                <field name="fiscal_year"/>
+                <field name="name"/>
+                <field name="gross_revenue" widget="monetary"/>
+                <field name="commercial_net_profit" widget="monetary"/>
+                <field name="total_positive_adjustments" widget="monetary"/>
+                <field name="total_negative_adjustments" widget="monetary"/>
+                <field name="fiscal_net_income" widget="monetary"/>
+                <field name="corporate_tax_due" widget="monetary"/>
+                <field name="tax_underpayment" widget="monetary"/>
+                <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-warning="state == 'calculated'" decoration-success="state == 'approved'"/>
+                <field name="currency_id" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_clinic_fiscal_reconciliation_form" model="ir.ui.view">
+        <field name="name">clinic.fiscal.reconciliation.form</field>
+        <field name="model">clinic.fiscal.reconciliation</field>
+        <field name="arch" type="xml">
+            <form string="Kertas Kerja Rekonsiliasi Fiskal &amp; SPT PPh Badan">
+                <header>
+                    <button name="action_compute"
+                            string="Hitung Ulang Saldo GL &amp; Koreksi Fiskal"
+                            type="object"
+                            class="btn-primary"
+                            invisible="state == 'approved'"/>
+                    <button name="action_approve"
+                            string="Setujui Rekonsiliasi Final (Lock)"
+                            type="object"
+                            class="btn-success"
+                            invisible="state != 'calculated'"/>
+                    <button name="action_set_to_draft"
+                            string="Kembalikan ke Draf"
+                            type="object"
+                            class="btn-secondary"
+                            invisible="state == 'draft'"/>
+                    <button name="action_print_pdf"
+                            string="Cetak Kertas Kerja Form 1771-I (PDF)"
+                            type="object"
+                            class="btn-info"
+                            icon="fa-print"/>
+                    <button name="action_export_xlsx"
+                            string="Ekspor Kertas Kerja (Excel / XLSX)"
+                            type="object"
+                            class="btn-secondary"
+                            icon="fa-file-excel-o"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,calculated,approved"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" string="Nama Dokumen Rekonsiliasi"/>
+                        <h1>
+                            <field name="name" placeholder="Kertas Kerja Rekonsiliasi Fiskal - Tahun Pajak 2026"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Parameter Periode Tahun Pajak">
+                            <field name="fiscal_year"/>
+                            <field name="date_from"/>
+                            <field name="date_to"/>
+                            <field name="company_id" options="{'no_create': True}"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                        <group string="Skema Fasilitas Perpajakan (UU HPP)">
+                            <field name="tax_facility"/>
+                            <field name="effective_tax_rate" widget="percentage"/>
+                            <field name="taxable_income" widget="monetary"/>
+                            <field name="corporate_tax_due" widget="monetary" style="font-weight: bold; color: blue;"/>
+                            <field name="tax_credit_pph23" widget="monetary"/>
+                            <field name="tax_underpayment" widget="monetary" style="font-weight: bold; color: red;"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Ringkasan Koreksi Laba Fiskal" name="summary">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card p-3 mb-3 bg-light">
+                                        <h5 class="fw-bold text-primary mb-3">I. Laba Komersial Sebelum Pajak</h5>
+                                        <group>
+                                            <field name="gross_revenue" widget="monetary"/>
+                                            <field name="cogs" widget="monetary"/>
+                                            <field name="gross_profit" widget="monetary"/>
+                                            <field name="opex" widget="monetary"/>
+                                            <field name="other_income" widget="monetary"/>
+                                            <field name="commercial_net_profit" widget="monetary" style="font-weight: bold;"/>
+                                        </group>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card p-3 mb-3 bg-light">
+                                        <h5 class="fw-bold text-success mb-3">IV. Hasil Laba Neto Fiskal</h5>
+                                        <group>
+                                            <field name="commercial_net_profit" widget="monetary" string="Laba Komersial Awal"/>
+                                            <field name="total_positive_adjustments" widget="monetary" style="color: green; font-weight: bold;"/>
+                                            <field name="total_negative_adjustments" widget="monetary" style="color: red; font-weight: bold;"/>
+                                            <field name="fiscal_net_income" widget="monetary" style="font-weight: bold; font-size: 16px; color: #0d6efd;"/>
+                                        </group>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card p-3 border-danger mb-3">
+                                        <h5 class="fw-bold text-danger mb-3">II. Koreksi Fiskal Positif (Menambah Laba)</h5>
+                                        <group>
+                                            <field name="adj_cashier_variance" widget="monetary"/>
+                                            <field name="adj_natura" widget="monetary"/>
+                                            <field name="adj_donations" widget="monetary"/>
+                                            <field name="adj_tax_penalties" widget="monetary"/>
+                                            <field name="adj_depreciation_pos" widget="monetary"/>
+                                            <field name="adj_other_pos" widget="monetary"/>
+                                            <field name="total_positive_adjustments" widget="monetary" style="font-weight: bold; color: red;"/>
+                                        </group>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card p-3 border-info mb-3">
+                                        <h5 class="fw-bold text-info mb-3">III. Koreksi Fiskal Negatif (Mengurangi Laba)</h5>
+                                        <group>
+                                            <field name="adj_bank_interest" widget="monetary"/>
+                                            <field name="adj_depreciation_neg" widget="monetary"/>
+                                            <field name="adj_other_neg" widget="monetary"/>
+                                            <field name="total_negative_adjustments" widget="monetary" style="font-weight: bold; color: #0dcaf0;"/>
+                                        </group>
+                                    </div>
+                                </div>
+                            </div>
+                        </page>
+
+                        <page string="Kertas Kerja Form 1771-I (Rincian Baris)" name="form_1771">
+                            <field name="line_ids">
+                                <list decoration-bf="line_type in ('header', 'subtotal', 'total')"
+                                      decoration-danger="line_type == 'adj_pos'"
+                                      decoration-info="line_type == 'adj_neg'"
+                                      decoration-success="line_type == 'total'">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="form_1771_code" string="No. Pos"/>
+                                    <field name="name" string="Uraian Pos Perhitungan"/>
+                                    <field name="amount_commercial" widget="monetary" string="Menurut Komersial"/>
+                                    <field name="adj_positive" widget="monetary" string="Koreksi Positif"/>
+                                    <field name="adj_negative" widget="monetary" string="Koreksi Negatif"/>
+                                    <field name="amount_fiscal" widget="monetary" string="Menurut Fiskal"/>
+                                    <field name="line_type" column_invisible="1"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_clinic_fiscal_reconciliation" model="ir.actions.act_window">
+        <field name="name">Rekonsiliasi Fiskal &amp; SPT Tahunan</field>
+        <field name="res_model">clinic.fiscal.reconciliation</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Belum ada arsip Kertas Kerja Rekonsiliasi Fiskal SPT Tahunan Badan.
+            </p>
+            <p>
+                Gunakan wizard untuk otomatis mengekstrak laporan laba rugi komersial dan menghitung pos koreksi fiskal SPT 1771.
+            </p>
+        </field>
+    </record>
+
+    <!-- Wizard Form View -->
+    <record id="view_clinic_fiscal_reconciliation_wizard_form" model="ir.ui.view">
+        <field name="name">clinic.fiscal.reconciliation.wizard.form</field>
+        <field name="model">clinic.fiscal.reconciliation.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Penyiapan Kertas Kerja Rekonsiliasi Fiskal">
+                <sheet>
+                    <div class="oe_title">
+                        <h2>Generator Rekonsiliasi Fiskal SPT Tahunan Form 1771</h2>
+                        <p class="text-muted">
+                            Menghubungkan Laporan Keuangan Komersial SAK EMKM dengan Penghasilan Kena Pajak DJP.
+                        </p>
+                    </div>
+                    <group>
+                        <group string="Tahun Pajak &amp; Cut-off">
+                            <field name="fiscal_year"/>
+                            <field name="date_from"/>
+                            <field name="date_to"/>
+                        </group>
+                        <group string="Ketentuan Tarif Badan">
+                            <field name="tax_facility"/>
+                            <field name="company_id" options="{'no_create': True}"/>
+                        </group>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_generate"
+                            string="Proses Rekonsiliasi Fiskal"
+                            type="object"
+                            class="btn-primary"/>
+                    <button name="action_export_xlsx"
+                            string="Ekspor Langsung ke Excel (XLSX)"
+                            type="object"
+                            class="btn-secondary"
+                            icon="fa-file-excel-o"/>
+                    <button string="Batal" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Wizard Action Window -->
+    <record id="action_clinic_fiscal_reconciliation_wizard" model="ir.actions.act_window">
+        <field name="name">Wizard Rekonsiliasi Fiskal</field>
+        <field name="res_model">clinic.fiscal.reconciliation.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>
+

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_doctor_settlement" model="ir.actions.report">
+        <field name="name">Bukti Potong &amp; Slip Remunerasi Dokter</field>
+        <field name="model">doctor.settlement</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">adera_doctor_remuneration.report_doctor_settlement_document</field>
+        <field name="report_file">adera_doctor_remuneration.report_doctor_settlement_document</field>
+        <field name="print_report_name">'Slip_Remunerasi_' + (object.doctor_id.name or '').replace(' ', '_')</field>
+        <field name="binding_model_id" ref="model_doctor_settlement"/>
+        <field name="binding_type">report</field>
+    </record>
+</odoo>
+

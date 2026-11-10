@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Modern Financial Report Wizard Form View -->
+    <record id="view_financial_report_wizard_form" model="ir.ui.view">
+        <field name="name">financial.report.wizard.form</field>
+        <field name="model">financial.report.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Cetak Laporan Keuangan">
+                <field name="accounting_standard" invisible="1"/>
+                <field name="framework_standard" invisible="1"/>
+                <field name="analytic_plan_id" invisible="1"/>
+
+                <div class="mb-3">
+                    <h5 class="text-primary fw-bold mb-1">Parameter Laporan Keuangan</h5>
+                    <p class="text-muted small mb-0">Pilih jenis laporan dan rentang tanggal pelaporan keuangan resmi Klinik ADERA.</p>
+                </div>
+
+                <sheet>
+                    <group>
+                        <group string="Konfigurasi Laporan">
+                            <field name="report_type" widget="radio" options="{'horizontal': false}"/>
+                            <field name="cash_flow_method" invisible="report_type not in ('cf', 'cash_flow')"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group string="Segmentasi &amp; Filter">
+                            <field name="target_move" widget="radio"/>
+                            <field name="analytic_account_id" placeholder="Semua Unit Layanan (Konsolidasi)"/>
+                            <field name="comparison_mode"/>
+                            <field name="journal_ids" widget="many2many_tags" placeholder="Seluruh Jurnal Operasional (Default)"/>
+                        </group>
+                    </group>
+
+                    <separator string="Periode Pelaporan"/>
+                    <group>
+                        <group>
+                            <field name="date_range_preset"/>
+                        </group>
+                        <group>
+                            <label for="date_from" string="Rentang Tanggal"/>
+                            <div class="o_row">
+                                <span class="fw-bold me-2">Dari:</span>
+                                <field name="date_from"/>
+                                <span class="fw-bold mx-2">Sampai:</span>
+                                <field name="date_to"/>
+                            </div>
+                        </group>
+                    </group>
+
+                    <group string="Periode Pembanding" invisible="comparison_mode == 'none'">
+                        <group>
+                            <label for="date_from_cmp" string="Rentang Pembanding"/>
+                            <div class="o_row">
+                                <span class="fw-bold me-2">Dari:</span>
+                                <field name="date_from_cmp"/>
+                                <span class="fw-bold mx-2">Sampai:</span>
+                                <field name="date_to_cmp"/>
+                            </div>
+                        </group>
+                    </group>
+                </sheet>
+
+                <footer>
+                    <button name="action_generate_report" string="Tampilkan di Layar" type="object" class="btn-primary" icon="fa-desktop"/>
+                    <button name="action_print_report" string="Cetak Dokumen Resmi" type="object" class="btn-secondary" icon="fa-print"/>
+                    <button string="Tutup" class="btn-link text-muted" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Compatibility View for psak.report.wizard -->
+    <record id="view_psak_report_wizard_form" model="ir.ui.view">
+        <field name="name">psak.report.wizard.form</field>
+        <field name="model">psak.report.wizard</field>
+        <field name="mode">primary</field>
+        <field name="inherit_id" ref="view_financial_report_wizard_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="attributes">
+                <attribute name="string">Parameter Laporan Keuangan</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Standalone Action for Financial Report Wizard -->
+    <record id="action_financial_report_wizard" model="ir.actions.act_window">
+        <field name="name">Laporan Keuangan</field>
+        <field name="res_model">financial.report.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="view_id" ref="view_financial_report_wizard_form"/>
+    </record>
+
+    <!-- Specific Actions for Menus and Header Buttons -->
+    <record id="action_psak_wizard_profit_loss" model="ir.actions.act_window">
+        <field name="name">Laporan Laba Rugi</field>
+        <field name="res_model">financial.report.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="view_id" ref="view_financial_report_wizard_form"/>
+        <field name="context">{'default_report_type': 'pl'}</field>
+    </record>
+
+    <record id="action_psak_wizard_balance_sheet" model="ir.actions.act_window">
+        <field name="name">Neraca Keuangan</field>
+        <field name="res_model">financial.report.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="view_id" ref="view_financial_report_wizard_form"/>
+        <field name="context">{'default_report_type': 'bs'}</field>
+    </record>
+
+    <record id="action_psak_wizard_cash_flow" model="ir.actions.act_window">
+        <field name="name">Laporan Arus Kas</field>
+        <field name="res_model">financial.report.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="view_id" ref="view_financial_report_wizard_form"/>
+        <field name="context">{'default_report_type': 'cf', 'default_cash_flow_method': 'indirect'}</field>
+    </record>
+
+    <record id="action_psak_wizard_equity_change" model="ir.actions.act_window">
+        <field name="name">Laporan Perubahan Ekuitas</field>
+        <field name="res_model">financial.report.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="view_id" ref="view_financial_report_wizard_form"/>
+        <field name="context">{'default_report_type': 'equity'}</field>
+    </record>
+
+    <record id="action_psak_wizard_calk" model="ir.actions.act_window">
+        <field name="name">Catatan atas Laporan Keuangan (CaLK)</field>
+        <field name="res_model">financial.report.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="view_id" ref="view_financial_report_wizard_form"/>
+        <field name="context">{'default_report_type': 'calk'}</field>
+    </record>
+</odoo>

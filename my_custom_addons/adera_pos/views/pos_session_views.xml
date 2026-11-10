@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_pos_session_form_inherit_adera" model="ir.ui.view">
+        <field name="name">pos.session.form.inherit.adera</field>
+        <field name="model">pos.session</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_session_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='stop_at']" position="after">
+                <field name="is_blind_count_mode" widget="boolean_toggle"/>
+                <field name="blind_count_cash_counted"
+                       invisible="state == 'closed' and not is_blind_count_mode"/>
+                <field name="cash_variance" widget="monetary"
+                       decoration-danger="cash_variance != 0"
+                       invisible="state != 'closed'"/>
+                <field name="variance_reason"
+                       invisible="cash_variance == 0"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
+

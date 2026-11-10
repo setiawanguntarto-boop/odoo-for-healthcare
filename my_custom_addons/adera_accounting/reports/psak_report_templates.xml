@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Paperformat tailored for High-Density Clinical Financial Statements (PSAK / SAK EMKM) -->
+    <record id="paperformat_psak_financial_statement" model="report.paperformat">
+        <field name="name">Laporan Keuangan PSAK Klinik ADERA (A4 Padat)</field>
+        <field name="default" eval="False"/>
+        <field name="format">A4</field>
+        <field name="page_height">0</field>
+        <field name="page_width">0</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">12</field>
+        <field name="margin_bottom">12</field>
+        <field name="margin_left">15</field>
+        <field name="margin_right">15</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">8</field>
+        <field name="dpi">96</field>
+    </record>
+
+    <!-- QWeb Report Action with custom paperformat -->
+    <record id="action_report_psak_financial_statement" model="ir.actions.report">
+        <field name="name">Laporan Keuangan Resmi (PDF)</field>
+        <field name="model">psak.financial.report</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">adera_accounting.report_psak_financial_document</field>
+        <field name="report_file">adera_accounting.report_psak_financial_document</field>
+        <field name="paperformat_id" ref="paperformat_psak_financial_statement"/>
+        <field name="binding_model_id" ref="model_psak_financial_report"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- QWeb Report Template -->
+    <template id="report_psak_financial_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <div class="article" t-att-data-oe-model="o._name" t-att-data-oe-id="o.id">
+                    <style type="text/css">
+                        .report-container {
+                            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+                            font-size: 8.5pt;
+                            color: #1a1a1a;
+                            line-height: 1.25;
+                        }
+                        .report-header {
+                            border-bottom: 2px solid #0f172a;
+                            padding-bottom: 4px;
+                            margin-bottom: 8px;
+                            text-align: center;
+                        }
+                        .report-header h4 {
+                            font-size: 11pt;
+                            font-weight: 800;
+                            margin: 0 0 2px 0;
+                            letter-spacing: 0.5px;
+                            color: #0f172a;
+                        }
+                        .report-header h5 {
+                            font-size: 9.5pt;
+                            font-weight: 700;
+                            margin: 0 0 4px 0;
+                            color: #334155;
+                        }
+                        .report-header h3 {
+                            font-size: 12pt;
+                            font-weight: 800;
+                            color: #1e3a8a;
+                            margin: 4px 0 3px 0;
+                            text-transform: uppercase;
+                        }
+                        .report-meta {
+                            font-size: 8pt;
+                            color: #475569;
+                            margin-top: 2px;
+                        }
+                        .table-report {
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin-top: 6px;
+                            margin-bottom: 12px;
+                            font-size: 8.5pt;
+                            page-break-inside: auto;
+                        }
+                        .table-report th {
+                            background-color: #f1f5f9;
+                            color: #0f172a;
+                            font-weight: 700;
+                            border: 1px solid #cbd5e1;
+                            padding: 4px 6px;
+                            vertical-align: middle;
+                        }
+                        .table-report td {
+                            border: 1px solid #e2e8f0;
+                            padding: 3px 6px;
+                            vertical-align: middle;
+                        }
+                        .num-cell {
+                            text-align: right;
+                            font-family: 'Consolas', 'Courier New', monospace;
+                            font-size: 8.5pt;
+                            white-space: nowrap;
+                        }
+                        .code-cell {
+                            font-family: 'Consolas', 'Courier New', monospace;
+                            font-size: 8pt;
+                            color: #475569;
+                            white-space: nowrap;
+                            text-align: center;
+                        }
+                        .row-total {
+                            background-color: #e2e8f0;
+                            font-weight: 800;
+                            border-top: 1.5px solid #0f172a !important;
+                            border-bottom: 3px double #0f172a !important;
+                        }
+                        .row-subtotal {
+                            background-color: #f8fafc;
+                            font-weight: 700;
+                            border-top: 1px solid #94a3b8 !important;
+                        }
+                        .row-header {
+                            background-color: #f1f5f9;
+                            font-weight: 700;
+                            text-transform: uppercase;
+                            color: #1e293b;
+                        }
+                        .signature-block {
+                            margin-top: 18px;
+                            padding-top: 8px;
+                            border-top: 1px solid #cbd5e1;
+                            page-break-inside: avoid !important;
+                        }
+                        .sig-card {
+                            display: inline-block;
+                            width: 32%;
+                            text-align: center;
+                            vertical-align: top;
+                        }
+                        .sig-title {
+                            font-size: 8pt;
+                            color: #64748b;
+                            margin-bottom: 2px;
+                        }
+                        .sig-role {
+                            font-size: 8.5pt;
+                            font-weight: 700;
+                            color: #0f172a;
+                            margin-bottom: 38px;
+                        }
+                        .sig-name {
+                            font-size: 8.5pt;
+                            font-weight: 700;
+                            color: #0f172a;
+                            border-bottom: 1px solid #0f172a;
+                            display: inline-block;
+                            min-width: 150px;
+                            padding-bottom: 2px;
+                            margin-bottom: 2px;
+                        }
+                        .sig-desc {
+                            font-size: 7.5pt;
+                            color: #64748b;
+                        }
+                    </style>
+
+                    <div class="page report-container">
+                        <!-- Formal Statutory Enterprise Header -->
+                        <div class="report-header">
+                            <h4>PT PROSPERRA MEDIKA UTAMA</h4>
+                            <h5>KLINIK ADERA</h5>
+                            <h3><t t-esc="o.name"/></h3>
+                            <div class="report-meta">
+                                <span><strong>Periode:</strong> <t t-esc="o.current_period_label or o.name"/></span>
+                                <t t-if="o.comparison_type != 'none' and o.comparison_period_label">
+                                    <span style="margin: 0 6px;">|</span>
+                                    <span><strong>Pembanding:</strong> <t t-esc="o.comparison_period_label"/> <t t-if="o.comparison_basis_label">(<t t-esc="o.comparison_basis_label"/>)</t></span>
+                                </t>
+                                <span style="margin: 0 6px;">|</span>
+                                <span><strong>Unit Pelaporan:</strong> <t t-esc="o.analytic_account_id.name if o.analytic_account_id else 'Konsolidasi Seluruh Klinik'"/></span>
+                                <span style="margin: 0 6px;">|</span>
+                                <span>(Dinyatakan dalam Rupiah [IDR], kecuali dinyatakan lain)</span>
+                            </div>
+                        </div>
+
+                        <!-- Balance Sheet Audit Verification Box (When Balance Sheet) -->
+                        <t t-if="o.report_type == 'balance_sheet'">
+                            <div t-att-style="'padding: 4px 8px; margin-bottom: 8px; border-radius: 3px; font-size: 8pt; ' + ('background-color: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46;' if o.is_balanced else 'background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b;')">
+                                <table style="width: 100%;">
+                                    <tr>
+                                        <td>
+                                            <strong>STATUS AUDIT KESEIMBANGAN:</strong>
+                                            <t t-if="o.is_balanced">
+                                                Persamaan Akuntansi Terpenuhi Sempurna (Total Aset = Total Liabilitas + Ekuitas)
+                                            </t>
+                                            <t t-else="">
+                                                Peringatan: Terdapat Selisih Keseimbangan Neraca!
+                                            </t>
+                                        </td>
+                                        <td style="text-align: right; font-family: 'Consolas', monospace; font-weight: bold;">
+                                            Selisih: <t t-esc="o.balance_difference" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </t>
+
+                        <!-- Statutory Report Lines Table -->
+                        <table class="table-report">
+                            <thead>
+                                <tr>
+                                    <th style="width: 10%;" class="text-center">Kode</th>
+                                    <th style="width: 50%;">Pos Keuangan &amp; Akun Standar</th>
+                                    <th class="text-end" style="width: 20%;">
+                                        <t t-esc="o.current_period_label or 'Periode Berjalan'"/>
+                                    </th>
+                                    <t t-if="o.comparison_type != 'none' and o.report_type not in ('calk', 'equity_change')">
+                                        <th class="text-end" style="width: 20%;">
+                                            <t t-esc="o.comparison_period_label or 'Pembanding'"/>
+                                        </th>
+                                    </t>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="o.line_ids" t-as="line">
+                                    <tr t-att-class="'row-total' if line.line_type == 'total' else 'row-subtotal' if line.line_type == 'subtotal' else 'row-header' if line.line_type == 'header' else ''">
+                                        <td class="code-cell">
+                                            <t t-esc="line.code or ''"/>
+                                        </td>
+                                        <td style="padding-left: 6px;">
+                                            <span t-att-style="'display: inline-block; padding-left: ' + ('0px' if line.line_type == 'header' else '14px' if line.line_type == 'account' else '4px') + '; word-break: break-word;'">
+                                                <t t-esc="line.name"/>
+                                            </span>
+                                        </td>
+                                        <td class="num-cell">
+                                            <t t-if="line.line_type != 'header'">
+                                                <t t-esc="line.amount_current" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                                            </t>
+                                        </td>
+                                        <t t-if="o.comparison_type != 'none' and o.report_type not in ('calk', 'equity_change')">
+                                            <td class="num-cell">
+                                                <t t-if="line.line_type != 'header'">
+                                                    <t t-esc="line.amount_comparison" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                                                </t>
+                                            </td>
+                                        </t>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+
+                        <!-- CaLK Narrative Disclosures Section (Visible if CaLK report) -->
+                        <t t-if="o.report_type == 'calk'">
+                            <div style="margin-top: 15px; page-break-before: always;">
+                                <h4 style="font-weight: 800; color: #1e3a8a; border-bottom: 2px solid #1e3a8a; padding-bottom: 4px; font-size: 11pt;">
+                                    CATATAN ATAS LAPORAN KEUANGAN (CaLK) RINCIAN &amp; PENGUNGKAPAN
+                                </h4>
+
+                                <div style="margin-top: 10px;">
+                                    <h5 style="font-weight: bold; color: #0f172a; font-size: 9.5pt;">Catatan 1: Profil Entitas &amp; Legalitas Operasional (Permenkes 14/2021)</h5>
+                                    <p style="white-space: pre-line; line-height: 1.35; color: #334155;">
+                                        <t t-esc="o.calk_profile_text"/>
+                                    </p>
+                                </div>
+
+                                <div style="margin-top: 10px;">
+                                    <h5 style="font-weight: bold; color: #0f172a; font-size: 9.5pt;">Catatan 2: Ikhtisar Kebijakan Akuntansi Signifikan</h5>
+                                    <p style="white-space: pre-line; line-height: 1.35; color: #334155;">
+                                        <t t-esc="o.calk_policy_text"/>
+                                    </p>
+                                </div>
+
+                                <div style="margin-top: 10px;">
+                                    <h5 style="font-weight: bold; color: #0f172a; font-size: 9.5pt;">Catatan 3: Rincian &amp; Jadwal Umur Piutang Pasien &amp; Klaim BPJS</h5>
+                                    <t t-out="o.calk_receivables_html"/>
+                                </div>
+
+                                <div style="margin-top: 10px;">
+                                    <h5 style="font-weight: bold; color: #0f172a; font-size: 9.5pt;">Catatan 4: Jadwal Aset Tetap Medis &amp; Akumulasi Penyusutan</h5>
+                                    <t t-out="o.calk_assets_html"/>
+                                </div>
+
+                                <div style="margin-top: 10px;">
+                                    <h5 style="font-weight: bold; color: #0f172a; font-size: 9.5pt;">Catatan 5: Rekonsiliasi Jasa Medis &amp; Pajak PPh 21 Tenaga Ahli Dokter</h5>
+                                    <t t-out="o.calk_tax_doc_html"/>
+                                </div>
+                            </div>
+                        </t>
+
+                        <!-- Formal Tripartite Audit Sign-off Block (Single Page Protected) -->
+                        <div class="signature-block">
+                            <div class="sig-card">
+                                <div class="sig-title">Disiapkan Oleh:</div>
+                                <div class="sig-role">Bagian Akuntansi &amp; Keuangan</div>
+                                <div class="sig-name">Staff Akuntansi Klinik</div>
+                                <div class="sig-desc">Klinik ADERA</div>
+                            </div>
+                            <div class="sig-card">
+                                <div class="sig-title">Diperiksa Oleh:</div>
+                                <div class="sig-role">Finance &amp; Tax Controller</div>
+                                <div class="sig-name">Manager Keuangan</div>
+                                <div class="sig-desc">PT Prosperra Medika Utama</div>
+                            </div>
+                            <div class="sig-card">
+                                <div class="sig-title">Disetujui Oleh:</div>
+                                <div class="sig-role">Pimpinan Entitas Klinik</div>
+                                <div class="sig-name">Direktur Utama</div>
+                                <div class="sig-desc">PT Prosperra Medika Utama</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_doctor_settlement_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page" style="font-family: Arial, sans-serif; font-size: 12px;">
+                        <div class="row mb-3">
+                            <div class="col-8">
+                                <h3 style="color: #0d47a1; font-weight: bold; margin-bottom: 2px;">
+                                    BUKTI PEMOTONGAN PPh PASAL 21 &amp; SLIP JASA MEDIS DOKTER
+                                </h3>
+                                <p class="mb-0" style="font-size: 13px;"><strong>PT Prosperra Medika Utama / Klinik ADERA</strong></p>
+                                <p class="text-muted" style="font-size: 11px;">
+                                    NPWP Pemotong: 01.234.567.8-012.000 • Faskes Izin No: 445/012/KP &amp; 445/088/KU-HD
+                                </p>
+                            </div>
+                            <div class="col-4 text-end">
+                                <h6 class="text-primary font-weight-bold" t-field="o.name"/>
+                                <p class="mb-1"><strong>No. Bupot DJP:</strong> <span t-field="o.ebupot_bupot_number"/></p>
+                                <p class="mb-0"><strong>Tgl Bayar:</strong> <span t-field="o.date_settlement"/></p>
+                            </div>
+                        </div>
+
+                        <!-- Data Dokter & Identitas Pajak -->
+                        <table class="table table-sm table-bordered mb-3">
+                            <tr style="background-color: #f2f7fb;">
+                                <th style="width: 25%;">Nama Tenaga Ahli Dokter</th>
+                                <td style="width: 25%;"><strong t-field="o.doctor_id.name"/></td>
+                                <th style="width: 25%;">NPWP / NIK (16 Digit)</th>
+                                <td style="width: 25%;">
+                                    <span t-field="o.doctor_id.npwp_nik"/>
+                                    <t t-if="not o.doctor_id.has_npwp">
+                                        <span class="badge bg-danger ms-1">Non-NPWP (+20%)</span>
+                                    </t>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Kategori Spesialisasi</th>
+                                <td><span t-field="o.doctor_id.doctor_type"/></td>
+                                <th>Nomor SIP Dokter</th>
+                                <td><span t-field="o.doctor_id.sip_number"/></td>
+                            </tr>
+                            <tr>
+                                <th>Kode Objek Pajak DJP</th>
+                                <td><strong><span t-field="o.ebupot_tax_code"/></strong> (Bukan Pegawai - Tenaga Ahli)</td>
+                                <th>Periode Pelayanan</th>
+                                <td><span t-field="o.date_from"/> s/d <span t-field="o.date_to"/></td>
+                            </tr>
+                        </table>
+
+                        <!-- Rincian Tindakan -->
+                        <h6 style="color: #0d47a1; font-weight: bold; margin-top: 15px;">Rincian Tindakan &amp; Encounter Pelayanan</h6>
+                        <table class="table table-sm table-striped table-bordered mb-3">
+                            <thead class="table-primary text-center">
+                                <tr>
+                                    <th>Tanggal</th>
+                                    <th>Pasien</th>
+                                    <th>Tindakan / Pelayanan</th>
+                                    <th class="text-end">Billing Pasien</th>
+                                    <th class="text-end">Jasa Medis Dokter</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="o.fee_line_ids" t-as="line">
+                                    <tr>
+                                        <td><span t-field="line.encounter_date"/></td>
+                                        <td><span t-field="line.patient_id.name"/></td>
+                                        <td><span t-field="line.product_id.name"/></td>
+                                        <td class="text-end"><span t-field="line.billing_amount"/></td>
+                                        <td class="text-end font-weight-bold"><span t-field="line.doctor_fee_amount"/></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+
+                        <!-- Ringkasan Perhitungan Pajak PMK 168/2023 -->
+                        <div class="row justify-content-end mt-2">
+                            <div class="col-7">
+                                <table class="table table-sm table-bordered">
+                                    <tr>
+                                        <th>Total Jasa Medis Bruto:</th>
+                                        <td class="text-end font-weight-bold"><span t-field="o.total_gross_fee"/></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Dasar Pengenaan Pajak (DPP = 50% Bruto):</th>
+                                        <td class="text-end"><span t-field="o.dpp_amount"/></td>
+                                    </tr>
+                                    <tr>
+                                        <th>DPP Kumulatif Sebelumnya YTD (PMK 168):</th>
+                                        <td class="text-end"><span t-field="o.cumulative_dpp_prior"/></td>
+                                    </tr>
+                                    <tr style="background-color: #fbfbfb;">
+                                        <th>Total Lapisan DPP Kumulatif Sampai Periode Ini:</th>
+                                        <td class="text-end font-weight-bold"><span t-field="o.cumulative_dpp_total"/></td>
+                                    </tr>
+                                    <tr class="table-warning">
+                                        <th>Potongan PPh 21 Progresif Pasal 17 UU HPP:</th>
+                                        <td class="text-end text-danger font-weight-bold">(<span t-field="o.pph21_amount"/>)</td>
+                                    </tr>
+                                    <tr class="table-success" style="font-size: 14px;">
+                                        <th>Take Home Pay (Ditransfer ke Rekening Bank):</th>
+                                        <td class="text-end font-weight-bold"><span t-field="o.net_fee_payable"/></td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <p style="font-size: 10px; color: #666; margin-top: 10px;">
+                            *Perhitungan PPh 21 diselaraskan dengan Peraturan Menteri Keuangan No. 168 Tahun 2023 dan UU Harmonisasi Peraturan Perpajakan (UU HPP Pasal 17). Bukti potong ini sah diterbitkan melalui sistem otomasi Klinik ADERA untuk pelaporan SPT Masa e-Bupot Unifikasi 21/26.
+                        </p>
+
+                        <!-- Tanda Tangan -->
+                        <div class="row mt-4" style="page-break-inside: avoid;">
+                            <div class="col-6 text-center">
+                                <p>Penerima Penghasilan (Dokter),</p>
+                                <br/><br/><br/>
+                                <p><strong>(<span t-field="o.doctor_id.name"/>)</strong></p>
+                            </div>
+                            <div class="col-6 text-center">
+                                <p>Bagian Keuangan &amp; Perpajakan,</p>
+                                <br/><br/><br/>
+                                <p><strong>(Finance &amp; Tax Officer Klinik ADERA)</strong></p>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

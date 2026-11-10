@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_medical_fee_accrual_tree" model="ir.ui.view">
+        <field name="name">medical.fee.accrual.tree</field>
+        <field name="model">medical.fee.accrual</field>
+        <field name="arch" type="xml">
+            <list string="Daftar Akrual Jasa Medis" decoration-success="state == 'disbursed'" decoration-info="state == 'accrued'" decoration-warning="state == 'in_settlement'">
+                <field name="name"/>
+                <field name="encounter_date"/>
+                <field name="doctor_id"/>
+                <field name="patient_id"/>
+                <field name="product_id"/>
+                <field name="billing_amount"/>
+                <field name="doctor_fee_amount" sum="Total Fee"/>
+                <field name="accrual_move_id"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_medical_fee_accrual" model="ir.actions.act_window">
+        <field name="name">Akrual Jasa Medis Dokter</field>
+        <field name="res_model">medical.fee.accrual</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>
+

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_adera_landing_page" model="ir.actions.client">
+        <field name="name">Menu Utama</field>
+        <field name="tag">adera_core.landing_page</field>
+        <field name="target">current</field>
+    </record>
+
+    <menuitem id="menu_adera_landing_root"
+              name="Menu Utama"
+              action="action_adera_landing_page"
+              sequence="1"
+              web_icon="adera_core,static/description/icon.png"/>
+</odoo>
+

@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- ===================================================================
+             ROOT ANALYTIC PLAN: ADERA Business Units
+             =================================================================== -->
+        <record id="analytic_plan_adera" model="account.analytic.plan">
+            <field name="name">ADERA Business Units</field>
+            <field name="description">Unit Bisnis Klinik Pratama dan Klinik Utama Hemodialisis</field>
+        </record>
+
+        <!-- ===================================================================
+             BUSINESS UNIT 1: KLINIK PRATAMA & SUB-UNITS
+             =================================================================== -->
+        <record id="analytic_account_pratama_root" model="account.analytic.account">
+            <field name="name">ACC-PRATAMA: Klinik Pratama (Primary Care)</field>
+            <field name="code">ACC-PRATAMA</field>
+            <field name="plan_id" ref="analytic_plan_adera"/>
+        </record>
+
+        <record id="analytic_account_prat_umum" model="account.analytic.account">
+            <field name="name">PRAT-UMUM: Poli Umum</field>
+            <field name="code">PRAT-UMUM</field>
+            <field name="plan_id" ref="analytic_plan_adera"/>
+            <field name="root_plan_id" ref="analytic_plan_adera"/>
+        </record>
+
+        <record id="analytic_account_prat_gigi" model="account.analytic.account">
+            <field name="name">PRAT-GIGI: Poli Gigi &amp; Mulut</field>
+            <field name="code">PRAT-GIGI</field>
+            <field name="plan_id" ref="analytic_plan_adera"/>
+            <field name="root_plan_id" ref="analytic_plan_adera"/>
+        </record>
+
+        <record id="analytic_account_prat_kia" model="account.analytic.account">
+            <field name="name">PRAT-KIA: Poli KIA &amp; Kebidanan</field>
+            <field name="code">PRAT-KIA</field>
+            <field name="plan_id" ref="analytic_plan_adera"/>
+            <field name="root_plan_id" ref="analytic_plan_adera"/>
+        </record>
+
+        <record id="analytic_account_prat_lab" model="account.analytic.account">
+            <field name="name">PRAT-LAB: Laboratorium Klinik</field>
+            <field name="code">PRAT-LAB</field>
+            <field name="plan_id" ref="analytic_plan_adera"/>
+            <field name="root_plan_id" ref="analytic_plan_adera"/>
+        </record>
+
+        <record id="analytic_account_prat_rad" model="account.analytic.account">
+            <field name="name">PRAT-RAD: Radiologi &amp; Diagnostik</field>
+            <field name="code">PRAT-RAD</field>
+            <field name="plan_id" ref="analytic_plan_adera"/>
+            <field name="root_plan_id" ref="analytic_plan_adera"/>
+        </record>
+
+        <record id="analytic_account_prat_farm" model="account.analytic.account">
+            <field name="name">PRAT-FARM: Farmasi Rawat Jalan</field>
+            <field name="code">PRAT-FARM</field>
+            <field name="plan_id" ref="analytic_plan_adera"/>
+            <field name="root_plan_id" ref="analytic_plan_adera"/>
+        </record>
+
+        <record id="analytic_account_prat_bdg" model="account.analytic.account">
+            <field name="name">ACC-PRATAMA-BDG: Klinik Pratama Cabang Bandung</field>
+            <field name="code">ACC-PRATAMA-BDG</field>
+            <field name="plan_id" ref="analytic_plan_adera"/>
+            <field name="root_plan_id" ref="analytic_plan_adera"/>
+        </record>
+
+        <record id="analytic_account_prat_jog" model="account.analytic.account">
+            <field name="name">ACC-PRATAMA-JOG: Klinik Pratama Cabang Yogyakarta</field>
+            <field name="code">ACC-PRATAMA-JOG</field>
+            <field name="plan_id" ref="analytic_plan_adera"/>
+            <field name="root_plan_id" ref="analytic_plan_adera"/>
+        </record>
+
+        <!-- ===================================================================
+             BUSINESS UNIT 2: KLINIK UTAMA HEMODIALISIS & SUB-UNITS
+             =================================================================== -->
+        <record id="analytic_account_hd_root" model="account.analytic.account">
+            <field name="name">ACC-HD: Klinik Utama Hemodialisis</field>
+            <field name="code">ACC-HD</field>
+            <field name="plan_id" ref="analytic_plan_adera"/>
+        </record>
+
+        <record id="analytic_account_hd_treat" model="account.analytic.account">
+            <field name="name">HD-TREAT: Ruang Tindakan &amp; Mesin Hemodialisis</field>
+            <field name="code">HD-TREAT</field>
+            <field name="plan_id" ref="analytic_plan_adera"/>
+            <field name="root_plan_id" ref="analytic_plan_adera"/>
+        </record>
+
+        <record id="analytic_account_hd_pharm" model="account.analytic.account">
+            <field name="name">HD-PHARM: Dialyzer &amp; BHP Khusus HD</field>
+            <field name="code">HD-PHARM</field>
+            <field name="plan_id" ref="analytic_plan_adera"/>
+            <field name="root_plan_id" ref="analytic_plan_adera"/>
+        </record>
+
+        <record id="analytic_account_hd_vip" model="account.analytic.account">
+            <field name="name">HD-VIP: Kamar Isolasi / Pelayanan VIP HD</field>
+            <field name="code">HD-VIP</field>
+            <field name="plan_id" ref="analytic_plan_adera"/>
+            <field name="root_plan_id" ref="analytic_plan_adera"/>
+        </record>
+
+        <!-- ===================================================================
+             BUSINESS UNIT 3: HOLDING & SHARED OVERHEAD (PT PROSPERRA MEDIKA UTAMA)
+             =================================================================== -->
+        <record id="analytic_account_holding_root" model="account.analytic.account">
+            <field name="name">ACC-HOLDING: Kantor Pusat &amp; Manajemen Bersama</field>
+            <field name="code">ACC-HOLDING</field>
+            <field name="plan_id" ref="analytic_plan_adera"/>
+        </record>
+
+        <record id="analytic_account_holding_exec" model="account.analytic.account">
+            <field name="name">HOLDING-EXEC: Direksi, Legal &amp; Executive Payroll</field>
+            <field name="code">HOLDING-EXEC</field>
+            <field name="plan_id" ref="analytic_plan_adera"/>
+            <field name="root_plan_id" ref="analytic_plan_adera"/>
+        </record>
+
+        <record id="analytic_account_holding_it" model="account.analytic.account">
+            <field name="name">HOLDING-IT: Infrastruktur IT &amp; SATUSEHAT EHR</field>
+            <field name="code">HOLDING-IT</field>
+            <field name="plan_id" ref="analytic_plan_adera"/>
+            <field name="root_plan_id" ref="analytic_plan_adera"/>
+        </record>
+    </data>
+</odoo>
+
