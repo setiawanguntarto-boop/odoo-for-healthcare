@@ -190,3 +190,51 @@ class TestBenchmarkCompliance(TransactionCase):
         self.assertEqual(cr_line.account_id.code, "112020", "Baris kredit harus akun 112020 (Piutang BPJS)!")
         self.assertEqual(dr_line.debit, 750000.0, "Nominal write-off harus sesuai!")
 
+    def test_07_general_facility_asset_depreciation(self):
+        """Uji Fasilitas Umum & Gedung: Kategori general_facility mendebit OpEx 610030 & kredit 122010."""
+        asset = self.env["clinic.asset"].create({
+            "name": "AC Inverter & Fasilitas Ruang Tunggu Test QA",
+            "asset_code": "QA-GEN-001",
+            "asset_category": "general_facility",
+            "purchase_date": date(2024, 1, 1),
+            "purchase_value": 30000000.0,
+            "salvage_value": 0.0,
+            "useful_life_months": 60,
+        })
+        self.assertEqual(asset.expense_account_id.code, "610030", "Akun beban fasilitas umum harus 610030!")
+        asset.action_confirm()
+        first_line = asset.depreciation_line_ids[0]
+        move = asset.action_post_depreciation_line(first_line.id)
+        dr_line = move.line_ids.filtered(lambda l: l.debit > 0)
+        cr_line = move.line_ids.filtered(lambda l: l.credit > 0)
+        self.assertEqual(dr_line.account_id.code, "610030")
+        self.assertEqual(cr_line.account_id.code, "122010")
+
+    def test_08_open_vial_scrap_wizard_integrity(self):
+        """Uji Pemusnahan Sisa Open-Vial Farmasi: Dr 510010 & Cr 114010."""
+        product = self.env["product.product"].search([("default_code", "=", "MED-AMOX-500")], limit=1)
+        if not product:
+            product = self.env["product.product"].create({
+                "name": "Amoxicillin Multidose Test",
+                "default_code": "MED-AMOX-TEST",
+                "standard_price": 50000.0,
+            })
+        lot = self.env["stock.lot"].create({
+            "name": "LOT-QA-SCRAP-001",
+            "product_id": product.id,
+            "dose_capacity": 10,
+            "doses_remaining": 4,
+            "is_opened": True,
+        })
+        wizard = self.env["stock.scrap.clinic"].create({
+            "lot_id": lot.id,
+            "product_id": product.id,
+            "discarded_doses": 4,
+            "spoilage_reason": "expired_open_vial",
+        })
+        self.assertEqual(wizard.spoilage_reason, "expired_open_vial")
+        self.assertEqual(wizard.discarded_doses, 4)
+        wizard.action_scrap_open_vial()
+        # Verify lot is closed
+        self.assertFalse(lot.is_opened, "Status lot terbuka harus tertutup setelah pemusnahan!")
+

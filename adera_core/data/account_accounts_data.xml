@@ -74,6 +74,18 @@
         <!-- ===================================================================
              1-1400 to 1-1499: PERSEDIAAN (account_type = asset_current)
              =================================================================== -->
+        <record id="account_113010" model="account.account">
+            <field name="code">113010</field>
+            <field name="name">Persediaan Farmasi &amp; Obat-obatan Rawat Jalan</field>
+            <field name="account_type">asset_current</field>
+        </record>
+
+        <record id="account_113020" model="account.account">
+            <field name="code">113020</field>
+            <field name="name">Persediaan BMHP Medis &amp; Dialyzer Hemodialisis</field>
+            <field name="account_type">asset_current</field>
+        </record>
+
         <record id="account_114010" model="account.account">
             <field name="code">114010</field>
             <field name="name">Persediaan Obat Farmasi (Ethical &amp; OTC)</field>

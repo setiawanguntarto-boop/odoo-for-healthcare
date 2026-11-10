@@ -21,6 +21,7 @@ class ClinicAsset(models.Model):
         [
             ("medical_device_hd", "Alat Medis / Mesin HD & RO (Direct COGS 510030)"),
             ("medical_device_pratama", "Alat Medis Rawat Jalan Pratama (Beban OpEx 610030)"),
+            ("general_facility", "Fasilitas & Peralatan Umum Klinik (Beban OpEx 610030)"),
             ("medical_equipment", "Peralatan Medis & Fasilitas Umum"),
             ("office_equipment", "Peralatan Kantor & IT"),
             ("vehicle", "Kendaraan / Ambulans"),
@@ -179,6 +180,12 @@ class ClinicAsset(models.Model):
                 "expense_code": "610030",
                 "analytic_code": "ACC-PRATAMA",
             },
+            "general_facility": {
+                "useful_life": 60,
+                "asset_code": "121010",
+                "expense_code": "610030",
+                "analytic_code": "ACC-PRATAMA",
+            },
             "medical_equipment": {
                 "useful_life": 60,
                 "asset_code": "121010",
@@ -245,7 +252,7 @@ class ClinicAsset(models.Model):
                     hd_acc = self.env["account.analytic.account"].search([("code", "=", "ACC-HD")], limit=1)
                     if hd_acc:
                         vals["analytic_distribution"] = {str(hd_acc.id): 100.0}
-            elif cat in ("medical_device_pratama", "medical_equipment"):
+            elif cat in ("medical_device_pratama", "general_facility", "medical_equipment"):
                 if "expense_account_id" not in vals:
                     acc_610030 = self.env["account.account"].search([("code", "=", "610030")], limit=1)
                     if acc_610030:

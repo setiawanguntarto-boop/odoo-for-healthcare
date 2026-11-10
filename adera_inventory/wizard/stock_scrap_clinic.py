@@ -53,7 +53,7 @@ class StockScrapClinic(models.TransientModel):
         compute="_compute_spoilage_cost",
         store=True,
     )
-    scrap_reason = fields.Selection(
+    spoilage_reason = fields.Selection(
         [
             ("expired_open_vial", "Kadaluarsa Pasca Buka (>24 Jam Stabilitas Vial Terbuka)"),
             ("cold_chain_failure", "Kegagalan Rantai Dingin / Suhu Cold Chain"),
@@ -66,6 +66,12 @@ class StockScrapClinic(models.TransientModel):
         string="Alasan Pemusnahan (Spoilage)",
         default="expired_open_vial",
         required=True,
+    )
+    scrap_reason = fields.Selection(
+        related="spoilage_reason",
+        readonly=False,
+        store=True,
+        string="Alasan Scrap (Legacy)",
     )
     analytic_account_id = fields.Many2one(
         "account.analytic.account",
@@ -123,6 +129,19 @@ class StockScrapClinic(models.TransientModel):
         return self.env["account.account"].search([
             ("code", "in", ["114010", "113010"])
         ], limit=1)
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if "discarded_doses" in vals and "dose_scrap_quantity" not in vals:
+                vals["dose_scrap_quantity"] = vals["discarded_doses"]
+            elif "dose_scrap_quantity" in vals and "discarded_doses" not in vals:
+                vals["discarded_doses"] = vals["dose_scrap_quantity"]
+            if "spoilage_reason" in vals and "scrap_reason" not in vals:
+                vals["scrap_reason"] = vals["spoilage_reason"]
+            elif "scrap_reason" in vals and "spoilage_reason" not in vals:
+                vals["spoilage_reason"] = vals["scrap_reason"]
+        return super().create(vals_list)
 
     @api.depends("dose_scrap_quantity")
     def _compute_discarded_doses(self):
@@ -184,7 +203,7 @@ class StockScrapClinic(models.TransientModel):
 
         # 1. Financial Journal Entry: Dr 510010 / Cr 114010
         analytic_dist = {str(self.analytic_account_id.id): 100.0} if self.analytic_account_id else False
-        reason_label = dict(self._fields["scrap_reason"].selection).get(self.scrap_reason, self.scrap_reason)
+        reason_label = dict(self._fields["spoilage_reason"].selection).get(self.spoilage_reason, self.spoilage_reason)
         ref_text = f"Pemusnahan Sisa Vial Terbuka: {self.product_id.name} (Lot: {self.lot_id.name}) - {reason_label}"
 
         move_vals = {
@@ -222,7 +241,14 @@ class StockScrapClinic(models.TransientModel):
 
         scrap_location = self.env.ref("stock.stock_location_scrapped", raise_if_not_found=False)
         if not scrap_location:
-            scrap_location = self.env["stock.location"].search([("scrap_location", "=", True)], limit=1)
+            scrap_location = self.env["stock.location"].search([
+                ("usage", "=", "inventory"),
+                "|",
+                ("name", "ilike", "scrap"),
+                ("name", "ilike", "karantina"),
+            ], limit=1)
+        if not scrap_location:
+            scrap_location = self.env["stock.location"].search([("usage", "=", "inventory")], limit=1)
 
         if quant and scrap_location:
             try:

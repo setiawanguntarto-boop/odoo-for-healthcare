@@ -27,7 +27,7 @@
                             <field name="doses_remaining" readonly="1"/>
                             <field name="discarded_doses" string="Dosis Terbuang / Dimusnahkan"/>
                             <field name="vial_unit_quantity" readonly="1"/>
-                            <field name="scrap_reason"/>
+                            <field name="spoilage_reason"/>
                         </group>
                     </group>
 

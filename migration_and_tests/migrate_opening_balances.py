@@ -61,7 +61,22 @@ def migrate_open_ap(env):
                 partner = env['res.partner'].create({
                     'name': vendor_name,
                     'supplier_rank': 1,
+                    'property_account_payable_id': ap_acc.id,
                 })
+            else:
+                partner.property_account_payable_id = ap_acc.id
+
+            existing_bill = env['account.move'].search([
+                ('ref', '=', f"SALDO AWAL: {row['Bill Reference']}"),
+            ], limit=1)
+            if existing_bill:
+                pay_line = existing_bill.line_ids.filtered(lambda l: l.account_id.account_type == 'liability_payable')
+                if pay_line and pay_line.account_id.id != ap_acc.id:
+                    existing_bill.button_draft()
+                    pay_line.account_id = ap_acc.id
+                    existing_bill.action_post()
+                print(f"  [=] Updated/Verified Opening Bill: {existing_bill.name} | Vendor: {vendor_name} | Account: 211010")
+                continue
 
             amount = float(row['Untaxed Amount'])
             bill_vals = {
@@ -98,12 +113,34 @@ def migrate_open_ar(env):
         reader = csv.DictReader(f)
         for row in reader:
             debtor_name = row['Debtor Name'].strip()
+            target_ar_acc = None
+            acc_code = row.get('Account Code', '').strip()
+            if acc_code:
+                target_ar_acc = env['account.account'].search([('code', '=', acc_code)], limit=1)
+            if not target_ar_acc:
+                target_ar_acc = env['account.account'].search([('code', '=', '112010')], limit=1)
+
             partner = env['res.partner'].search([('name', '=', debtor_name)], limit=1)
             if not partner:
                 partner = env['res.partner'].create({
                     'name': debtor_name,
                     'customer_rank': 1,
+                    'property_account_receivable_id': target_ar_acc.id,
                 })
+            else:
+                partner.property_account_receivable_id = target_ar_acc.id
+
+            existing_inv = env['account.move'].search([
+                ('ref', '=', f"SALDO AWAL: {row['Claim / Invoice Reference']}"),
+            ], limit=1)
+            if existing_inv:
+                rec_line = existing_inv.line_ids.filtered(lambda l: l.account_id.account_type == 'asset_receivable')
+                if rec_line and rec_line.account_id.id != target_ar_acc.id:
+                    existing_inv.button_draft()
+                    rec_line.account_id = target_ar_acc.id
+                    existing_inv.action_post()
+                print(f"  [=] Updated/Verified Opening Invoice: {existing_inv.name} | Debtor: {debtor_name} | Account: {target_ar_acc.code}")
+                continue
 
             amount = float(row['Amount'])
             inv_vals = {
@@ -176,6 +213,129 @@ def migrate_open_stock(env):
             print(f"  [+] Adjusted Stock: {product.name} ({prod_code}) | Qty: {qty} | Lot: {lot_name} (Exp: {exp_date})")
 
 
+    # Post Perpetual Inventory Valuation GL Entry
+    suspense_acc = get_or_create_suspense_account(env)
+    misc_journal = env.ref('adera_core.journal_misc_clinic', raise_if_not_found=False) or get_or_create_opening_journal(env)
+    inv_farm_acc = env['account.account'].search([('code', 'in', ['114010', '113010'])], limit=1)
+    inv_bhp_acc = env['account.account'].search([('code', 'in', ['114020', '114030', '113020'])], limit=1)
+
+    with open(OPEN_STOCK_CSV, mode='r', encoding='utf-8') as f:
+        reader = csv.DictReader(f)
+        valuation_lines = []
+        tot_val = 0.0
+        for row in reader:
+            qty = float(row['Counted Quantity'])
+            cost = float(row['Unit Cost'])
+            line_val = round(qty * cost, 2)
+            tot_val += line_val
+            prod_code = row['Product Code'].strip()
+            target_acc = inv_farm_acc if prod_code.startswith('MED-') else inv_bhp_acc
+            valuation_lines.append((0, 0, {
+                'name': f"Saldo Awal Persediaan: {row['Product Code']} (Lot: {row['Lot Number']})",
+                'account_id': target_acc.id,
+                'debit': line_val,
+                'credit': 0.0,
+            }))
+
+        existing_stock_move = env['account.move'].search([
+            ('ref', '=', 'SALDO AWAL: Penilaian Fisik Persediaan (Cutover)'),
+        ], limit=1)
+        if not existing_stock_move and valuation_lines:
+            valuation_lines.append((0, 0, {
+                'name': "Saldo Awal Persediaan Fisik (Opening Suspense)",
+                'account_id': suspense_acc.id,
+                'debit': 0.0,
+                'credit': tot_val,
+            }))
+            stock_move = env['account.move'].create({
+                'journal_id': misc_journal.id,
+                'date': '2026-10-31',
+                'ref': 'SALDO AWAL: Penilaian Fisik Persediaan (Cutover)',
+                'line_ids': valuation_lines,
+            })
+            stock_move.action_post()
+            print(f"  [+] Created Opening Stock Valuation Journal: {stock_move.name} | Rp {tot_val:,.2f}")
+        elif existing_stock_move:
+            print(f"  [=] Verified Opening Stock Valuation Journal: {existing_stock_move.name} | Rp {tot_val:,.2f}")
+
+
+def balance_suspense_account(env):
+    """Menyeimbangkan akun perantara migrasi (999999) ke Ekuitas Pemilik (310010) agar saldo bersih Rp 0,00."""
+    print("\n--- [4/4] Balancing Opening Suspense (999999) to Equity (310010) ---")
+    suspense_acc = get_or_create_suspense_account(env)
+    equity_acc = env['account.account'].search([('code', '=', '310010')], limit=1)
+    misc_journal = env.ref('adera_core.journal_misc_clinic', raise_if_not_found=False) or get_or_create_opening_journal(env)
+
+    # Clean previous balancing moves if recalculating
+    old_bal_moves = env['account.move'].search([
+        ('ref', '=', 'SALDO AWAL: Eliminasi Akun Perantara Migrasi 999999 ke Ekuitas'),
+    ])
+    for obm in old_bal_moves:
+        obm.button_draft()
+        obm.unlink()
+
+    # Re-verify Bulaksumur finding #3 move parent_state
+    bulaksumur_move = env['account.move'].search([('ref', 'ilike', 'Bulaksumur')], limit=1)
+    if bulaksumur_move and any(l.parent_state != 'posted' for l in bulaksumur_move.line_ids):
+        bulaksumur_move.button_draft()
+        bulaksumur_move.action_post()
+
+    # Compute net balance of 999999
+    lines = env['account.move.line'].search([
+        ('account_id', '=', suspense_acc.id),
+        ('parent_state', '=', 'posted'),
+    ])
+    total_debit = sum(lines.mapped('debit'))
+    total_credit = sum(lines.mapped('credit'))
+    net_diff = total_debit - total_credit
+
+    if abs(net_diff) > 0.001:
+        if net_diff > 0:
+            # Debit exceeds credit, need credit to suspense and debit to equity
+            bal_lines = [
+                (0, 0, {
+                    'name': 'Penyeimbang Saldo Awal Migrasi ke Ekuitas',
+                    'account_id': equity_acc.id,
+                    'debit': net_diff,
+                    'credit': 0.0,
+                }),
+                (0, 0, {
+                    'name': 'Nol-kan Saldo Perantara Migrasi 999999',
+                    'account_id': suspense_acc.id,
+                    'debit': 0.0,
+                    'credit': net_diff,
+                }),
+            ]
+        else:
+            # Credit exceeds debit, need debit to suspense and credit to equity
+            diff_abs = abs(net_diff)
+            bal_lines = [
+                (0, 0, {
+                    'name': 'Nol-kan Saldo Perantara Migrasi 999999',
+                    'account_id': suspense_acc.id,
+                    'debit': diff_abs,
+                    'credit': 0.0,
+                }),
+                (0, 0, {
+                    'name': 'Penyeimbang Saldo Awal Migrasi ke Ekuitas Pemilik',
+                    'account_id': equity_acc.id,
+                    'debit': 0.0,
+                    'credit': diff_abs,
+                }),
+            ]
+
+        bal_move = env['account.move'].create({
+            'journal_id': misc_journal.id,
+            'date': '2026-10-31',
+            'ref': 'SALDO AWAL: Eliminasi Akun Perantara Migrasi 999999 ke Ekuitas',
+            'line_ids': bal_lines,
+        })
+        bal_move.action_post()
+        print(f"  [+] Balanced Suspense Account to Equity: {bal_move.name} | Rp {abs(net_diff):,.2f}")
+    else:
+        print("  [+] Suspense Account 999999 already zero-balanced.")
+
+
 def run_migration(env):
     print("=" * 70)
     print("KLINIK ADERA - OPENING BALANCE CUT-OVER MIGRATION SUITE")
@@ -183,6 +343,7 @@ def run_migration(env):
     migrate_open_ap(env)
     migrate_open_ar(env)
     migrate_open_stock(env)
+    balance_suspense_account(env)
     env.cr.commit()
     print("\n" + "=" * 70)
     print("MIGRATION COMPLETED SUCCESSFULLY.")

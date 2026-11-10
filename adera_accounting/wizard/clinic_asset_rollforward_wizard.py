@@ -23,6 +23,7 @@ class ClinicAssetRollforwardWizard(models.TransientModel):
             ("all", "Semua Golongan Aset"),
             ("medical_device_hd", "Peralatan Medis & Fasilitas Mesin HD/RO (Direct COGS)"),
             ("medical_device_pratama", "Peralatan Medis Rawat Jalan Pratama"),
+            ("general_facility", "Fasilitas & Peralatan Umum Klinik (OpEx 610030)"),
             ("medical_equipment", "Peralatan Medis & Fasilitas Umum"),
             ("office_equipment", "Peralatan Kantor & IT"),
             ("vehicle", "Kendaraan / Ambulans"),
@@ -55,10 +56,11 @@ class ClinicAssetRollforwardWizard(models.TransientModel):
         category_labels = {
             "medical_device_hd": "I. Peralatan Medis & Fasilitas Mesin HD/RO (Direct COGS 510030)",
             "medical_device_pratama": "II. Peralatan Medis Poli Rawat Jalan Pratama (OpEx 610030)",
-            "medical_equipment": "III. Peralatan Medis & Fasilitas Umum",
-            "office_equipment": "IV. Peralatan Kantor & Infrastruktur IT",
-            "vehicle": "V. Kendaraan Operasional & Ambulans",
-            "building_improvement": "VI. Renovasi Gedung & Prasarana Klinik",
+            "general_facility": "III. Fasilitas & Peralatan Umum Klinik (OpEx 610030)",
+            "medical_equipment": "IV. Peralatan Medis & Fasilitas Umum",
+            "office_equipment": "V. Peralatan Kantor & Infrastruktur IT",
+            "vehicle": "VI. Kendaraan Operasional & Ambulans",
+            "building_improvement": "VII. Renovasi Gedung & Prasarana Klinik",
         }
 
         grouped_data = {}
