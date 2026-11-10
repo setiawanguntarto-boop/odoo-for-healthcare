@@ -10,3 +10,8 @@ access_clinic_asset_user,clinic.asset.user,model_clinic_asset,base.group_user,1,
 access_clinic_asset_depreciation_line_user,clinic.asset.depreciation.line.user,model_clinic_asset_depreciation_line,base.group_user,1,1,1,1
 access_clinic_asset_rollforward_wizard_user,clinic.asset.rollforward.wizard.user,model_clinic_asset_rollforward_wizard,base.group_user,1,1,1,1
 access_bpjs_claim_dispute_writeoff_user,bpjs.claim.dispute.writeoff.user,model_bpjs_claim_dispute_writeoff,base.group_user,1,1,1,1
+access_clinic_fiscal_reconciliation_user,clinic.fiscal.reconciliation.user,model_clinic_fiscal_reconciliation,base.group_user,1,1,1,1
+access_clinic_fiscal_reconciliation_line_user,clinic.fiscal.reconciliation.line.user,model_clinic_fiscal_reconciliation_line,base.group_user,1,1,1,1
+access_clinic_fiscal_reconciliation_wizard_user,clinic.fiscal.reconciliation.wizard.user,model_clinic_fiscal_reconciliation_wizard,base.group_user,1,1,1,1
+access_clinic_prepaid_lease_user,clinic.prepaid.lease.user,model_clinic_prepaid_lease,base.group_user,1,1,1,1
+access_clinic_prepaid_lease_line_user,clinic.prepaid.lease.line.user,model_clinic_prepaid_lease_line,base.group_user,1,1,1,1

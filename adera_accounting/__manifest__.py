@@ -28,8 +28,11 @@
         'views/operational_ledger_views.xml',
         'views/specialized_accounting_views.xml',
         'views/clinic_asset_views.xml',
+        'views/fiscal_reconciliation_views.xml',
+        'views/prepaid_amortization_views.xml',
         'views/menu_views.xml',
         'reports/psak_report_templates.xml',
         'reports/clinic_asset_report_templates.xml',
+        'reports/fiscal_reconciliation_report_templates.xml',
     ],
 }

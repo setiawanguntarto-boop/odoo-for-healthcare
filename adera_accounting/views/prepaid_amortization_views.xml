@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Tree View -->
+    <record id="view_clinic_prepaid_lease_tree" model="ir.ui.view">
+        <field name="name">clinic.prepaid.lease.tree</field>
+        <field name="model">clinic.prepaid.lease</field>
+        <field name="arch" type="xml">
+            <list string="Amortisasi Sewa Gedung Dibayar di Muka" decoration-info="state == 'draft'" decoration-success="state == 'running'" decoration-muted="state == 'completed'">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="start_date"/>
+                <field name="end_date"/>
+                <field name="duration_months"/>
+                <field name="total_amount" widget="monetary"/>
+                <field name="monthly_amount" widget="monetary"/>
+                <field name="amortized_amount" widget="monetary"/>
+                <field name="remaining_amount" widget="monetary"/>
+                <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'running'" decoration-muted="state == 'completed'"/>
+                <field name="currency_id" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_clinic_prepaid_lease_form" model="ir.ui.view">
+        <field name="name">clinic.prepaid.lease.form</field>
+        <field name="model">clinic.prepaid.lease</field>
+        <field name="arch" type="xml">
+            <form string="Amortisasi Sewa Gedung Klinik">
+                <header>
+                    <button name="compute_schedule"
+                            string="Hitung Jadwal Amortisasi"
+                            type="object"
+                            class="btn-secondary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_confirm"
+                            string="Aktifkan Kontrak Sewa (Berjalan)"
+                            type="object"
+                            class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_set_to_draft"
+                            string="Kembalikan ke Draf"
+                            type="object"
+                            class="btn-secondary"
+                            invisible="state == 'draft'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,running,completed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" string="Nama / Lokasi Fasilitas Sewa"/>
+                        <h1>
+                            <field name="name" placeholder="Sewa Gedung Klinik Pratama &amp; HD Bandung"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Identifikasi Kontrak &amp; Pihak Kurator">
+                            <field name="partner_id" options="{'no_create': True}"/>
+                            <field name="contract_number"/>
+                            <field name="company_id" options="{'no_create': True}"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                        <group string="Jangka Waktu Sewa">
+                            <field name="start_date"/>
+                            <field name="duration_months"/>
+                            <field name="end_date"/>
+                        </group>
+                    </group>
+
+                    <group>
+                        <group string="Nilai Finansial &amp; Amortisasi">
+                            <field name="total_amount" widget="monetary"/>
+                            <field name="monthly_amount" widget="monetary"/>
+                            <field name="amortized_amount" widget="monetary"/>
+                            <field name="remaining_amount" widget="monetary" style="font-weight: bold; color: blue;"/>
+                        </group>
+                        <group string="Pemetaan Akun Buku Besar">
+                            <field name="prepaid_account_id" options="{'no_create': True}"/>
+                            <field name="expense_account_id" options="{'no_create': True}"/>
+                            <field name="journal_id" options="{'no_create': True}"/>
+                            <field name="analytic_distribution" widget="analytic_distribution"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Jadwal Amortisasi Bulanan" name="schedule">
+                            <field name="line_ids">
+                                <list decoration-success="state == 'posted'" decoration-muted="state == 'draft'">
+                                    <field name="sequence" string="Bulan Ke-"/>
+                                    <field name="schedule_date" string="Tanggal Amortisasi"/>
+                                    <field name="amount" widget="monetary" string="Beban Amortisasi (Rp)"/>
+                                    <field name="accumulated_amount" widget="monetary" string="Akumulasi Teramortisasi"/>
+                                    <field name="remaining_balance" widget="monetary" string="Sisa Saldo Uang Muka"/>
+                                    <field name="move_id" string="Entri GL"/>
+                                    <field name="state" widget="badge" decoration-success="state == 'posted'" decoration-warning="state == 'draft'"/>
+                                    <button name="action_post"
+                                            string="Bukukan"
+                                            type="object"
+                                            class="btn-sm btn-primary"
+                                            invisible="state == 'posted'"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_clinic_prepaid_lease" model="ir.actions.act_window">
+        <field name="name">Amortisasi Sewa Gedung Klinik</field>
+        <field name="res_model">clinic.prepaid.lease</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Belum ada kontrak sewa gedung atau biaya dibayar di muka yang tercatat.
+            </p>
+            <p>
+                Daftarkan sewa gedung klinik untuk mengotomatiskan pembukuan beban amortisasi bulanan (Dr 610020 / Cr 115010).
+            </p>
+        </field>
+    </record>
+
+    <!-- Scheduled Action: Automated Monthly Prepaid Lease Amortization -->
+    <record id="cron_post_monthly_prepaid_amortization" model="ir.cron">
+        <field name="name">Akuntansi: Amortisasi Otomatis Sewa Gedung Bulanan</field>
+        <field name="model_id" ref="model_clinic_prepaid_lease"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_post_monthly_prepaid_amortization()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">months</field>
+        <field name="active" eval="True"/>
+        <field name="nextcall">2026-12-01 17:15:00</field>
+    </record>
+</odoo>

@@ -111,6 +111,15 @@
         </record>
 
         <!-- ===================================================================
+             1-1500: BIAYA DIBAYAR DI MUKA / PREPAID (account_type = asset_current)
+             =================================================================== -->
+        <record id="account_115010" model="account.account">
+            <field name="code">115010</field>
+            <field name="name">Sewa Gedung Klinik Dibayar di Muka (Prepaid Lease)</field>
+            <field name="account_type">asset_current</field>
+        </record>
+
+        <!-- ===================================================================
              1-2000 to 1-2999: ASET TIDAK LANCAR (account_type = asset_non_current)
              =================================================================== -->
         <record id="account_121010" model="account.account">
@@ -289,6 +298,16 @@
         </record>
 
         <!-- ===================================================================
+             4-2000: PENDAPATAN LAIN-LAIN & BUNGA BANK (account_type = income_other)
+             Objek PPh Final Pasal 4 ayat (2)
+             =================================================================== -->
+        <record id="account_420010" model="account.account">
+            <field name="code">420010</field>
+            <field name="name">Pendapatan Bunga Bank &amp; Jasa Giro (Objek PPh Final)</field>
+            <field name="account_type">income_other</field>
+        </record>
+
+        <!-- ===================================================================
              5-xxxx: BEBAN POKOK PENDAPATAN / HPP (account_type = expense_direct_cost)
              Kemenkes 2025 & Permenkes 14/2021 Direct Cost Segmentation
              =================================================================== -->
@@ -370,6 +389,25 @@
         <record id="account_619990" model="account.account">
             <field name="code">619990</field>
             <field name="name">Beban Selisih Rekonsiliasi Kas Kasir (Blind Count Variance)</field>
+            <field name="account_type">expense</field>
+        </record>
+
+        <!-- Akun Pos Penyesuaian Koreksi Fiskal Positif Form 1771 -->
+        <record id="account_619100" model="account.account">
+            <field name="code">619100</field>
+            <field name="name">Beban Kenikmatan &amp; Natura Non-Deductible (Tanpa Daftar Nominatif)</field>
+            <field name="account_type">expense</field>
+        </record>
+
+        <record id="account_619200" model="account.account">
+            <field name="code">619200</field>
+            <field name="name">Beban Sumbangan &amp; Donasi Non-Deductible</field>
+            <field name="account_type">expense</field>
+        </record>
+
+        <record id="account_619300" model="account.account">
+            <field name="code">619300</field>
+            <field name="name">Beban Sanksi Administrasi &amp; Denda Pajak</field>
             <field name="account_type">expense</field>
         </record>
     </data>

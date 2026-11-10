@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from odoo.tests.common import TransactionCase
 from odoo import fields
+from odoo.exceptions import ValidationError
 from datetime import date
 
 
@@ -237,4 +238,83 @@ class TestBenchmarkCompliance(TransactionCase):
         wizard.action_scrap_open_vial()
         # Verify lot is closed
         self.assertFalse(lot.is_opened, "Status lot terbuka harus tertutup setelah pemusnahan!")
+
+    def test_09_fiscal_reconciliation_cortex_engine(self):
+        """Uji Engine Rekonsiliasi Fiskal SPT 1771: Komersial ke Fiskal & PPh Badan Pasal 31E."""
+        rec = self.env["clinic.fiscal.reconciliation"].create({
+            "name": "Audit Rekonsiliasi Fiskal QA 2026",
+            "fiscal_year": 2026,
+            "date_from": date(2026, 1, 1),
+            "date_to": date(2026, 12, 31),
+            "tax_facility": "pasal_31e",
+            "adj_cashier_variance": 5000000.0,
+            "adj_natura": 15000000.0,
+            "adj_bank_interest": 2000000.0,
+        })
+        rec.action_compute()
+        self.assertTrue(len(rec.line_ids) > 0, "Line Form 1771-I harus terisi!")
+        self.assertEqual(rec.effective_tax_rate, 11.0, "Tarif fasilitas Pasal 31E harus 11%!")
+        self.assertGreaterEqual(rec.total_positive_adjustments, 20000000.0, "Total koreksi positif harus mencakup variance kasir & natura!")
+        self.assertGreaterEqual(rec.total_negative_adjustments, 2000000.0, "Total koreksi negatif harus mencakup bunga bank!")
+
+    def test_10_prepaid_clinical_lease_amortization(self):
+        """Uji Amortisasi Sewa Gedung Klinik: Dr 610020 / Cr 115010 & Cron."""
+        partner = self.env["res.partner"].create({"name": "Pemilik Gedung Klinik QA"})
+        lease = self.env["clinic.prepaid.lease"].create({
+            "name": "Kontrak Sewa Gedung Klinik QA 2026",
+            "partner_id": partner.id,
+            "start_date": date(2026, 1, 1),
+            "duration_months": 12,
+            "total_amount": 120000000.0,
+        })
+        self.assertEqual(lease.monthly_amount, 10000000.0, "Beban bulanan harus Rp 10.000.000!")
+        lease.action_confirm()
+        self.assertEqual(len(lease.line_ids), 12, "Harus ada 12 baris amortisasi!")
+        
+        first_line = lease.line_ids[0]
+        move = lease.action_post_line(first_line.id)
+        self.assertEqual(move.state, "posted")
+        
+        dr_line = move.line_ids.filtered(lambda l: l.debit > 0)
+        cr_line = move.line_ids.filtered(lambda l: l.credit > 0)
+        self.assertEqual(dr_line.account_id.code, "610020", "Baris debit harus akun 610020!")
+        self.assertEqual(cr_line.account_id.code, "115010", "Baris kredit harus akun 115010!")
+        self.assertEqual(lease.remaining_amount, 110000000.0, "Sisa saldo sewa harus Rp 110.000.000!")
+
+    def test_11_audit_segregation_payroll_vs_doctor_fees(self):
+        """Uji Kontrol Audit: Larangan percampuran Akun Gaji Karyawan Tetap (610010) dengan Jasa Medis Dokter."""
+        acc_payroll = self.env["account.account"].search([("code", "=", "610010")], limit=1)
+        acc_doc_fee = self.env["account.account"].search([("code", "=", "510110")], limit=1)
+        acc_bank = self.env["account.account"].search([("code", "=", "111110")], limit=1)
+        journal = self.env["account.journal"].search([("type", "=", "general")], limit=1)
+
+        self.assertTrue(acc_payroll and acc_doc_fee and acc_bank and journal)
+
+        with self.assertRaises(ValidationError):
+            self.env["account.move"].create({
+                "journal_id": journal.id,
+                "date": date.today(),
+                "ref": "Jurnal Melanggar Pemisahan Audit Gaji & Jasa Medis",
+                "line_ids": [
+                    (0, 0, {
+                        "name": "Beban Gaji Karyawan Tetap",
+                        "account_id": acc_payroll.id,
+                        "debit": 5000000.0,
+                        "credit": 0.0,
+                    }),
+                    (0, 0, {
+                        "name": "Beban Jasa Medis Dokter",
+                        "account_id": acc_doc_fee.id,
+                        "debit": 5000000.0,
+                        "credit": 0.0,
+                    }),
+                    (0, 0, {
+                        "name": "Kas Bank",
+                        "account_id": acc_bank.id,
+                        "debit": 0.0,
+                        "credit": 10000000.0,
+                    }),
+                ],
+            })
+
 

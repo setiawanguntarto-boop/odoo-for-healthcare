@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_fiscal_reconciliation" model="ir.actions.report">
+        <field name="name">Kertas Kerja Rekonsiliasi Fiskal (SPT 1771)</field>
+        <field name="model">clinic.fiscal.reconciliation</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">adera_accounting.report_fiscal_reconciliation_template</field>
+        <field name="report_file">adera_accounting.report_fiscal_reconciliation_template</field>
+        <field name="print_report_name">'Kertas_Kerja_Rekonsiliasi_Fiskal_SPT_1771_' + str(object.fiscal_year)</field>
+        <field name="binding_model_id" ref="model_clinic_fiscal_reconciliation"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_fiscal_reconciliation_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.external_layout">
+                    <div class="page" style="font-family: Arial, sans-serif; font-size: 11px;">
+                        <!-- Header -->
+                        <div style="border-bottom: 2px solid #2c3e50; padding-bottom: 10px; margin-bottom: 15px;">
+                            <div class="row align-items-center">
+                                <div class="col-8">
+                                    <h4 style="font-weight: bold; margin: 0; color: #2c3e50;">
+                                        PT PROSPERRA MEDIKA UTAMA / KLINIK ADERA
+                                    </h4>
+                                    <div style="font-size: 12px; color: #555;">
+                                        KERTAS KERJA REKONSILIASI FISKAL (LAMPIRAN I FORMULIR 1771 DJP)
+                                    </div>
+                                    <div style="font-size: 10px; color: #777;">
+                                        Tahun Pajak: <strong t-field="doc.fiscal_year"/> | Periode: <span t-field="doc.date_from"/> s/d <span t-field="doc.date_to"/>
+                                    </div>
+                                </div>
+                                <div class="col-4 text-end">
+                                    <span class="badge bg-primary fs-6 p-2">FORM 1771-I</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- I. Tabel Kertas Kerja Form 1771-I -->
+                        <h6 style="font-weight: bold; color: #2c3e50; margin-top: 15px; margin-bottom: 8px;">
+                            I. PENYESUAIAN FISKAL LABA RUGI KOMERSIAL KE FISKAL
+                        </h6>
+                        <table class="table table-sm table-bordered" style="width: 100%; border-collapse: collapse; margin-bottom: 15px;">
+                            <thead>
+                                <tr style="background-color: #f2f2f2; text-align: center; font-weight: bold;">
+                                    <th style="width: 8%;">No. Pos</th>
+                                    <th style="width: 44%;">Uraian Pos Perhitungan</th>
+                                    <th style="width: 16%;">Menurut Komersial (Rp)</th>
+                                    <th style="width: 16%;">Koreksi Fiskal Positif (+)</th>
+                                    <th style="width: 16%;">Koreksi Fiskal Negatif (-)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="doc.line_ids" t-as="l">
+                                    <tr t-att-style="'font-weight: bold; background-color: #f9f9f9;' if l.line_type in ('header', 'subtotal', 'total') else ''">
+                                        <td style="text-align: center;"><span t-field="l.form_1771_code"/></td>
+                                        <td><span t-field="l.name"/></td>
+                                        <td style="text-align: right;">
+                                            <t t-if="l.amount_commercial">
+                                                <span t-esc="'{:,.2f}'.format(l.amount_commercial)"/>
+                                            </t>
+                                            <t t-else="">-</t>
+                                        </td>
+                                        <td style="text-align: right; color: #b02a37;">
+                                            <t t-if="l.adj_positive">
+                                                <span t-esc="'{:,.2f}'.format(l.adj_positive)"/>
+                                            </t>
+                                            <t t-else="">-</t>
+                                        </td>
+                                        <td style="text-align: right; color: #0d6efd;">
+                                            <t t-if="l.adj_negative">
+                                                <span t-esc="'{:,.2f}'.format(l.adj_negative)"/>
+                                            </t>
+                                            <t t-else="">-</t>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+
+                        <!-- II. Ringkasan Pajak Penghasilan Badan Terutang -->
+                        <h6 style="font-weight: bold; color: #2c3e50; margin-top: 15px; margin-bottom: 8px;">
+                            II. PERHITUNGAN PPH BADAN TERUTANG (PASAL 31E / TARIF NORMAL)
+                        </h6>
+                        <table class="table table-sm table-bordered" style="width: 100%; border-collapse: collapse;">
+                            <tbody>
+                                <tr>
+                                    <td style="width: 65%;">Penghasilan Neto Komersial Sebelum Pajak</td>
+                                    <td style="width: 35%; text-align: right; font-weight: bold;">
+                                        Rp <span t-esc="'{:,.2f}'.format(doc.commercial_net_profit)"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>(+) Total Koreksi Fiskal Positif (Selisih Kasir, Natura, Denda Pajak, Penyusutan)</td>
+                                    <td style="text-align: right; color: #b02a37;">
+                                        Rp <span t-esc="'{:,.2f}'.format(doc.total_positive_adjustments)"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>(-) Total Koreksi Fiskal Negatif (Penghasilan PPh Final Bunga Bank)</td>
+                                    <td style="text-align: right; color: #0d6efd;">
+                                        (Rp <span t-esc="'{:,.2f}'.format(doc.total_negative_adjustments)"/>)
+                                    </td>
+                                </tr>
+                                <tr style="background-color: #e9ecef; font-weight: bold;">
+                                    <td>PENGHASILAN NETO FISKAL (LABA FISKAL)</td>
+                                    <td style="text-align: right; color: #0d6efd;">
+                                        Rp <span t-esc="'{:,.2f}'.format(doc.fiscal_net_income)"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Penghasilan Kena Pajak (PKP Dibulatkan ke Ribuan Rupiah Penuh)</td>
+                                    <td style="text-align: right; font-weight: bold;">
+                                        Rp <span t-esc="'{:,.2f}'.format(doc.taxable_income)"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        Skema Fasilitas Pajak: <strong t-field="doc.tax_facility"/> (Tarif Efektif <span t-field="doc.effective_tax_rate"/>%)
+                                    </td>
+                                    <td style="text-align: right; font-weight: bold; color: blue;">
+                                        Rp <span t-esc="'{:,.2f}'.format(doc.corporate_tax_due)"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>(-) Kredit Pajak PPh Pasal 23 yang Dipotong Pihak Ketiga</td>
+                                    <td style="text-align: right;">
+                                        (Rp <span t-esc="'{:,.2f}'.format(doc.tax_credit_pph23)"/>)
+                                    </td>
+                                </tr>
+                                <tr style="background-color: #f8d7da; font-weight: bold;">
+                                    <td>PPH PASAL 29 KURANG / (LEBIH) BAYAR TAHUNAN</td>
+                                    <td style="text-align: right; color: #842029;">
+                                        Rp <span t-esc="'{:,.2f}'.format(doc.tax_underpayment)"/>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <!-- Tanda Tangan & Keterangan Pengesahan -->
+                        <div class="row mt-4 pt-3">
+                            <div class="col-6 text-center">
+                                <p style="margin-bottom: 50px;">Disiapkan Oleh:<br/><strong>Tax &amp; Accounting Specialist</strong></p>
+                                <p>( __________________________ )</p>
+                            </div>
+                            <div class="col-6 text-center">
+                                <p style="margin-bottom: 50px;">Disetujui Oleh:<br/><strong>Direktur Keuangan / Pengurus</strong></p>
+                                <p>( __________________________ )</p>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>
