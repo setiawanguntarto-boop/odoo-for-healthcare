@@ -6,4 +6,5 @@ from . import clinic_asset
 from . import clinic_cash_flow
 from . import clinic_specialized_accounting
 from . import fiscal_reconciliation
+from . import prepaid_lease
 from . import prepaid_amortization

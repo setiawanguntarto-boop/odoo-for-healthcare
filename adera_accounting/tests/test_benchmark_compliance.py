@@ -257,6 +257,11 @@ class TestBenchmarkCompliance(TransactionCase):
         self.assertGreaterEqual(rec.total_positive_adjustments, 20000000.0, "Total koreksi positif harus mencakup variance kasir & natura!")
         self.assertGreaterEqual(rec.total_negative_adjustments, 2000000.0, "Total koreksi negatif harus mencakup bunga bank!")
 
+        # Uji ekspor Excel XLSX
+        xlsx_res = rec.action_export_xlsx()
+        self.assertEqual(xlsx_res.get("type"), "ir.actions.act_url")
+        self.assertTrue("download=true" in xlsx_res.get("url", ""))
+
     def test_10_prepaid_clinical_lease_amortization(self):
         """Uji Amortisasi Sewa Gedung Klinik: Dr 610020 / Cr 115010 & Cron."""
         partner = self.env["res.partner"].create({"name": "Pemilik Gedung Klinik QA"})
@@ -280,6 +285,7 @@ class TestBenchmarkCompliance(TransactionCase):
         self.assertEqual(dr_line.account_id.code, "610020", "Baris debit harus akun 610020!")
         self.assertEqual(cr_line.account_id.code, "115010", "Baris kredit harus akun 115010!")
         self.assertEqual(lease.remaining_amount, 110000000.0, "Sisa saldo sewa harus Rp 110.000.000!")
+        self.assertTrue(lease.cron_post_monthly_lease_amortization(), "Cron bulanan amortisasi sewa harus sukses!")
 
     def test_11_audit_segregation_payroll_vs_doctor_fees(self):
         """Uji Kontrol Audit: Larangan percampuran Akun Gaji Karyawan Tetap (610010) dengan Jasa Medis Dokter."""

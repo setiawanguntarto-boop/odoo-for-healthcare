@@ -77,3 +77,11 @@ class ClinicFiscalReconciliationWizard(models.TransientModel):
             "view_mode": "form",
             "target": "current",
         }
+
+    def action_export_xlsx(self):
+        self.ensure_one()
+        res = self.action_generate()
+        rec_id = res.get("res_id")
+        reconciliation = self.env["clinic.fiscal.reconciliation"].browse(rec_id)
+        return reconciliation.action_export_xlsx()
+

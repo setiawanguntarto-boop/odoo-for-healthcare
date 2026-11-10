@@ -3,6 +3,9 @@ from odoo import fields, models, api
 from odoo.exceptions import UserError
 from datetime import date
 import math
+import io
+import base64
+import xlsxwriter
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -270,15 +273,15 @@ class ClinicFiscalReconciliation(models.Model):
         self.ensure_one()
 
         # 1. Pendapatan Usaha (410xxx)
-        d_rev, c_rev = self._get_balance("410")
+        d_rev, c_rev = self._get_balance("41")
         gross_rev = c_rev - d_rev
 
         # 2. HPP Medis (510xxx)
-        d_cogs, c_cogs = self._get_balance("510")
+        d_cogs, c_cogs = self._get_balance("51")
         cogs_val = d_cogs - c_cogs
 
         # 3. Beban Operasional Umum (610xxx s/d 619xxx)
-        d_opex, c_opex = self._get_balance("610")
+        d_opex, c_opex = self._get_balance("61")
         opex_val = d_opex - c_opex
 
         # 4. Pendapatan Lain-lain / Bunga Bank (420010)
@@ -367,6 +370,116 @@ class ClinicFiscalReconciliation(models.Model):
     def action_print_pdf(self):
         self.ensure_one()
         return self.env.ref("adera_accounting.action_report_fiscal_reconciliation").report_action(self)
+
+    def action_export_xlsx(self):
+        """Menghasilkan file Excel (.xlsx) Kertas Kerja Rekonsiliasi Fiskal Form 1771 Lampiran I."""
+        self.ensure_one()
+        if not self.line_ids:
+            self.action_compute()
+
+        output = io.BytesIO()
+        workbook = xlsxwriter.Workbook(output, {"in_memory": True})
+        ws = workbook.add_worksheet("Form 1771-I")
+
+        # Formats
+        title_fmt = workbook.add_format({
+            "bold": True, "font_size": 14, "align": "center", "valign": "vcenter",
+            "font_color": "#1B365D"
+        })
+        sub_fmt = workbook.add_format({
+            "italic": True, "font_size": 10, "align": "center", "font_color": "#555555"
+        })
+        header_fmt = workbook.add_format({
+            "bold": True, "bg_color": "#1B365D", "font_color": "#FFFFFF",
+            "align": "center", "valign": "vcenter", "border": 1
+        })
+        sec_header_fmt = workbook.add_format({
+            "bold": True, "bg_color": "#F0F4F8", "font_color": "#1B365D",
+            "border": 1
+        })
+        num_fmt = workbook.add_format({
+            "num_format": "#,##0", "align": "right", "border": 1
+        })
+        total_num_fmt = workbook.add_format({
+            "bold": True, "num_format": "#,##0", "align": "right",
+            "bg_color": "#E8F0FE", "border": 1
+        })
+        text_fmt = workbook.add_format({"border": 1})
+        code_fmt = workbook.add_format({"align": "center", "border": 1})
+
+        # Columns width
+        ws.set_column(0, 0, 10)  # Kode 1771
+        ws.set_column(1, 1, 52)  # Uraian
+        ws.set_column(2, 2, 22)  # Komersial
+        ws.set_column(3, 3, 22)  # Koreksi Positif
+        ws.set_column(4, 4, 22)  # Koreksi Negatif
+        ws.set_column(5, 5, 22)  # Fiskal
+
+        # Title Block
+        ws.merge_range("A1:F1", f"{self.company_id.name.upper()} - KERTAS KERJA REKONSILIASI FISKAL", title_fmt)
+        ws.merge_range("A2:F2", f"LAMPIRAN I FORMULIR 1771 SPT TAHUNAN PPh BADAN TAHUN PAJAK {self.fiscal_year}", sub_fmt)
+        ws.merge_range("A3:F3", f"Periode Pembukuan: {self.date_from.strftime('%d/%m/%Y')} s.d. {self.date_to.strftime('%d/%m/%Y')} | NPWP: {self.company_id.vat or '-'}", sub_fmt)
+
+        row = 4
+        # Table Headers
+        headers = ["Kode 1771", "Uraian Pos Keuangan / Koreksi Fiskal", "Saldo Komersial (Rp)", "Koreksi Fiskal Positif (+)", "Koreksi Fiskal Negatif (-)", "Saldo Fiskal (Rp)"]
+        for col, h in enumerate(headers):
+            ws.write(row, col, h, header_fmt)
+
+        row += 1
+        for line in self.line_ids:
+            is_hdr = line.line_type in ["header", "subtotal", "total"]
+            f_code = code_fmt
+            f_text = sec_header_fmt if is_hdr else text_fmt
+            f_num = total_num_fmt if is_hdr else num_fmt
+
+            ws.write(row, 0, line.form_1771_code or "", f_code)
+            ws.write(row, 1, line.name or "", f_text)
+            ws.write(row, 2, line.amount_commercial or 0.0, f_num)
+            ws.write(row, 3, line.adj_positive or 0.0, f_num)
+            ws.write(row, 4, line.adj_negative or 0.0, f_num)
+            ws.write(row, 5, line.amount_fiscal or 0.0, f_num)
+            row += 1
+
+        # Summary Block: Perhitungan Pajak
+        row += 1
+        ws.merge_range(row, 0, row, 4, "Penghasilan Neto Fiskal (Laba Fiskal)", total_num_fmt)
+        ws.write(row, 5, self.fiscal_net_income, total_num_fmt)
+        row += 1
+        ws.merge_range(row, 0, row, 4, "Penghasilan Kena Pajak (PKP Dibulatkan Ribuan Rupiah Penuh)", total_num_fmt)
+        ws.write(row, 5, self.taxable_income, total_num_fmt)
+        row += 1
+        facility_label = f"Fasilitas Pajak ({'Pasal 31E UU HPP - Tarif Efektif 11%' if self.tax_facility == 'pasal_31e' else 'Tarif Standar 22%'})"
+        ws.merge_range(row, 0, row, 4, facility_label, text_fmt)
+        ws.write(row, 5, f"{self.effective_tax_rate}%", code_fmt)
+        row += 1
+        ws.merge_range(row, 0, row, 4, "PPh Badan Terutang Tahun Pajak Bersangkutan", total_num_fmt)
+        ws.write(row, 5, self.corporate_tax_due, total_num_fmt)
+        row += 1
+        ws.merge_range(row, 0, row, 4, "Kredit Pajak PPh Pasal 23 Dipotong Pihak Lain", text_fmt)
+        ws.write(row, 5, self.tax_credit_pph23, num_fmt)
+        row += 1
+        ws.merge_range(row, 0, row, 4, "PPh Kurang / (Lebih) Bayar (PPh Pasal 29)", total_num_fmt)
+        ws.write(row, 5, self.tax_underpayment, total_num_fmt)
+
+        workbook.close()
+        output.seek(0)
+        file_data = output.read()
+
+        attachment = self.env["ir.attachment"].create({
+            "name": f"Kertas_Kerja_Rekonsiliasi_Fiskal_{self.fiscal_year}.xlsx",
+            "type": "binary",
+            "datas": base64.b64encode(file_data),
+            "mimetype": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "res_model": self._name,
+            "res_id": self.id,
+        })
+
+        return {
+            "type": "ir.actions.act_url",
+            "url": f"/web/content/{attachment.id}?download=true",
+            "target": "self",
+        }
 
 
 class ClinicFiscalReconciliationLine(models.Model):

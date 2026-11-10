@@ -48,6 +48,11 @@
                             type="object"
                             class="btn-info"
                             icon="fa-print"/>
+                    <button name="action_export_xlsx"
+                            string="Ekspor Kertas Kerja (Excel / XLSX)"
+                            type="object"
+                            class="btn-secondary"
+                            icon="fa-file-excel-o"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,calculated,approved"/>
                 </header>
                 <sheet>
@@ -203,6 +208,11 @@
                             string="Proses Rekonsiliasi Fiskal"
                             type="object"
                             class="btn-primary"/>
+                    <button name="action_export_xlsx"
+                            string="Ekspor Langsung ke Excel (XLSX)"
+                            type="object"
+                            class="btn-secondary"
+                            icon="fa-file-excel-o"/>
                     <button string="Batal" class="btn-secondary" special="cancel"/>
                 </footer>
             </form>
@@ -217,3 +227,4 @@
         <field name="target">new</field>
     </record>
 </odoo>
+

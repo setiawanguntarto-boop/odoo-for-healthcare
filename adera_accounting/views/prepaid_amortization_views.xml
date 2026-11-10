@@ -124,14 +124,26 @@
     </record>
 
     <!-- Scheduled Action: Automated Monthly Prepaid Lease Amortization -->
-    <record id="cron_post_monthly_prepaid_amortization" model="ir.cron">
+    <record id="cron_post_monthly_lease_amortization" model="ir.cron">
         <field name="name">Akuntansi: Amortisasi Otomatis Sewa Gedung Bulanan</field>
         <field name="model_id" ref="model_clinic_prepaid_lease"/>
         <field name="state">code</field>
-        <field name="code">model.cron_post_monthly_prepaid_amortization()</field>
+        <field name="code">model.cron_post_monthly_lease_amortization()</field>
         <field name="interval_number">1</field>
         <field name="interval_type">months</field>
         <field name="active" eval="True"/>
         <field name="nextcall">2026-12-01 17:15:00</field>
     </record>
+
+    <!-- Alias for backward compatibility -->
+    <record id="cron_post_monthly_prepaid_amortization" model="ir.cron">
+        <field name="name">Akuntansi: Amortisasi Otomatis Sewa Gedung Bulanan (Legacy Alias)</field>
+        <field name="model_id" ref="model_clinic_prepaid_lease"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_post_monthly_lease_amortization()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">months</field>
+        <field name="active" eval="False"/>
+    </record>
 </odoo>
+

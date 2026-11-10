@@ -48,7 +48,7 @@
               sequence="38"/>
 
     <menuitem id="menu_fiscal_reconciliation_action"
-              name="Rekonsiliasi Fiskal &amp; SPT Tahunan"
+              name="Rekonsiliasi Fiskal PPh Badan"
               parent="menu_psak_reports_categ"
               action="action_clinic_fiscal_reconciliation"
               sequence="39"/>
@@ -162,10 +162,10 @@
               sequence="30"/>
 
     <!-- ===================================================================
-         5. MANAJEMEN BIAYA DIBAYAR DI MUKA
+         5. BIAYA DIBAYAR DI MUKA
          =================================================================== -->
     <menuitem id="menu_prepaid_expenses_categ"
-              name="Manajemen Biaya Dibayar di Muka"
+              name="Biaya Dibayar di Muka"
               parent="menu_adera_accounting_root"
               sequence="44"/>
 
