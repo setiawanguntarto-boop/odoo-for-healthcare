@@ -37,7 +37,7 @@ export class ClinicDashboard extends Component {
             dateTo: currentDay,
             businessUnit: "all",
             poliCode: "all",
-            isLoading: false,
+            isLoading: true,
             metrics: null,
             sortColumn: "revenue",
             sortAsc: false,

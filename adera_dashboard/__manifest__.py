@@ -25,6 +25,7 @@ Executive Management & Financial KPI Dashboard for Klinik ADERA
         'adera_doctor_remuneration',
         'adera_clinic_bridge',
         'adera_accounting',
+        'spreadsheet_dashboard',
     ],
     'data': [
         'views/dashboard_views.xml',

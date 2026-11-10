@@ -117,7 +117,7 @@
                     </div>
                 </t>
 
-                <t t-else="">
+                <t t-elif="state.metrics">
                     <!-- 3. SECTION E: AUDIT & COMPLIANCE WARNING FLAGS RIBBON -->
                     <div class="row g-3 mb-4">
                         <!-- Flag 1: GR/IR Interim Clearing 211500 -->
@@ -621,6 +621,20 @@
                     <!-- FOOTER METADATA -->
                     <div class="text-center py-3 text-muted small">
                         <span>Decoupled Healthcare ERP • Odoo 19 Community Edition • PT Prosperra Medika Utama</span>
+                    </div>
+                </t>
+
+                <!-- ERROR / RETRY FALLBACK -->
+                <t t-else="">
+                    <div class="alert alert-danger d-flex align-items-center gap-3 my-4 p-4 shadow-sm rounded-3" role="alert">
+                        <i class="fa fa-exclamation-triangle fs-2 text-danger"/>
+                        <div>
+                            <h5 class="alert-heading fw-bold mb-1">Gagal Memuat Metrik Dashboard</h5>
+                            <p class="mb-2 text-muted">Terjadi kendala saat mengambil data analitika eksekutif dari server.</p>
+                            <button class="btn btn-danger btn-sm shadow-sm" t-on-click="() => this.loadMetrics()">
+                                <i class="fa fa-refresh me-1"/> Coba Muat Ulang Data
+                            </button>
+                        </div>
                     </div>
                 </t>
             </div>

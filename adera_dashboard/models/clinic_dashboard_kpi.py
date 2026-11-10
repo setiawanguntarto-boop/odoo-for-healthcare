@@ -262,7 +262,7 @@ class ClinicDashboardKPI(models.AbstractModel):
             move_query = """
                 SELECT COALESCE(p.name->>'en_US', 'Obat & BHP') as name,
                        COALESCE(SUM(sm.product_uom_qty), 0) as total_qty,
-                       COALESCE(SUM(sm.product_uom_qty * COALESCE(pp.standard_price, 0)), 0) as total_val
+                       COALESCE(SUM(sm.product_uom_qty * COALESCE((pp.standard_price->>'1')::numeric, (pp.standard_price->>sm.company_id::text)::numeric, 0.0)), 0) as total_val
                 FROM stock_move sm
                 JOIN product_product pp ON pp.id = sm.product_id
                 JOIN product_template p ON p.id = pp.product_tmpl_id

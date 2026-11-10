@@ -18,10 +18,10 @@ export class AderaLandingPage extends Component {
         if (!root || !root.children) {
             return [];
         }
-        // Exclude Menu Utama itself from the grid
+        // Exclude Menu Utama and generic Odoo Dashboards from the grid
         return root.children
             .map((id) => this.menuService.getMenu(id))
-            .filter((app) => app && app.xmlid !== "adera_core.menu_adera_landing_root" && app.name !== "Menu Utama")
+            .filter((app) => app && app.xmlid !== "adera_core.menu_adera_landing_root" && app.name !== "Menu Utama" && app.xmlid !== "spreadsheet_dashboard.spreadsheet_dashboard_menu_root" && app.name !== "Dashboards")
             .map((app) => {
                 let iconUrl = null;
                 const rawIcon = app.webIconData || app.web_icon_data;

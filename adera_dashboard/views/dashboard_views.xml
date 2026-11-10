@@ -22,5 +22,10 @@
               action="action_clinic_management_dashboard"
               sequence="1"
               groups="account.group_account_user,account.group_account_manager"/>
+
+    <!-- Deactivate generic Odoo Spreadsheet Dashboards to avoid cluttering Executive Healthcare UI -->
+    <record id="spreadsheet_dashboard.spreadsheet_dashboard_menu_root" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
 </odoo>
 

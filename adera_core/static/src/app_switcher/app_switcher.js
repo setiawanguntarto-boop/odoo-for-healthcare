@@ -21,7 +21,7 @@ export class AderaAppSwitcher extends Component {
         }
         return root.children
             .map((id) => this.menuService.getMenu(id))
-            .filter((app) => app && app.name !== "Tests");
+            .filter((app) => app && app.name !== "Tests" && app.xmlid !== "spreadsheet_dashboard.spreadsheet_dashboard_menu_root" && app.name !== "Dashboards");
     }
 
     async onAppClick(app) {
