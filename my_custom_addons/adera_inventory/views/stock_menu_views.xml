@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ========================================================================= -->
+    <!-- 1. ACTION WINDOW DEFINITIONS FOR CLINICAL SUPPLY OPERATIONS               -->
+    <!-- ========================================================================= -->
+
+    <!-- Penerimaan Barang PBF (Goods Receipts) -->
+    <record id="action_picking_pbf_receipts" model="ir.actions.act_window">
+        <field name="name">Penerimaan Barang PBF (GRN)</field>
+        <field name="res_model">stock.picking</field>
+        <field name="view_mode">list,form,calendar</field>
+        <field name="domain">[('picking_type_id.code', '=', 'incoming')]</field>
+        <field name="context">{
+            'default_picking_type_id': ref('adera_inventory.stock_picking_type_grn_pbf'),
+            'contact_display': 'partner_address',
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Catat penerimaan obat dan alat kesehatan dari Pedagang Besar Farmasi (PBF).
+            </p>
+            <p>
+                Sistem akan memverifikasi nomor batch, tanggal kadaluarsa (FEFO), dan membentuk jurnal kliring GR/IR Akun 211500.
+            </p>
+        </field>
+    </record>
+
+    <!-- Dispensing Resep & Pasien (Outpatient Dispensing) -->
+    <record id="action_picking_outpatient_dispensing" model="ir.actions.act_window">
+        <field name="name">Dispensing &amp; Pengeluaran Medis</field>
+        <field name="res_model">stock.picking</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('picking_type_id.code', '=', 'outgoing')]</field>
+        <field name="context">{
+            'default_picking_type_id': ref('adera_inventory.stock_picking_type_outpatient_dispensing'),
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Daftar pengeluaran obat resep pasien rawat jalan dan sinkronisasi kasir POS.
+            </p>
+        </field>
+    </record>
+
+    <!-- Mutasi Antar Depo (Internal Depo Transfers) -->
+    <record id="action_picking_internal_depo_transfers" model="ir.actions.act_window">
+        <field name="name">Mutasi Antar Depo</field>
+        <field name="res_model">stock.picking</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('picking_type_id.code', '=', 'internal')]</field>
+        <field name="context">{
+            'default_picking_type_id': ref('adera_inventory.stock_picking_type_depo_transfer'),
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Buat mutasi stok dari Gudang Medis Pusat (WH/Stock) ke Depo Farmasi, Depo HD, atau Poli.
+            </p>
+            <p>
+                Divalidasi langsung oleh Petugas Gudang saat serah terima fisik barang.
+            </p>
+        </field>
+    </record>
+
+    <!-- Karantina Batch & Penarikan Obat (Lot Quarantine & Recall) -->
+    <record id="action_stock_lot_quarantine_recall" model="ir.actions.act_window">
+        <field name="name">Karantina Batch &amp; Penarikan Obat (BPOM Recall)</field>
+        <field name="res_model">stock.lot</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('is_quarantined', '=', True)]</field>
+        <field name="context">{
+            'search_default_group_by_product': 1,
+            'default_is_quarantined': True,
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Daftar seluruh batch / lot obat yang sedang dikarantina atau ditarik (BPOM / Prinsipal).
+            </p>
+            <p>
+                Batch di dalam daftar ini secara otomatis terkunci dan diblokir dari kasir POS dan sistem rekam medis.
+            </p>
+        </field>
+    </record>
+
+
+    <!-- ========================================================================= -->
+    <!-- 2. OPERATIONAL SUB-MENU RESTRUCTURING                                      -->
+    <!-- ========================================================================= -->
+
+    <!-- Hide or clean legacy generic menus -->
+    <record id="stock.menu_stock_transfers" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="stock.menu_stock_adjustments" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="stock.menu_stock_procurement" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+
+    <!-- Reorganize Operasi (Operations) sub-menus -->
+    <!-- Menu 1: Penerimaan Barang PBF -->
+    <menuitem id="menu_clinical_pbf_receipts"
+              name="Penerimaan Barang PBF"
+              parent="stock.menu_stock_warehouse_mgmt"
+              action="action_picking_pbf_receipts"
+              sequence="10"/>
+
+    <!-- Menu 2: Dispensing & Pengeluaran Medis -->
+    <menuitem id="menu_clinical_dispensing"
+              name="Dispensing &amp; Pengeluaran Medis"
+              parent="stock.menu_stock_warehouse_mgmt"
+              action="action_picking_outpatient_dispensing"
+              sequence="20"/>
+
+    <!-- Menu 3: Mutasi Antar Depo -->
+    <menuitem id="menu_clinical_internal_transfers"
+              name="Mutasi Antar Depo"
+              parent="stock.menu_stock_warehouse_mgmt"
+              action="action_picking_internal_depo_transfers"
+              sequence="30"/>
+
+    <!-- Menu 4: Stock Opname & Audit Siklus (Physical Inventory) -->
+    <menuitem id="menu_clinical_stock_opname"
+              name="Stock Opname &amp; Audit Siklus"
+              parent="stock.menu_stock_warehouse_mgmt"
+              action="stock.action_view_quants"
+              sequence="40"/>
+
+    <!-- Menu 5: Parent Karantina & Pemusnahan Obat -->
+    <menuitem id="menu_clinical_quarantine_root"
+              name="Karantina &amp; Pemusnahan Obat"
+              parent="stock.menu_stock_warehouse_mgmt"
+              sequence="50"/>
+
+    <!-- Sub 5.1: Karantina Batch & Penarikan Obat -->
+    <menuitem id="menu_clinical_batch_recall"
+              name="Karantina Batch &amp; Penarikan Obat"
+              parent="menu_clinical_quarantine_root"
+              action="action_stock_lot_quarantine_recall"
+              sequence="1"/>
+
+    <!-- Sub 5.2: Catat Vaksin / Obat Terbuang (Open-Vial Spoilage Wizard) -->
+    <menuitem id="menu_clinical_spoilage_wizard"
+              name="Catat Vaksin / Obat Terbuang"
+              parent="menu_clinical_quarantine_root"
+              action="action_stock_scrap_clinic"
+              sequence="2"/>
+
+</odoo>

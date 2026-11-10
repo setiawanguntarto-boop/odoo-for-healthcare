@@ -20,12 +20,7 @@ class StockLot(models.Model):
         store=True,
     )
 
-    is_quarantined = fields.Boolean(
-        string='Dikarantina (Expired / Near Expiry)',
-        default=False,
-        help='Otomatis true jika lot telah melewati tanggal kadaluarsa atau masuk masa karantina (<60 hari).'
-    )
-    quarantine_reason = fields.Char(string='Alasan Karantina')
+    # Note: is_quarantined and quarantine_reason are extended in stock_lot_quarantine.py
 
     # =========================================================================
     # MULTI-DOSE OPEN-VIAL & SPOILAGE TRACKING (Vaccines, EPO, Heparin)
@@ -138,19 +133,15 @@ class StockLot(models.Model):
             if delta < 0:
                 lot.expiry_status = 'expired'
                 lot.is_quarantined = True
-                lot.quarantine_reason = 'Lot telah melewati tanggal kadaluarsa (Expired)'
+                lot.quarantine_reason = 'quality_defect'
             elif delta <= 30:
                 lot.expiry_status = 'critical'
                 lot.is_quarantined = True
-                lot.quarantine_reason = 'Critical Near-Expiry: Kurang dari 30 hari'
+                lot.quarantine_reason = 'quality_defect'
             elif delta <= 60:
                 lot.expiry_status = 'near_expiry'
-                lot.is_quarantined = True
-                lot.quarantine_reason = 'Near-Expiry Quarantine Proposal: Kurang dari 60 hari'
             else:
                 lot.expiry_status = 'valid'
-                lot.is_quarantined = False
-                lot.quarantine_reason = False
 
     @api.model
     def cron_quarantine_near_expiry_lots(self):
@@ -172,7 +163,7 @@ class StockLot(models.Model):
 
         lots.write({
             'is_quarantined': True,
-            'quarantine_reason': 'Otomatis Dikarantina (< 60 Hari Menuju Expired)',
+            'quarantine_reason': 'quality_defect',
         })
 
         # Cari quant di lokasi internal non-karantina

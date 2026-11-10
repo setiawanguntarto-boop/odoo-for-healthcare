@@ -17,11 +17,13 @@
     'data': [
         'security/ir.model.access.csv',
         'data/stock_location_data.xml',
+        'data/stock_picking_type_data.xml',
         'data/product_category_data.xml',
         'data/products_data.xml',
         'data/ir_cron_data.xml',
         'views/stock_lot_views.xml',
         'views/stock_scrap_clinic_view.xml',
+        'views/stock_menu_views.xml',
         'views/purchase_order_views.xml',
         'views/clinic_inventory_dashboard_views.xml',
         'reports/stock_scrap_spoilage_report.xml',

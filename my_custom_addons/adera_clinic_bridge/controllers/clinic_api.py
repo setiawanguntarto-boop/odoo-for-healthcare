@@ -190,6 +190,20 @@ class ClinicApiController(http.Controller):
                             'product_id': prod.id,
                         })
 
+                    # PATIENT SAFETY BLOCK: Rejection if lot is quarantined / recalled
+                    if lot and lot.is_quarantined:
+                        reason_dict = dict(lot._fields.get("quarantine_reason", {}).selection or []) if hasattr(lot._fields.get("quarantine_reason"), "selection") else {}
+                        reason_desc = reason_dict.get(lot.quarantine_reason, lot.quarantine_reason or "Batch Recall")
+                        return request.make_json_response({
+                            "status": "error",
+                            "code": 422,
+                            "error": "MEDICAL_SAFETY_ALERT_BATCH_QUARANTINED",
+                            "message": f"Ditolak: Obat '{prod.name}' dengan Nomor Batch '{lot.name}' berada dalam status KARANTINA / BATCH RECALL ({reason_desc}). Obat ini dilarang keras diberikan kepada pasien!",
+                            "quarantined_lot": lot.name,
+                            "product": prod.name,
+                            "quarantine_reason": reason_desc,
+                        }, status=422)
+
                 analytic_acc = False
                 if item.get('analytic_account_code'):
                     analytic_acc = env['account.analytic.account'].search([

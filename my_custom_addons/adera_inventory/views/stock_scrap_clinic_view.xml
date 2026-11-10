@@ -99,11 +99,4 @@
         <field name="view_mode">form</field>
         <field name="target">new</field>
     </record>
-
-    <!-- Menu Item under Inventory Operations -->
-    <menuitem id="menu_stock_scrap_clinic"
-              name="Pemusnahan Obat Terbuka (Spoilage)"
-              parent="stock.menu_stock_warehouse_mgmt"
-              action="action_stock_scrap_clinic"
-              sequence="55"/>
 </odoo>

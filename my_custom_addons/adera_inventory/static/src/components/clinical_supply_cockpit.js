@@ -184,3 +184,4 @@ export class ClinicalSupplyCockpit extends Component {
 }
 
 registry.category("actions").add("adera_inventory.clinical_supply_cockpit", ClinicalSupplyCockpit);
+

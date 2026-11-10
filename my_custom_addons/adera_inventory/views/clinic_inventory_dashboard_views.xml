@@ -19,3 +19,4 @@
         <field name="action" ref="action_clinical_supply_cockpit"/>
     </record>
 </odoo>
+
