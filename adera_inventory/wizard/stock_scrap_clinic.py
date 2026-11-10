@@ -224,7 +224,11 @@ class StockScrapClinic(models.TransientModel):
         return self.action_confirm_scrap()
 
     def action_confirm_spoilage(self):
-        """Explicit approval method matching prompt."""
+        """Standard Approval method for PJ Farmasi (<= Rp 500k)."""
+        return self.action_confirm_scrap()
+
+    def action_confirm_spoilage_manager(self):
+        """High-Value Approval method for Manajer Medis (> Rp 500k)."""
         return self.action_confirm_scrap()
 
     def action_confirm_scrap(self):

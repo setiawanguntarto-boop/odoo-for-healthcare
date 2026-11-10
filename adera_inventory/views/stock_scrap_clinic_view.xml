@@ -6,6 +6,7 @@
         <field name="arch" type="xml">
             <form string="Pemusnahan Sisa Obat Multidosis Terbuka (Open-Vial Spoilage)">
                 <sheet>
+                    <field name="requires_medical_manager" invisible="1"/>
                     <div class="oe_title">
                         <h2>Pemusnahan Sisa Obat Terbuka (Spoilage / Waste)</h2>
                         <p class="text-muted">
@@ -70,10 +71,22 @@
                     </group>
                 </sheet>
                 <footer>
-                    <button name="action_confirm_scrap"
-                            string="Setujui &amp; Bukukan Pemusnahan (510010)"
+                    <!-- Standard Approval for PJ Farmasi (<= Rp 500k) -->
+                    <button name="action_confirm_spoilage"
+                            string="Setujui Pemusnahan (PJ Farmasi)"
                             type="object"
-                            class="btn-danger"/>
+                            class="btn-primary"
+                            invisible="requires_medical_manager or state != 'draft'"
+                            groups="adera_core.group_pharmacy_pic,adera_core.group_clinic_director"/>
+
+                    <!-- High Value Approval for Manajer Medis / Direktur (> Rp 500k) -->
+                    <button name="action_confirm_spoilage_manager"
+                            string="Persetujuan Manajer Medis (> Rp 500rb)"
+                            type="object"
+                            class="btn-danger"
+                            invisible="not requires_medical_manager or state != 'draft'"
+                            groups="adera_doctor_remuneration.group_medical_manager,adera_core.group_medical_manager,adera_core.group_clinic_director"/>
+
                     <button string="Batal" class="btn-secondary" special="cancel"/>
                 </footer>
             </form>
