@@ -14,6 +14,13 @@
             <field name="prefix">SETT-DOC/%(year)s/</field>
             <field name="padding">4</field>
         </record>
+
+        <record id="seq_medical_fee_settlement_batch" model="ir.sequence">
+            <field name="name">Physician Remuneration Batch</field>
+            <field name="code">medical.fee.settlement.batch</field>
+            <field name="prefix">DOC/SETTLE/%(year)s/%(month)s/</field>
+            <field name="padding">4</field>
+        </record>
     </data>
 </odoo>
 

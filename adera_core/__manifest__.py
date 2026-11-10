@@ -14,6 +14,7 @@
         'l10n_id',
     ],
     'data': [
+        'security/security_groups.xml',
         'data/account_groups_data.xml',
         'data/account_accounts_data.xml',
         'data/account_journals_data.xml',

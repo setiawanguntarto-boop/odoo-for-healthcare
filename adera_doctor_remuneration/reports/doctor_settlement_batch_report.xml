@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_doctor_remuneration_recap" model="ir.actions.report">
+        <field name="name">Rekapitulasi Pembayaran Jasa Medis Dokter</field>
+        <field name="model">medical.fee.settlement.batch</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">adera_doctor_remuneration.report_doctor_remuneration_recap_document</field>
+        <field name="report_file">adera_doctor_remuneration.report_doctor_remuneration_recap_document</field>
+        <field name="print_report_name">'Rekap_Jasa_Medis_%s' % (object.name.replace('/', '_'))</field>
+        <field name="binding_model_id" ref="model_medical_fee_settlement_batch"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_doctor_remuneration_recap_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page" style="font-family: Arial, sans-serif; font-size: 13px;">
+                        <!-- Header -->
+                        <div class="text-center mb-4 border-bottom pb-2">
+                            <h3 class="fw-bold mb-0">PT PROSPERRA MEDIKA UTAMA / KLINIK ADERA</h3>
+                            <h4 class="text-primary fw-bold mt-1">REKAPITULASI PEMBAYARAN JASA MEDIS DOKTER</h4>
+                            <p class="text-muted small mb-0">
+                                Berdasarkan Peraturan Menteri Keuangan No. 168/2023 &amp; Pemisahan Tugas (Segregation of Duties)
+                            </p>
+                        </div>
+
+                        <!-- Metadata -->
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <table class="table table-borderless table-sm mb-0">
+                                    <tr>
+                                        <td class="fw-bold" style="width: 35%;">Nomor Batch:</td>
+                                        <td><span t-field="o.name"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Nama Dokter:</td>
+                                        <td><span t-field="o.doctor_id.name"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">NPWP Dokter:</td>
+                                        <td><span t-field="o.doctor_id.vat" t-options="{'widget': 'char'}"/></td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-6">
+                                <table class="table table-borderless table-sm mb-0">
+                                    <tr>
+                                        <td class="fw-bold" style="width: 40%;">Periode Pelayanan:</td>
+                                        <td><span t-field="o.period_start"/> s/d <span t-field="o.period_end"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Rekening Bank:</td>
+                                        <td><span t-field="o.bank_journal_id.name"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Status Batch:</td>
+                                        <td><span class="badge bg-secondary" t-field="o.state"/></td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Lines -->
+                        <table class="table table-bordered table-sm mb-4">
+                            <thead class="table-light text-center">
+                                <tr>
+                                    <th style="width: 5%;">No</th>
+                                    <th style="width: 15%;">Tanggal</th>
+                                    <th style="width: 25%;">Pasien</th>
+                                    <th style="width: 30%;">Tindakan / Prosedur</th>
+                                    <th style="width: 25%;" class="text-end">Jasa Medis Bruto</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-set="idx" t-value="1"/>
+                                <tr t-foreach="o.line_ids" t-as="l">
+                                    <td class="text-center"><t t-esc="idx"/><t t-set="idx" t-value="idx + 1"/></td>
+                                    <td><span t-field="l.encounter_date"/></td>
+                                    <td><span t-field="l.patient_id.name"/></td>
+                                    <td><span t-field="l.product_id.name"/></td>
+                                    <td class="text-end"><span t-field="l.doctor_fee_amount" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <!-- Totals -->
+                        <div class="row justify-content-end mb-4">
+                            <div class="col-6">
+                                <table class="table table-sm table-bordered">
+                                    <tr>
+                                        <td class="fw-bold">Total Jasa Medis Bruto:</td>
+                                        <td class="text-end fw-bold"><span t-field="o.total_gross_fee" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Dasar Pengenaan Pajak (DPP 50%):</td>
+                                        <td class="text-end"><span t-field="o.dpp_amount" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Potongan PPh 21 Dokter (PMK 168):</td>
+                                        <td class="text-end text-danger">- <span t-field="o.total_pph21_withheld" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                    </tr>
+                                    <tr class="table-primary fw-bold">
+                                        <td>Jasa Medis Bersih Ditransfer (Take Home):</td>
+                                        <td class="text-end"><span t-field="o.total_net_payable" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Segregation of Duties Signatures -->
+                        <div class="row text-center mt-5">
+                            <div class="col-4">
+                                <p class="mb-1">Disusun Oleh,</p>
+                                <p class="text-muted small">Staf Klaim &amp; Kasir</p>
+                                <div style="height: 60px;"/>
+                                <p class="fw-bold mb-0 border-top pt-1 mx-3">
+                                    <span t-field="o.claim_admin_id.name"/>
+                                </p>
+                            </div>
+                            <div class="col-4">
+                                <p class="mb-1">Diverifikasi Oleh,</p>
+                                <p class="text-muted small">Manajer Pelayanan Medis</p>
+                                <div style="height: 60px;"/>
+                                <p class="fw-bold mb-0 border-top pt-1 mx-3">
+                                    <span t-field="o.verified_by_id.name"/>
+                                </p>
+                                <small class="text-muted" t-field="o.verified_datetime"/>
+                            </div>
+                            <div class="col-4">
+                                <p class="mb-1">Disetujui untuk Transfer,</p>
+                                <p class="text-muted small">Direktur Klinik / Keuangan</p>
+                                <div style="height: 60px;"/>
+                                <p class="fw-bold mb-0 border-top pt-1 mx-3">
+                                    <span t-field="o.approved_by_id.name"/>
+                                </p>
+                                <small class="text-muted" t-field="o.approved_datetime"/>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>
+

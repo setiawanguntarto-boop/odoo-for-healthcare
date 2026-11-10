@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_clinic_asset_disposal_bast" model="ir.actions.report">
+        <field name="name">Berita Acara Penghapusan Aset Medis</field>
+        <field name="model">clinic.asset.disposal</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">adera_accounting.report_clinic_asset_disposal_document</field>
+        <field name="report_file">adera_accounting.report_clinic_asset_disposal_document</field>
+        <field name="print_report_name">'BAST_Penghapusan_Aset_%s' % (object.name.replace('/', '_'))</field>
+        <field name="binding_model_id" ref="model_clinic_asset_disposal"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_clinic_asset_disposal_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page" style="font-family: Arial, sans-serif; font-size: 13px;">
+                        <div class="text-center mb-4 border-bottom pb-2">
+                            <h3 class="fw-bold mb-0">PT PROSPERRA MEDIKA UTAMA / KLINIK ADERA</h3>
+                            <h4 class="text-danger fw-bold mt-1">BERITA ACARA PENGHAPUSAN ASET TETAP MEDIS</h4>
+                            <p class="text-muted small mb-0">
+                                Berita Acara Serah Terima (BAST) Pelepasan / Pemusnahan Aset Klinik
+                            </p>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <table class="table table-borderless table-sm mb-0">
+                                    <tr>
+                                        <td class="fw-bold" style="width: 40%;">Nomor Berita Acara:</td>
+                                        <td><span t-field="o.name"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Tanggal Penghapusan:</td>
+                                        <td><span t-field="o.disposal_date"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Alasan Penghapusan:</td>
+                                        <td><span t-field="o.disposal_reason"/></td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-6">
+                                <table class="table table-borderless table-sm mb-0">
+                                    <tr>
+                                        <td class="fw-bold" style="width: 40%;">Nama Aset Medis:</td>
+                                        <td><span t-field="o.asset_id.name"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Kode / Serial Number:</td>
+                                        <td><span t-field="o.asset_id.asset_code"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Status Aset:</td>
+                                        <td><span class="badge bg-secondary" t-field="o.state"/></td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="card mb-4">
+                            <div class="card-header fw-bold bg-light">
+                                Ringkasan Nilai Finansial &amp; Kerugian Penghapusan (PSAK)
+                            </div>
+                            <div class="card-body p-0">
+                                <table class="table table-bordered mb-0">
+                                    <tr>
+                                        <td class="fw-bold" style="width: 50%;">Nilai Perolehan Historis (Original Cost) - Cr 121010:</td>
+                                        <td class="text-end fw-bold"><span t-field="o.purchase_value" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Akumulasi Penyusutan Terbukukan - Dr 122010:</td>
+                                        <td class="text-end text-success"><span t-field="o.accumulated_depreciation" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                    </tr>
+                                    <tr class="table-danger fw-bold">
+                                        <td>Nilai Buku Bersih (Beban Kerugian Penghapusan Aset - Dr 619020):</td>
+                                        <td class="text-end text-danger"><span t-field="o.net_book_value" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Nomor Entri Jurnal GL:</td>
+                                        <td class="text-end"><span t-field="o.disposal_move_id.name"/></td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <h6 class="fw-bold">Kajian Teknis &amp; Rekomendasi Teknisi Elektromedik (ATEM):</h6>
+                            <div class="p-3 border rounded bg-light">
+                                <span t-field="o.technical_notes"/>
+                            </div>
+                        </div>
+
+                        <div class="row text-center mt-5">
+                            <div class="col-6">
+                                <p class="mb-1">Disusun &amp; Diperiksa Oleh,</p>
+                                <p class="text-muted small">Teknisi Medis / Sarpras</p>
+                                <div style="height: 60px;"/>
+                                <p class="fw-bold mb-0 border-top pt-1 mx-4">
+                                    <span t-field="o.prepared_by_id.name"/>
+                                </p>
+                            </div>
+                            <div class="col-6">
+                                <p class="mb-1">Disetujui untuk Dihapusbukukan,</p>
+                                <p class="text-muted small">Direktur Klinik</p>
+                                <div style="height: 60px;"/>
+                                <p class="fw-bold mb-0 border-top pt-1 mx-4">
+                                    <span t-field="o.approved_by_id.name"/>
+                                </p>
+                                <small class="text-muted" t-field="o.approval_datetime"/>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>
+

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from odoo import fields, models, api
+from odoo import fields, models, api, _
 from odoo.exceptions import UserError
 import logging
 
@@ -8,7 +8,7 @@ _logger = logging.getLogger(__name__)
 
 class StockScrapClinic(models.TransientModel):
     _name = "stock.scrap.clinic"
-    _description = "Wizard Pemusnahan Obat Multidosis Terbuka (Open-Vial Spoilage)"
+    _description = "Wizard Pemusnahan Obat Multidosis Terbuka (Open-Vial Spoilage Approval)"
 
     lot_id = fields.Many2one(
         "stock.lot",
@@ -115,6 +115,33 @@ class StockScrapClinic(models.TransientModel):
     )
     currency_id = fields.Many2one("res.currency", related="company_id.currency_id")
 
+    # SoD and Approval Fields
+    pharmacist_id = fields.Many2one(
+        "res.users",
+        string="Apoteker / PJ Farmasi",
+        default=lambda self: self.env.user,
+        required=True,
+    )
+    approver_id = fields.Many2one(
+        "res.users",
+        string="Disetujui Oleh",
+        readonly=True,
+    )
+    requires_medical_manager = fields.Boolean(
+        string="Perlu Persetujuan Manajer Medis (> Rp 500rb)",
+        compute="_compute_approval_requirement",
+        store=True,
+    )
+    state = fields.Selection(
+        [
+            ("draft", "Draft (Menunggu Approval)"),
+            ("approved", "Disetujui & Dimusnahkan"),
+        ],
+        string="Status",
+        default="draft",
+        required=True,
+    )
+
     def _default_analytic_account(self):
         return self.env["account.analytic.account"].search([
             ("code", "in", ["ACC-PRATAMA", "ACC-HD", "PRAT-FARM", "HD-PHARM"])
@@ -127,7 +154,7 @@ class StockScrapClinic(models.TransientModel):
 
     def _default_inventory_account(self):
         return self.env["account.account"].search([
-            ("code", "in", ["114010", "113010"])
+            ("code", "in", ["114010", "113010", "113020"])
         ], limit=1)
 
     @api.model_create_multi
@@ -152,6 +179,12 @@ class StockScrapClinic(models.TransientModel):
         for rec in self:
             rec.dose_scrap_quantity = rec.discarded_doses
 
+    @api.depends("total_spoilage_cost")
+    def _compute_approval_requirement(self):
+        for rec in self:
+            # Threshold Rule: > Rp 500.000 requires Medical Services Manager approval
+            rec.requires_medical_manager = rec.total_spoilage_cost > 500000.0
+
     @api.onchange("lot_id")
     def _onchange_lot_id(self):
         if self.lot_id:
@@ -167,20 +200,16 @@ class StockScrapClinic(models.TransientModel):
                 hd_pharm = self.env["account.analytic.account"].search([("code", "=", "HD-PHARM")], limit=1)
                 if hd_pharm:
                     self.analytic_account_id = hd_pharm.id
-                inv_hd = self.env["account.account"].search([("code", "in", ["114030", "113020"])], limit=1)
+                inv_hd = self.env["account.account"].search([("code", "in", ["113020", "114030"])], limit=1)
                 if inv_hd:
                     self.inventory_account_id = inv_hd.id
             else:
                 prat_farm = self.env["account.analytic.account"].search([("code", "=", "PRAT-FARM")], limit=1)
                 if prat_farm:
                     self.analytic_account_id = prat_farm.id
-                inv_pharma = self.env["account.account"].search([("code", "in", ["114010", "113010"])], limit=1)
+                inv_pharma = self.env["account.account"].search([("code", "in", ["113010", "114010"])], limit=1)
                 if inv_pharma:
                     self.inventory_account_id = inv_pharma.id
-
-    def action_scrap_open_vial(self):
-        """Action alias method matching specification."""
-        return self.action_confirm_scrap()
 
     @api.depends("product_id", "dose_scrap_quantity", "lot_id.dose_capacity")
     def _compute_spoilage_cost(self):
@@ -190,18 +219,46 @@ class StockScrapClinic(models.TransientModel):
             unit_price = rec.product_id.standard_price if rec.product_id else 0.0
             rec.total_spoilage_cost = round(rec.vial_unit_quantity * unit_price, 2)
 
+    def action_scrap_open_vial(self):
+        """Action alias method matching specification."""
+        return self.action_confirm_scrap()
+
+    def action_confirm_spoilage(self):
+        """Explicit approval method matching prompt."""
+        return self.action_confirm_scrap()
+
     def action_confirm_scrap(self):
-        """Membukukan pemusnahan open vial ke inventory scrap dan GL jurnal 510010 vs 114010."""
+        """Membukukan pemusnahan open vial ke inventory scrap dan GL jurnal 510010 vs 113010/114010 dengan SoD checks."""
         self.ensure_one()
         if self.dose_scrap_quantity <= 0:
-            raise UserError("Jumlah dosis yang dimusnahkan harus lebih besar dari 0!")
+            raise UserError(_("Jumlah dosis yang dimusnahkan harus lebih besar dari 0!"))
 
         cost = self.total_spoilage_cost
         if cost <= 0:
-            # Fallback to standard price or at least nominal
             cost = max(1.0, round(self.product_id.standard_price * (self.vial_unit_quantity or 1.0), 2))
 
-        # 1. Financial Journal Entry: Dr 510010 / Cr 114010
+        # Check Approval Rights:
+        # If cost > 500,000, requires Medical Manager or Clinic Director
+        user = self.env.user
+        is_medical_mgr = (
+            user.has_group("adera_core.group_medical_manager") or
+            user.has_group("adera_doctor_remuneration.group_medical_manager") or
+            user.has_group("adera_core.group_clinic_director") or
+            user._is_admin()
+        )
+        is_pharmacist = (
+            user.has_group("adera_core.group_pharmacy_pic") or
+            user.has_group("stock.group_stock_user") or
+            user._is_admin()
+        )
+
+        if cost > 500000.0 and not is_medical_mgr:
+            raise UserError(_(
+                "Nilai kerugian pemusnahan obat melebihi Rp 500.000 (Rp %s)! "
+                "Pemusnahan sediaan bernilai tinggi wajib disetujui oleh Manajer Medis / Direktur."
+            ) % f"{cost:,.2f}")
+
+        # 1. Financial Journal Entry: Dr 510010 / Cr 113010 (or 114010)
         analytic_dist = {str(self.analytic_account_id.id): 100.0} if self.analytic_account_id else False
         reason_label = dict(self._fields["spoilage_reason"].selection).get(self.spoilage_reason, self.spoilage_reason)
         ref_text = f"Pemusnahan Sisa Vial Terbuka: {self.product_id.name} (Lot: {self.lot_id.name}) - {reason_label}"
@@ -231,7 +288,6 @@ class StockScrapClinic(models.TransientModel):
         move.action_post()
 
         # 2. Inventory Quant Scrap Adjustment
-        # Find internal location
         quant = self.env["stock.quant"].search([
             ("lot_id", "=", self.lot_id.id),
             ("product_id", "=", self.product_id.id),
@@ -271,19 +327,25 @@ class StockScrapClinic(models.TransientModel):
             "doses_administered": self.lot_id.dose_capacity,
         })
         self.lot_id.message_post(body=(
-            f"<strong>Pemusnahan Sisa Vial Terbuka (Spoilage):</strong><br/>"
+            f"<strong>Pemusnahan Sisa Vial Terbuka (Spoilage Approved):</strong><br/>"
             f"• Dosis Dibuang: {self.dose_scrap_quantity} dosis ({self.vial_unit_quantity:.2f} vial)<br/>"
             f"• Alasan: {reason_label}<br/>"
+            f"• Disetujui Oleh: {user.name} ({'Manajer Medis' if cost > 500000 else 'PJ Farmasi'})<br/>"
             f"• Nilai Kerugian HPP (510010): Rp {cost:,.2f}<br/>"
             f"• Entri Jurnal: {move.name}"
         ))
+
+        self.write({
+            "state": "approved",
+            "approver_id": user.id,
+        })
 
         return {
             "type": "ir.actions.client",
             "tag": "display_notification",
             "params": {
-                "title": "Pemusnahan Sisa Vial Berhasil",
-                "message": f"Biaya spoilage sebesar Rp {cost:,.2f} telah dibukukan ke jurnal {move.name}.",
+                "title": _("Pemusnahan Obat Berhasil Disetujui"),
+                "message": _("Biaya spoilage sebesar Rp %s telah dibukukan ke jurnal %s.") % (f"{cost:,.2f}", move.name),
                 "type": "success",
                 "sticky": False,
             },

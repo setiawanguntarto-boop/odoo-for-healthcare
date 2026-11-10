@@ -17,3 +17,4 @@ access_clinic_fiscal_reconciliation_wizard_user,clinic.fiscal.reconciliation.wiz
 access_clinic_prepaid_lease_user,clinic.prepaid.lease.user,model_clinic_prepaid_lease,base.group_user,1,1,1,1
 access_clinic_prepaid_lease_line_user,clinic.prepaid.lease.line.user,model_clinic_prepaid_lease_line,base.group_user,1,1,1,1
 access_clinic_sinking_fund_wizard_user,clinic.sinking.fund.wizard.user,model_clinic_sinking_fund_wizard,base.group_user,1,1,1,1
+access_clinic_asset_disposal_user,clinic.asset.disposal.user,model_clinic_asset_disposal,base.group_user,1,1,1,1

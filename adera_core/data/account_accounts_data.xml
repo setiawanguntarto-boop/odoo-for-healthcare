@@ -392,6 +392,12 @@
             <field name="account_type">expense</field>
         </record>
 
+        <record id="account_619020" model="account.account">
+            <field name="code">619020</field>
+            <field name="name">Beban Kerugian Penghapusan Aset Tetap Medis &amp; Fasilitas</field>
+            <field name="account_type">expense</field>
+        </record>
+
         <record id="account_619990" model="account.account">
             <field name="code">619990</field>
             <field name="name">Beban Selisih Rekonsiliasi Kas Kasir (Blind Count Variance)</field>

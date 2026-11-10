@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_medical_fee_settlement_batch_tree" model="ir.ui.view">
+        <field name="name">medical.fee.settlement.batch.tree</field>
+        <field name="model">medical.fee.settlement.batch</field>
+        <field name="arch" type="xml">
+            <list string="Batch Remunerasi Dokter">
+                <field name="name"/>
+                <field name="doctor_id"/>
+                <field name="period_start"/>
+                <field name="period_end"/>
+                <field name="total_gross_fee" sum="Total Bruto"/>
+                <field name="total_pph21_withheld" sum="Total PPh 21"/>
+                <field name="total_net_payable" sum="Total Net"/>
+                <field name="verified_by_id" optional="show"/>
+                <field name="approved_by_id" optional="show"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-primary="state == 'verified'"
+                       decoration-warning="state == 'approved'"
+                       decoration-success="state == 'paid'"
+                       decoration-danger="state == 'cancelled'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_medical_fee_settlement_batch_form" model="ir.ui.view">
+        <field name="name">medical.fee.settlement.batch.form</field>
+        <field name="model">medical.fee.settlement.batch</field>
+        <field name="arch" type="xml">
+            <form string="Batch Remunerasi Dokter (Multi-Tier Approval)">
+                <header>
+                    <button name="action_load_fee_lines" string="Tarik Jasa Medis (Load Accruals)"
+                            type="object" class="btn-secondary" invisible="state != 'draft'"/>
+                    
+                    <!-- Tier 1 -> Tier 2: Submit Verification -->
+                    <button name="action_submit_verification" string="Ajukan Verifikasi Medis"
+                            type="object" class="btn-primary" invisible="state != 'draft'"
+                            groups="adera_core.group_claims_admin,adera_core.group_clinic_cashier"/>
+
+                    <!-- Tier 2 -> Tier 3: Medical Manager Verify -->
+                    <button name="action_medical_manager_verify" string="Verifikasi &amp; Setujui Medis"
+                            type="object" class="btn-warning" invisible="state != 'verified'"
+                            groups="adera_doctor_remuneration.group_medical_manager,adera_core.group_medical_manager"/>
+
+                    <!-- Tier 3 -> Paid: Finance Director Approve and Disburse -->
+                    <button name="action_finance_approve_and_pay" string="Setujui &amp; Eksekusi Transfer Bank"
+                            type="object" class="btn-success" invisible="state != 'approved'"
+                            groups="adera_core.group_clinic_director"/>
+
+                    <!-- Cancel / Reject -->
+                    <button name="action_cancel" string="Tolak / Batalkan"
+                            type="object" class="btn-outline-danger" invisible="state in ('paid', 'cancelled')"/>
+
+                    <field name="state" widget="statusbar" statusbar_visible="draft,verified,approved,paid"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <span class="o_form_label text-muted">Batch Remunerasi &amp; PPh 21 Dokter</span>
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+
+                    <group>
+                        <group string="Identitas Dokter &amp; Periode Pelayanan">
+                            <field name="doctor_id" readonly="state != 'draft'"/>
+                            <field name="period_start" readonly="state != 'draft'"/>
+                            <field name="period_end" readonly="state != 'draft'"/>
+                            <field name="bank_journal_id" readonly="state in ('paid', 'cancelled')"/>
+                        </group>
+                        <group string="Otorisasi &amp; Pemisahan Tugas (SoD)">
+                            <field name="claim_admin_id" readonly="1"/>
+                            <field name="verified_by_id" readonly="1" invisible="not verified_by_id"/>
+                            <field name="verified_datetime" readonly="1" invisible="not verified_datetime"/>
+                            <field name="approved_by_id" readonly="1" invisible="not approved_by_id"/>
+                            <field name="approved_datetime" readonly="1" invisible="not approved_datetime"/>
+                            <field name="payment_move_id" readonly="1" invisible="not payment_move_id"/>
+                            <field name="company_id" groups="base.group_multi_company" readonly="state != 'draft'"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+
+                    <group string="Ringkasan Finansial &amp; Pajak (PMK 168/2023)">
+                        <group>
+                            <field name="total_gross_fee" widget="monetary" readonly="1"/>
+                            <field name="dpp_amount" widget="monetary" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="total_pph21_withheld" widget="monetary" readonly="1"/>
+                            <field name="total_net_payable" widget="monetary" readonly="1" class="oe_subtotal_footer_separator text-primary fw-bold"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Rincian Tindakan Layanan Pasien" name="fee_lines">
+                            <field name="line_ids" readonly="state != 'draft'">
+                                <list string="Tindakan Medis" editable="bottom">
+                                    <field name="encounter_date"/>
+                                    <field name="patient_id"/>
+                                    <field name="product_id"/>
+                                    <field name="billing_amount" widget="monetary" sum="Total Tagihan"/>
+                                    <field name="doctor_fee_amount" widget="monetary" sum="Total Jasa Medis"/>
+                                    <field name="accrual_id" optional="hide"/>
+                                    <field name="encounter_reference" optional="hide"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_medical_fee_settlement_batch" model="ir.actions.act_window">
+        <field name="name">Batch Remunerasi Dokter (Multi-Tier)</field>
+        <field name="res_model">medical.fee.settlement.batch</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_filter_draft': 1}</field>
+    </record>
+
+    <menuitem id="menu_medical_fee_settlement_batch"
+              name="Batch Remunerasi Multi-Tier"
+              parent="menu_doctor_remuneration_root"
+              action="action_medical_fee_settlement_batch"
+              sequence="15"/>
+</odoo>

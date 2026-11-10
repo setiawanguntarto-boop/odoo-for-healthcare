@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data noupdate="1">
+        <!-- Sequence for Asset Disposal -->
+        <record id="seq_clinic_asset_disposal" model="ir.sequence">
+            <field name="name">Berita Acara Penghapusan Aset Medis</field>
+            <field name="code">clinic.asset.disposal</field>
+            <field name="prefix">BAST-AST/%(year)s/%(month)s/</field>
+            <field name="padding">4</field>
+        </record>
+
         <!-- 1. Mesin Hemodialisis Nipro Surdial X - Unit 01 -->
         <record id="asset_nipro_surdial_01" model="clinic.asset">
             <field name="name">Mesin Hemodialisis Nipro Surdial X - Unit 01</field>

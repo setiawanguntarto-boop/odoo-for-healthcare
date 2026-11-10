@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_clinic_asset_disposal_tree" model="ir.ui.view">
+        <field name="name">clinic.asset.disposal.tree</field>
+        <field name="model">clinic.asset.disposal</field>
+        <field name="arch" type="xml">
+            <list string="Penghapusan Aset Medis &amp; Fasilitas">
+                <field name="name"/>
+                <field name="asset_id"/>
+                <field name="disposal_date"/>
+                <field name="disposal_reason"/>
+                <field name="purchase_value" widget="monetary" sum="Total Nilai Historis"/>
+                <field name="accumulated_depreciation" widget="monetary" sum="Total Akumulasi"/>
+                <field name="net_book_value" widget="monetary" sum="Total Kerugian NBV"/>
+                <field name="prepared_by_id"/>
+                <field name="approved_by_id"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state == 'to_approve'"
+                       decoration-success="state == 'approved'"
+                       decoration-danger="state == 'rejected'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_clinic_asset_disposal_form" model="ir.ui.view">
+        <field name="name">clinic.asset.disposal.form</field>
+        <field name="model">clinic.asset.disposal</field>
+        <field name="arch" type="xml">
+            <form string="Berita Acara Penghapusan Aset Medis">
+                <header>
+                    <button name="action_submit_for_approval" string="Ajukan Persetujuan Direksi"
+                            type="object" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_approve_disposal" string="Setujui &amp; Hapusbukukan Aset"
+                            type="object" class="btn-success" invisible="state != 'to_approve'"
+                            groups="adera_core.group_clinic_director"/>
+                    <button name="action_reject" string="Tolak Penghapusan"
+                            type="object" class="btn-outline-danger" invisible="state != 'to_approve'"
+                            groups="adera_core.group_clinic_director"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,to_approve,approved"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <span class="o_form_label text-muted">Berita Acara Serah Terima &amp; Penghapusan Aset</span>
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+
+                    <group>
+                        <group string="Identitas Aset yang Dihapus">
+                            <field name="asset_id" readonly="state != 'draft'"/>
+                            <field name="asset_category" readonly="1"/>
+                            <field name="disposal_date" readonly="state != 'draft'"/>
+                            <field name="disposal_reason" readonly="state != 'draft'"/>
+                            <field name="company_id" groups="base.group_multi_company" readonly="1"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                        <group string="Otorisasi &amp; Status Persetujuan">
+                            <field name="prepared_by_id" readonly="1"/>
+                            <field name="approved_by_id" readonly="1" invisible="not approved_by_id"/>
+                            <field name="approval_datetime" readonly="1" invisible="not approval_datetime"/>
+                            <field name="disposal_move_id" readonly="1" invisible="not disposal_move_id"/>
+                            <field name="rejection_reason" readonly="1" invisible="state != 'rejected'"/>
+                        </group>
+                    </group>
+
+                    <group string="Kalkulasi Nilai Finansial &amp; Kerugian (NBV)">
+                        <group>
+                            <field name="purchase_value" widget="monetary" readonly="1"/>
+                            <field name="accumulated_depreciation" widget="monetary" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="net_book_value" widget="monetary" readonly="1" class="text-danger fw-bold fs-5"/>
+                        </group>
+                    </group>
+
+                    <group string="Pemetaan Akun Buku Besar (GL)">
+                        <group>
+                            <field name="asset_account_id" readonly="state != 'draft'"/>
+                            <field name="depreciation_account_id" readonly="state != 'draft'"/>
+                        </group>
+                        <group>
+                            <field name="loss_account_id" readonly="state != 'draft'"/>
+                            <field name="journal_id" readonly="state != 'draft'"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Kajian Teknis &amp; Rekomendasi Teknisi" name="technical_notes">
+                            <field name="technical_notes" placeholder="Tuliskan justifikasi teknis, nomor kalibrasi BPFK, atau kondisi fisik alat..." readonly="state != 'draft'"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_clinic_asset_disposal" model="ir.actions.act_window">
+        <field name="name">Penghapusan Aset Medis (Disposal)</field>
+        <field name="res_model">clinic.asset.disposal</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_clinic_asset_disposal"
+              name="Penghapusan Aset (Disposal)"
+              parent="menu_fixed_assets_categ"
+              action="action_clinic_asset_disposal"
+              sequence="25"/>
+</odoo>

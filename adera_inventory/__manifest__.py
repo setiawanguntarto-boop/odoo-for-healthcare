@@ -23,6 +23,7 @@
         'views/stock_lot_views.xml',
         'views/stock_scrap_clinic_view.xml',
         'views/purchase_order_views.xml',
+        'reports/stock_scrap_spoilage_report.xml',
     ],
     'installable': True,
     'application': False,

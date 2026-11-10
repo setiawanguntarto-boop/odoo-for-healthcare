@@ -105,3 +105,4 @@ msgstr "Tahun Berjalan (YTD)"
 #: model:ir.model.fields.selection,name:adera_accounting.selection__psak_report_wizard__date_range_preset__custom
 msgid "Kustom"
 msgstr "Kustom"
+
