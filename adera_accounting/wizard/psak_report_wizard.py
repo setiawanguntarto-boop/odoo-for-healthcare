@@ -1,128 +1,191 @@
 # -*- coding: utf-8 -*-
-from odoo import fields, models, api
-from dateutil.relativedelta import relativedelta
+from odoo import models, fields, api, _
 from datetime import date
+from dateutil.relativedelta import relativedelta
 
 
-class PsakReportWizard(models.TransientModel):
-    _name = "psak.report.wizard"
-    _description = "Wizard Laporan Keuangan PSAK / SAK EMKM / SAK EP Klinik ADERA"
+class FinancialReportWizard(models.TransientModel):
+    _name = "financial.report.wizard"
+    _description = "Wizard Laporan Keuangan Klinik ADERA"
 
-    framework_standard = fields.Selection(
-        [
-            ("emkm", "SAK EMKM (Phase 1 Baseline - Standar Entitas Mikro, Kecil, Menengah)"),
-            ("sak_ep", "SAK EP / PSAK (Phase 2 Roadmap - Standar Entitas Privat)"),
-        ],
-        string="Standar Akuntansi Regulasi",
-        default="emkm",
+    company_id = fields.Many2one(
+        "res.company",
+        string="Perusahaan",
         required=True,
+        default=lambda self: self.env.company,
     )
 
     report_type = fields.Selection(
         [
-            ("profit_loss", "Laporan Laba Rugi (Statement of Profit or Loss)"),
-            ("balance_sheet", "Neraca Keuangan (Statement of Financial Position)"),
-            ("cash_flow", "Laporan Arus Kas (Statement of Cash Flows - SAK EP)"),
-            ("equity_change", "Laporan Perubahan Ekuitas (Statement of Changes in Equity - SAK EP)"),
-            ("calk", "Catatan Atas Laporan Keuangan (CaLK - SAK EMKM / SAK EP)"),
+            ("pl", "Laporan Laba Rugi"),
+            ("bs", "Neraca Keuangan"),
+            ("cf", "Laporan Arus Kas"),
+            ("equity", "Laporan Perubahan Ekuitas"),
+            ("calk", "Catatan atas Laporan Keuangan (CaLK)"),
         ],
-        string="Jenis Laporan PSAK",
+        string="Jenis Laporan Keuangan",
+        default="pl",
         required=True,
-        default="profit_loss",
     )
 
     cash_flow_method = fields.Selection(
         [
-            ("direct", "Metode Langsung (Direct Method)"),
             ("indirect", "Metode Tidak Langsung (Indirect Method)"),
+            ("direct", "Metode Langsung (Direct Method)"),
         ],
         string="Metode Arus Kas",
-        default="direct",
+        default="indirect",
     )
 
-    date_preset = fields.Selection(
+    date_range_preset = fields.Selection(
         [
-            ("this_month", "Bulan Berjalan (This Month)"),
-            ("this_quarter", "Kuartal Berjalan (This Quarter)"),
-            ("ytd", "Tahun Berjalan (Year to Date)"),
-            ("custom", "Kustom (Pilih Rentang Tanggal)"),
+            ("this_month", "Bulan Ini"),
+            ("last_month", "Bulan Lalu"),
+            ("this_quarter", "Kuartal Ini"),
+            ("this_year", "Tahun Berjalan (YTD)"),
+            ("custom", "Kustom"),
         ],
-        string="Preset Periode",
+        string="Periode Pelaporan",
         default="this_month",
         required=True,
     )
 
-    date_from = fields.Date(string="Tanggal Mulai", required=True, default=lambda self: date.today().replace(day=1))
-    date_to = fields.Date(string="Tanggal Selesai", required=True, default=fields.Date.today)
+    date_from = fields.Date(
+        string="Dari Tanggal",
+        required=True,
+        default=lambda self: date.today().replace(day=1),
+    )
+    date_to = fields.Date(
+        string="Sampai Tanggal",
+        required=True,
+        default=lambda self: date.today(),
+    )
 
     target_move = fields.Selection(
         [
-            ("posted", "Hanya Entri yang Sudah Diposting (Audit Ready)"),
-            ("all", "Semua Entri (Termasuk Draf & Webhook Staged)"),
+            ("posted", "Entri Terposting (Posted Only)"),
+            ("all", "Semua Entri (Termasuk Draf)"),
         ],
         string="Target Transaksi",
         default="posted",
         required=True,
     )
 
-    comparison_type = fields.Selection(
-        [
-            ("none", "Tanpa Analisis Komparatif"),
-            ("previous_period", "Bandingkan Periode Sebelumnya"),
-            ("previous_year", "Bandingkan Periode yang Sama Tahun Lalu"),
-        ],
-        string="Analisis Komparasi",
-        default="none",
-        required=True,
+    analytic_plan_id = fields.Many2one(
+        "account.analytic.plan",
+        string="Rencana Analitik",
+        default=lambda self: self.env.ref("adera_core.analytic_plan_business_units", raise_if_not_found=False),
     )
-
-    date_from_cmp = fields.Date(string="Tanggal Awal Pembanding")
-    date_to_cmp = fields.Date(string="Tanggal Akhir Pembanding")
 
     analytic_account_id = fields.Many2one(
         "account.analytic.account",
-        string="Filter Unit Bisnis Analitik",
-        help="Kosongkan untuk Laporan Konsolidasi Seluruh Klinik, atau pilih unit (ACC-PRATAMA vs ACC-HD)",
+        string="Unit Bisnis / Poli",
+        domain="[('plan_id', '=?', analytic_plan_id)]",
+        help="Kosongkan untuk melihat konsolidasi seluruh unit klinik.",
     )
 
     journal_ids = fields.Many2many(
         "account.journal",
         string="Filter Jurnal Tertentu",
-        help="Kosongkan untuk menyertakan seluruh jurnal operasional klinik",
+        help="Kosongkan untuk menyertakan seluruh jurnal operasional klinik.",
     )
 
-    @api.onchange("date_preset")
-    def _onchange_date_preset(self):
+    comparison_mode = fields.Selection(
+        [
+            ("none", "Tanpa Perbandingan"),
+            ("prev_period", "Periode Sebelumnya"),
+            ("same_last_year", "Periode yang Sama Tahun Lalu"),
+        ],
+        string="Perbandingan Periode",
+        default="none",
+        required=True,
+    )
+
+    date_from_cmp = fields.Date(string="Dari Tanggal Pembanding")
+    date_to_cmp = fields.Date(string="Sampai Tanggal Pembanding")
+
+    # Legacy/internal fields maintained invisibly for backward compatibility with existing engine
+    accounting_standard = fields.Selection(
+        [
+            ("sak_emkm", "Standard Accounting"),
+            ("emkm", "SAK EMKM"),
+            ("sak_ep", "SAK EP / PSAK"),
+        ],
+        string="Standar Akuntansi",
+        default="sak_emkm",
+    )
+    framework_standard = fields.Selection(
+        [
+            ("emkm", "SAK EMKM"),
+            ("sak_ep", "SAK EP / PSAK"),
+        ],
+        string="Kerangka Regulasi",
+        default="emkm",
+    )
+
+    @api.onchange("date_range_preset")
+    def _onchange_date_range_preset(self):
         today = date.today()
-        if self.date_preset == "this_month":
+        if self.date_range_preset == "this_month":
             self.date_from = today.replace(day=1)
-            self.date_to = (today.replace(day=1) + relativedelta(months=1)) - relativedelta(days=1)
-        elif self.date_preset == "this_quarter":
-            quarter_start_month = 3 * ((today.month - 1) // 3) + 1
-            self.date_from = today.replace(month=quarter_start_month, day=1)
-            self.date_to = (self.date_from + relativedelta(months=3)) - relativedelta(days=1)
-        elif self.date_preset == "ytd":
-            self.date_from = today.replace(month=1, day=1)
+            self.date_to = today
+        elif self.date_range_preset == "last_month":
+            first_day_current = today.replace(day=1)
+            last_month_end = first_day_current - relativedelta(days=1)
+            self.date_from = last_month_end.replace(day=1)
+            self.date_to = last_month_end
+        elif self.date_range_preset == "this_quarter":
+            quarter = (today.month - 1) // 3 + 1
+            self.date_from = date(today.year, 3 * quarter - 2, 1)
+            self.date_to = today
+        elif self.date_range_preset == "this_year":
+            self.date_from = date(today.year, 1, 1)
             self.date_to = today
 
-    @api.onchange("comparison_type", "date_from", "date_to")
-    def _onchange_comparison_type(self):
-        if self.comparison_type == "none" or not self.date_from or not self.date_to:
+    @api.onchange("comparison_mode", "date_from", "date_to")
+    def _onchange_comparison_mode(self):
+        if self.comparison_mode == "none" or not self.date_from or not self.date_to:
             self.date_from_cmp = False
             self.date_to_cmp = False
             return
 
-        if self.comparison_type == "previous_year":
+        if self.comparison_mode == "same_last_year":
             self.date_from_cmp = self.date_from - relativedelta(years=1)
             self.date_to_cmp = self.date_to - relativedelta(years=1)
-        elif self.comparison_type == "previous_period":
+        elif self.comparison_mode == "prev_period":
             diff_days = (self.date_to - self.date_from).days + 1
             self.date_to_cmp = self.date_from - relativedelta(days=1)
             self.date_from_cmp = self.date_to_cmp - relativedelta(days=diff_days - 1)
 
+    def _map_report_type_to_engine(self):
+        mapping = {
+            "pl": "profit_loss",
+            "bs": "balance_sheet",
+            "cf": "cash_flow",
+            "equity": "equity_change",
+            "calk": "calk",
+            # Fallback if raw engine values passed
+            "profit_loss": "profit_loss",
+            "balance_sheet": "balance_sheet",
+            "cash_flow": "cash_flow",
+            "equity_change": "equity_change",
+        }
+        return mapping.get(self.report_type, "profit_loss")
+
+    def _map_comparison_to_engine(self):
+        mapping = {
+            "none": "none",
+            "prev_period": "previous_period",
+            "same_last_year": "previous_year",
+            "previous_period": "previous_period",
+            "previous_year": "previous_year",
+        }
+        return mapping.get(self.comparison_mode, "none")
+
     def action_generate_report(self):
-        """Menghasilkan record psak.financial.report dan membuka interaktif view."""
         self.ensure_one()
+        engine_report_type = self._map_report_type_to_engine()
+        engine_comparison = self._map_comparison_to_engine()
 
         report_titles = {
             "profit_loss": "Laporan Laba Rugi",
@@ -132,18 +195,22 @@ class PsakReportWizard(models.TransientModel):
             "calk": "Catatan Atas Laporan Keuangan (CaLK)",
         }
         unit_label = f"[{self.analytic_account_id.name}] " if self.analytic_account_id else "[Konsolidasi Klinik] "
-        name = f"{unit_label}{report_titles.get(self.report_type)} ({self.date_from.strftime('%d/%m/%Y')} - {self.date_to.strftime('%d/%m/%Y')})"
+        name = f"{unit_label}{report_titles.get(engine_report_type, 'Laporan Keuangan')} ({self.date_from.strftime('%d/%m/%Y')} - {self.date_to.strftime('%d/%m/%Y')})"
+
+        # SAK EP required for equity change and cash flow
+        framework = "sak_ep" if engine_report_type in ("equity_change", "cash_flow") else "emkm"
 
         report = self.env["psak.financial.report"].create({
             "name": name,
-            "framework_standard": self.framework_standard,
-            "report_type": self.report_type,
-            "cash_flow_method": self.cash_flow_method,
-            "date_preset": self.date_preset,
+            "company_id": self.company_id.id,
+            "framework_standard": framework,
+            "report_type": engine_report_type,
+            "cash_flow_method": self.cash_flow_method or "indirect",
+            "date_preset": "custom",
             "date_from": self.date_from,
             "date_to": self.date_to,
             "target_move": self.target_move,
-            "comparison_type": self.comparison_type,
+            "comparison_type": engine_comparison,
             "date_from_cmp": self.date_from_cmp,
             "date_to_cmp": self.date_to_cmp,
             "analytic_account_id": self.analytic_account_id.id if self.analytic_account_id else False,
@@ -158,3 +225,28 @@ class PsakReportWizard(models.TransientModel):
             "view_mode": "form",
             "target": "current",
         }
+
+    def action_print_report(self):
+        self.ensure_one()
+        act = self.action_generate_report()
+        report = self.env["psak.financial.report"].browse(act["res_id"])
+        return self.env.ref("adera_accounting.action_report_psak_financial_statement").report_action(report)
+
+    def action_view_html(self):
+        return self.action_generate_report()
+
+
+# Alias class for backward compatibility with existing views / actions
+class PsakReportWizard(models.TransientModel):
+    _name = "psak.report.wizard"
+    _inherit = "financial.report.wizard"
+    _description = "Wizard Laporan Keuangan (Compatibility Alias)"
+
+    framework_standard = fields.Selection(
+        [
+            ("emkm", "SAK EMKM"),
+            ("sak_ep", "SAK EP / PSAK"),
+        ],
+        string="Standar Akuntansi Regulasi",
+        default="emkm",
+    )

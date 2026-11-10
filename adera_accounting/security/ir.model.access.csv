@@ -2,6 +2,7 @@ id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_psak_financial_report_user,psak.financial.report.user,model_psak_financial_report,base.group_user,1,1,1,1
 access_psak_financial_report_line_user,psak.financial.report.line.user,model_psak_financial_report_line,base.group_user,1,1,1,1
 access_psak_report_wizard_user,psak.report.wizard.user,model_psak_report_wizard,base.group_user,1,1,1,1
+access_financial_report_wizard_user,financial.report.wizard.user,model_financial_report_wizard,base.group_user,1,1,1,1
 access_medical_fixed_asset_user,medical.fixed.asset.user,model_medical_fixed_asset,base.group_user,1,1,1,1
 access_bpjs_capitation_recognition_user,bpjs.capitation.recognition.user,model_bpjs_capitation_recognition,base.group_user,1,1,1,1
 access_bpjs_dispute_provision_user,bpjs.dispute.provision.user,model_bpjs_dispute_provision,base.group_user,1,1,1,1
