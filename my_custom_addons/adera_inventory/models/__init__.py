@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from . import stock_lot
 from . import stock_lot_quarantine
+from . import stock_lot_clinic
+from . import product_template_clinic
 from . import purchase_order
 from . import stock_picking
 from . import clinic_inventory_dashboard

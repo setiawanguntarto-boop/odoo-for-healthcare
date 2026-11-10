@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Enhanced Search View for stock.lot with Clinical FEFO Filters -->
+    <record id="view_stock_lot_search_inherit_clinic" model="ir.ui.view">
+        <field name="name">stock.lot.search.inherit.clinic</field>
+        <field name="model">stock.lot</field>
+        <field name="inherit_id" ref="stock.search_product_lot_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='group_by_product']" position="before">
+                <filter string="Waspada: Mendekati Expired (&lt; 60 Hari)"
+                        name="filter_expiring_soon"
+                        domain="[
+                            ('expiration_date', '&lt;=', (context_today() + datetime.timedelta(days=60)).strftime('%Y-%m-%d')),
+                            ('expiration_date', '&gt;', context_today().strftime('%Y-%m-%d'))
+                        ]"/>
+                <filter string="BAHAYA: Sudah Kedaluwarsa"
+                        name="filter_expired"
+                        domain="[('expiration_date', '&lt;=', context_today().strftime('%Y-%m-%d'))]"/>
+                <separator/>
+                <filter string="Dalam Karantina / Batch Recall"
+                        name="filter_quarantined"
+                        domain="[('is_quarantined', '=', True)]"/>
+                <separator/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Enhance Tree View with expiration_status and days_to_expiration -->
+    <record id="view_stock_lot_tree_inherit_clinic_fefo" model="ir.ui.view">
+        <field name="name">stock.lot.tree.inherit.clinic.fefo</field>
+        <field name="model">stock.lot</field>
+        <field name="inherit_id" ref="view_stock_lot_tree_inherit_adera"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='days_to_expire']" position="replace">
+                <field name="days_to_expiration" string="Sisa Hari"/>
+                <field name="expiration_status" widget="badge"
+                       decoration-success="expiration_status == 'valid'"
+                       decoration-warning="expiration_status == 'expiring_soon'"
+                       decoration-danger="expiration_status == 'expired'"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

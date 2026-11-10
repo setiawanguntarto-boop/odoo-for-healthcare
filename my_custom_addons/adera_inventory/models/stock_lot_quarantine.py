@@ -109,3 +109,4 @@ class StockLot(models.Model):
             if hasattr(lot, "message_post"):
                 lot.message_post(body=f"✅ Karantina untuk Lot {lot.name} telah DICABUT oleh {self.env.user.name}.")
         return True
+
