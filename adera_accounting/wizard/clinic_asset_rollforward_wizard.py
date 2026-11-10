@@ -148,3 +148,4 @@ class ClinicAssetRollforwardWizard(models.TransientModel):
             "grand_totals": grand_totals,
             "currency": self.company_id.currency_id,
         }
+

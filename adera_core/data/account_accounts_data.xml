@@ -58,6 +58,13 @@
             <field name="reconcile" eval="True"/>
         </record>
 
+        <record id="account_112040" model="account.account">
+            <field name="code">112040</field>
+            <field name="name">Piutang Pihak Berelasi / Pemegang Saham</field>
+            <field name="account_type">asset_receivable</field>
+            <field name="reconcile" eval="True"/>
+        </record>
+
         <record id="account_112990" model="account.account">
             <field name="code">112990</field>
             <field name="name">Cadangan Kerugian Penolakan / Dispute Klaim BPJS</field>

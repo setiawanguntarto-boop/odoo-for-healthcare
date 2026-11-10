@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_stock_scrap_clinic_form" model="ir.ui.view">
+        <field name="name">stock.scrap.clinic.form</field>
+        <field name="model">stock.scrap.clinic</field>
+        <field name="arch" type="xml">
+            <form string="Pemusnahan Sisa Obat Multidosis Terbuka (Open-Vial Spoilage)">
+                <sheet>
+                    <div class="oe_title">
+                        <h2>Pemusnahan Sisa Obat Terbuka (Spoilage / Waste)</h2>
+                        <p class="text-muted">
+                            Penghapusan sisa dosis vaksin / ampul multidosis yang telah melewati batas stabilitas in-use (&gt;24 jam pasca buka).
+                        </p>
+                    </div>
+
+                    <group>
+                        <group string="Identifikasi Sediaan &amp; Lot Farmasi">
+                            <field name="lot_id" options="{'no_create': True}"/>
+                            <field name="product_id" options="{'no_create': True}"/>
+                            <field name="product_uom_id" readonly="1"/>
+                            <field name="company_id" invisible="1"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                        <group string="Kapasitas Dosis &amp; Kuantitas Pemusnahan">
+                            <field name="dose_capacity" readonly="1"/>
+                            <field name="doses_remaining" readonly="1"/>
+                            <field name="dose_scrap_quantity"/>
+                            <field name="vial_unit_quantity" readonly="1"/>
+                            <field name="scrap_reason"/>
+                        </group>
+                    </group>
+
+                    <group string="Pemetaan Akuntansi &amp; Unit Bisnis Klinis">
+                        <group>
+                            <field name="analytic_account_id" options="{'no_create': True}"/>
+                            <field name="journal_id" options="{'no_create': True}"/>
+                        </group>
+                        <group>
+                            <field name="spoilage_account_id" options="{'no_create': True}"/>
+                            <field name="inventory_account_id" options="{'no_create': True}"/>
+                        </group>
+                    </group>
+
+                    <group string="Penilaian Finansial &amp; Kerugian Spoilage">
+                        <group>
+                            <field name="unit_cost" widget="monetary" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="total_spoilage_cost" widget="monetary" readonly="1"/>
+                        </group>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_confirm_scrap"
+                            string="Konfirmasi Pemusnahan &amp; Bukukan Kerugian (510010)"
+                            type="object"
+                            class="btn-danger"/>
+                    <button string="Batal" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_stock_scrap_clinic" model="ir.actions.act_window">
+        <field name="name">Pemusnahan Sisa Vial Terbuka (Open-Vial Spoilage)</field>
+        <field name="res_model">stock.scrap.clinic</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- Menu Item under Inventory Operations -->
+    <menuitem id="menu_stock_scrap_clinic"
+              name="Pemusnahan Obat Terbuka (Spoilage)"
+              parent="stock.menu_stock_warehouse_mgmt"
+              action="action_stock_scrap_clinic"
+              sequence="55"/>
+</odoo>

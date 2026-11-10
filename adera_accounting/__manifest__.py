@@ -21,6 +21,8 @@
     ],
     'data': [
         'security/ir.model.access.csv',
+        'data/clinic_asset_data.xml',
+        'data/related_party_migration_data.xml',
         'wizard/psak_report_wizard_view.xml',
         'views/account_report_views.xml',
         'views/operational_ledger_views.xml',

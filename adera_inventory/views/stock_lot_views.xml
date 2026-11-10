@@ -5,6 +5,20 @@
         <field name="model">stock.lot</field>
         <field name="inherit_id" ref="stock.view_production_lot_form"/>
         <field name="arch" type="xml">
+            <xpath expr="//sheet" position="before">
+                <header>
+                    <button name="action_open_vial"
+                            string="Buka Segel / Tusuk Vial (24 Jam)"
+                            type="object"
+                            class="btn-primary"
+                            invisible="is_opened or not is_multi_dose"/>
+                    <button name="action_open_spoilage_wizard"
+                            string="Pemusnahan Sisa Vial (Spoilage 510010)"
+                            type="object"
+                            class="btn-outline-danger"
+                            invisible="not is_opened"/>
+                </header>
+            </xpath>
             <xpath expr="//field[@name='ref']" position="after">
                 <field name="expiry_status" widget="badge"
                        decoration-success="expiry_status == 'valid'"
@@ -12,6 +26,26 @@
                        decoration-danger="expiry_status in ('critical', 'expired')"/>
                 <field name="days_to_expire"/>
                 <field name="is_quarantined" widget="boolean_toggle"/>
+            </xpath>
+            <xpath expr="//sheet" position="inside">
+                <group string="Manajemen Vial Multidosis &amp; Batas Viabilitas Pasca Buka (Open-Vial FEFO)">
+                    <group>
+                        <field name="is_multi_dose"/>
+                        <field name="dose_capacity" invisible="not is_multi_dose"/>
+                        <field name="doses_administered" invisible="not is_multi_dose"/>
+                        <field name="doses_remaining" invisible="not is_multi_dose"/>
+                    </group>
+                    <group>
+                        <field name="is_opened" widget="boolean_toggle"/>
+                        <field name="opened_date" invisible="not is_opened"/>
+                        <field name="viability_hours" invisible="not is_multi_dose"/>
+                        <field name="open_expiration_date" invisible="not is_opened"/>
+                        <field name="is_open_vial_expired" widget="badge"
+                               decoration-danger="is_open_vial_expired"
+                               decoration-success="not is_open_vial_expired and is_opened"
+                               invisible="not is_opened"/>
+                    </group>
+                </group>
             </xpath>
         </field>
     </record>
@@ -28,9 +62,11 @@
                        decoration-success="expiry_status == 'valid'"
                        decoration-warning="expiry_status == 'near_expiry'"
                        decoration-danger="expiry_status in ('critical', 'expired')"/>
+                <field name="is_opened" widget="badge" decoration-warning="is_opened"/>
+                <field name="doses_remaining" optional="show"/>
+                <field name="is_open_vial_expired" widget="badge" decoration-danger="is_open_vial_expired" optional="show"/>
                 <field name="is_quarantined"/>
             </xpath>
         </field>
     </record>
 </odoo>
-

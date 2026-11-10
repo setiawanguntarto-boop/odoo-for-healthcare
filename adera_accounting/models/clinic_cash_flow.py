@@ -355,3 +355,4 @@ class ClinicCashFlowEngine(models.AbstractModel):
 
         report.write({"line_ids": lines_data})
         return True
+

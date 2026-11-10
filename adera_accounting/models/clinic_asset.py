@@ -204,6 +204,14 @@ class ClinicAsset(models.Model):
             rec.depreciated_months_count = len(posted_lines)
             rec.remaining_months_count = max(0, rec.useful_life_months - len(posted_lines))
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        for rec in records:
+            if rec.state == "running" and not rec.depreciation_line_ids:
+                rec.compute_depreciation_board()
+        return records
+
     def compute_depreciation_board(self):
         """Membuat jadwal amortisasi penyusutan bulanan (straight-line) secara atomik."""
         for asset in self:
@@ -383,3 +391,4 @@ class ClinicAssetDepreciationLine(models.Model):
     def action_post_line(self):
         self.ensure_one()
         return self.asset_id.action_post_depreciation_line(self.id)
+

@@ -60,6 +60,20 @@
             <field name="root_plan_id" ref="analytic_plan_adera"/>
         </record>
 
+        <record id="analytic_account_prat_bdg" model="account.analytic.account">
+            <field name="name">ACC-PRATAMA-BDG: Klinik Pratama Cabang Bandung</field>
+            <field name="code">ACC-PRATAMA-BDG</field>
+            <field name="plan_id" ref="analytic_plan_adera"/>
+            <field name="root_plan_id" ref="analytic_plan_adera"/>
+        </record>
+
+        <record id="analytic_account_prat_jog" model="account.analytic.account">
+            <field name="name">ACC-PRATAMA-JOG: Klinik Pratama Cabang Yogyakarta</field>
+            <field name="code">ACC-PRATAMA-JOG</field>
+            <field name="plan_id" ref="analytic_plan_adera"/>
+            <field name="root_plan_id" ref="analytic_plan_adera"/>
+        </record>
+
         <!-- ===================================================================
              BUSINESS UNIT 2: KLINIK UTAMA HEMODIALISIS & SUB-UNITS
              =================================================================== -->
@@ -86,6 +100,29 @@
         <record id="analytic_account_hd_vip" model="account.analytic.account">
             <field name="name">HD-VIP: Kamar Isolasi / Pelayanan VIP HD</field>
             <field name="code">HD-VIP</field>
+            <field name="plan_id" ref="analytic_plan_adera"/>
+            <field name="root_plan_id" ref="analytic_plan_adera"/>
+        </record>
+
+        <!-- ===================================================================
+             BUSINESS UNIT 3: HOLDING & SHARED OVERHEAD (PT PROSPERRA MEDIKA UTAMA)
+             =================================================================== -->
+        <record id="analytic_account_holding_root" model="account.analytic.account">
+            <field name="name">ACC-HOLDING: Kantor Pusat &amp; Manajemen Bersama</field>
+            <field name="code">ACC-HOLDING</field>
+            <field name="plan_id" ref="analytic_plan_adera"/>
+        </record>
+
+        <record id="analytic_account_holding_exec" model="account.analytic.account">
+            <field name="name">HOLDING-EXEC: Direksi, Legal &amp; Executive Payroll</field>
+            <field name="code">HOLDING-EXEC</field>
+            <field name="plan_id" ref="analytic_plan_adera"/>
+            <field name="root_plan_id" ref="analytic_plan_adera"/>
+        </record>
+
+        <record id="analytic_account_holding_it" model="account.analytic.account">
+            <field name="name">HOLDING-IT: Infrastruktur IT &amp; SATUSEHAT EHR</field>
+            <field name="code">HOLDING-IT</field>
             <field name="plan_id" ref="analytic_plan_adera"/>
             <field name="root_plan_id" ref="analytic_plan_adera"/>
         </record>

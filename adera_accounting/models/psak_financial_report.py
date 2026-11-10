@@ -7,14 +7,14 @@ import json
 
 class PsakFinancialReport(models.Model):
     _name = "psak.financial.report"
-    _description = "Laporan Keuangan PSAK / SAK EMKM / SAK EP Klinik ADERA"
+    _description = "Laporan Keuangan Klinik"
     _order = "date_to desc, id desc"
 
     name = fields.Char(string="Nama Laporan", required=True)
     framework_standard = fields.Selection(
         [
-            ("emkm", "SAK EMKM (Phase 1 Baseline - Standar Entitas Mikro, Kecil, Menengah)"),
-            ("sak_ep", "SAK EP / PSAK (Phase 2 Roadmap - Standar Entitas Privat)"),
+            ("emkm", "SAK EMKM"),
+            ("sak_ep", "SAK EP / PSAK"),
         ],
         string="Standar Akuntansi Regulasi",
         default="emkm",
@@ -23,11 +23,11 @@ class PsakFinancialReport(models.Model):
     )
     report_type = fields.Selection(
         [
-            ("profit_loss", "Laporan Laba Rugi (Statement of Profit or Loss)"),
-            ("balance_sheet", "Laporan Posisi Keuangan (Statement of Financial Position / Neraca)"),
-            ("cash_flow", "Laporan Arus Kas (Statement of Cash Flows - SAK EP)"),
-            ("equity_change", "Laporan Perubahan Ekuitas (Statement of Changes in Equity - SAK EP)"),
-            ("calk", "Catatan Atas Laporan Keuangan (CaLK - SAK EMKM / SAK EP)"),
+            ("profit_loss", "Laporan Laba Rugi"),
+            ("balance_sheet", "Laporan Posisi Keuangan"),
+            ("cash_flow", "Laporan Arus Kas"),
+            ("equity_change", "Laporan Perubahan Ekuitas"),
+            ("calk", "Catatan Atas Laporan Keuangan"),
         ],
         string="Tipe Laporan Standar",
         required=True,
@@ -75,8 +75,8 @@ class PsakFinancialReport(models.Model):
         default="none",
     )
 
-    date_from_cmp = fields.Date(string="Tanggal Awal Pembanding")
-    date_to_cmp = fields.Date(string="Tanggal Akhir Pembanding")
+    date_from_cmp = fields.Date(string="Tanggal Awal")
+    date_to_cmp = fields.Date(string="Tanggal Akhir")
 
     analytic_account_id = fields.Many2one(
         "account.analytic.account",
@@ -475,6 +475,7 @@ class PsakFinancialReport(models.Model):
             ("11201", "Piutang Pasien Umum (Co-Pay)"),
             ("11202", "Piutang Klaim BPJS Kesehatan (VClaim)"),
             ("11203", "Piutang Klaim Asuransi Swasta & Korporasi"),
+            ("11204", "Piutang Pihak Berelasi / Pemegang Saham"),
             ("11210", "Piutang Usaha Lainnya (General AR)"),
         ]
 
@@ -1030,7 +1031,7 @@ class PsakFinancialReport(models.Model):
                     <td style="text-align: right; font-weight: bold;">{(ar_bpjs + allowance_dispute):,.2f}</td>
                 </tr>
                 <tr>
-                    <td>Piutang Asuransi Swasta & Korporasi Rekanan</td>
+                    <td>Piutang Asuransi Swasta &amp; Korporasi Rekanan</td>
                     <td style="text-align: right;">{ar_ins:,.2f}</td>
                     <td style="text-align: right;">-</td>
                     <td style="text-align: right;">{ar_ins:,.2f}</td>
@@ -1048,51 +1049,142 @@ class PsakFinancialReport(models.Model):
         </p>
         """
 
-        # 4. Catatan 4: Schedule Aset Tetap Medis
-        d_med, c_med = self._get_account_balance("12101", False, self.date_to, is_cumulative=True)
-        cost_med = d_med - c_med
-        d_hd, c_hd = self._get_account_balance("12102", False, self.date_to, is_cumulative=True)
-        cost_hd = d_hd - c_hd
-        d_dep, c_dep = self._get_account_balance("1220", False, self.date_to, is_cumulative=True)
-        tot_dep = c_dep - d_dep
-        net_fixed = (cost_med + cost_hd) - tot_dep
-
-        assets_html = f"""
+        # Catatan 3.b: Pengungkapan Piutang Pihak Berelasi / Pemegang Saham (Bulaksumur Finding #3)
+        d_rel, c_rel = self._get_account_balance("11204", False, self.date_to, is_cumulative=True)
+        bal_rel = d_rel - c_rel
+        receivables_html += f"""
+        <h6 style="font-weight: bold; margin-top: 20px; color: #333;">Catatan 3.b: Pengungkapan Transaksi Pihak Berelasi (SAK EMKM Bab 14 &amp; PSAK 7)</h6>
+        <p style="font-size: 12px; margin-bottom: 6px;">
+            Berdasarkan temuan audit Bulaksumur (#3), entitas mengungkapkan rincian piutang kepada pihak berelasi / pemegang saham per {self.date_to} sebagai berikut:
+        </p>
         <table class="table table-sm table-bordered" style="width: 100%; border-collapse: collapse;">
             <thead>
                 <tr style="background-color: #f2f2f2; font-weight: bold;">
-                    <th>Golongan Peralatan Medis</th>
-                    <th style="text-align: center;">Masa Manfaat</th>
-                    <th style="text-align: right;">Harga Perolehan (Rp)</th>
-                    <th style="text-align: right;">Akumulasi Penyusutan (Rp)</th>
-                    <th style="text-align: right;">Nilai Buku Bersih (Rp)</th>
+                    <th>Akun &amp; Entitas Pihak Berelasi</th>
+                    <th>Hubungan Istimewa</th>
+                    <th style="text-align: center;">Tingkat Bunga</th>
+                    <th>Jaminan / Agunan</th>
+                    <th style="text-align: right;">Saldo Tercatat (Rp)</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
-                    <td>Peralatan Medis & Lab Rawat Jalan (USG, EKG, Dental Unit)</td>
-                    <td style="text-align: center;">4 - 5 Tahun</td>
-                    <td style="text-align: right;">{cost_med:,.2f}</td>
-                    <td style="text-align: right;">{(tot_dep * 0.3):,.2f}</td>
-                    <td style="text-align: right;">{(cost_med - (tot_dep * 0.3)):,.2f}</td>
-                </tr>
-                <tr>
-                    <td>Mesin Hemodialisis & RO Water Treatment System</td>
-                    <td style="text-align: center;">5 - 8 Tahun</td>
-                    <td style="text-align: right;">{cost_hd:,.2f}</td>
-                    <td style="text-align: right;">{(tot_dep * 0.7):,.2f}</td>
-                    <td style="text-align: right;">{(cost_hd - (tot_dep * 0.7)):,.2f}</td>
-                </tr>
-                <tr style="font-weight: bold; background-color: #fafafa;">
-                    <td>TOTAL ASET TETAP MEDIS</td>
-                    <td style="text-align: center;">-</td>
-                    <td style="text-align: right;">{(cost_med + cost_hd):,.2f}</td>
-                    <td style="text-align: right; color: red;">-{tot_dep:,.2f}</td>
-                    <td style="text-align: right; color: blue;">{net_fixed:,.2f}</td>
+                    <td>112040 - Piutang Pemegang Saham / Afiliasi</td>
+                    <td>Pemegang Saham Mayoritas</td>
+                    <td style="text-align: center;">0,00% (Bebas Bunga)</td>
+                    <td>Tanpa Jaminan (Unsecured)</td>
+                    <td style="text-align: right; font-weight: bold;">{bal_rel:,.2f}</td>
                 </tr>
             </tbody>
         </table>
+        <p style="font-size: 11px; color: #666; margin-top: 5px;">
+            *Klausul Pelunasan: Saldo merupakan talangan modal kerja operasional yang dapat ditagih sewaktu-waktu (callable on demand) berdasarkan keputusan Rapat Umum Pemegang Saham (RUPS).
+        </p>
         """
+
+        # 4. Catatan 4: Schedule Aset Tetap Medis
+        clinic_assets = self.env['clinic.asset'].search([('company_id', '=', self.company_id.id)])
+        if clinic_assets:
+            asset_rows = ""
+            tot_cost_all = 0.0
+            tot_dep_all = 0.0
+            tot_nbv_all = 0.0
+            cat_labels = {
+                'medical_equipment': 'Peralatan Medis &amp; Hemodialisis',
+                'building_improvement': 'Renovasi Gedung Klinik &amp; Utilitas RO',
+                'office_equipment': 'Peralatan Kantor, IT &amp; Server',
+                'vehicle': 'Kendaraan &amp; Ambulans Siaga',
+            }
+            categories = {}
+            for asset in clinic_assets:
+                categories.setdefault(asset.asset_category, []).append(asset)
+
+            for cat, items in categories.items():
+                cat_cost = sum(items.mapped('purchase_value'))
+                cat_dep = sum(items.mapped('accumulated_depreciation'))
+                cat_nbv = sum(items.mapped('net_book_value'))
+                tot_cost_all += cat_cost
+                tot_dep_all += cat_dep
+                tot_nbv_all += cat_nbv
+                cat_name = cat_labels.get(cat, cat.replace('_', ' ').title())
+                asset_rows += f"""
+                <tr>
+                    <td>{cat_name} ({len(items)} Unit)</td>
+                    <td style="text-align: center;">Garis Lurus (Straight-Line)</td>
+                    <td style="text-align: right;">{cat_cost:,.2f}</td>
+                    <td style="text-align: right; color: red;">-{cat_dep:,.2f}</td>
+                    <td style="text-align: right; font-weight: bold;">{cat_nbv:,.2f}</td>
+                </tr>
+                """
+
+            assets_html = f"""
+            <table class="table table-sm table-bordered" style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background-color: #f2f2f2; font-weight: bold;">
+                        <th>Kategori Aset Tetap Medis / Fasilitas</th>
+                        <th style="text-align: center;">Metode Penyusutan</th>
+                        <th style="text-align: right;">Harga Perolehan (Rp)</th>
+                        <th style="text-align: right;">Akumulasi Penyusutan (Rp)</th>
+                        <th style="text-align: right;">Nilai Buku Bersih (Rp)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {asset_rows}
+                    <tr style="font-weight: bold; background-color: #fafafa;">
+                        <td>TOTAL ASET TETAP KLINIK</td>
+                        <td style="text-align: center;">-</td>
+                        <td style="text-align: right;">{tot_cost_all:,.2f}</td>
+                        <td style="text-align: right; color: red;">-{tot_dep_all:,.2f}</td>
+                        <td style="text-align: right; color: blue;">{tot_nbv_all:,.2f}</td>
+                    </tr>
+                </tbody>
+            </table>
+            """
+        else:
+            d_med, c_med = self._get_account_balance("12101", False, self.date_to, is_cumulative=True)
+            cost_med = d_med - c_med
+            d_hd, c_hd = self._get_account_balance("12102", False, self.date_to, is_cumulative=True)
+            cost_hd = d_hd - c_hd
+            d_dep, c_dep = self._get_account_balance("1220", False, self.date_to, is_cumulative=True)
+            tot_dep = c_dep - d_dep
+            net_fixed = (cost_med + cost_hd) - tot_dep
+
+            assets_html = f"""
+            <table class="table table-sm table-bordered" style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background-color: #f2f2f2; font-weight: bold;">
+                        <th>Golongan Peralatan Medis</th>
+                        <th style="text-align: center;">Masa Manfaat</th>
+                        <th style="text-align: right;">Harga Perolehan (Rp)</th>
+                        <th style="text-align: right;">Akumulasi Penyusutan (Rp)</th>
+                        <th style="text-align: right;">Nilai Buku Bersih (Rp)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Peralatan Medis &amp; Lab Rawat Jalan (USG, EKG, Dental Unit)</td>
+                        <td style="text-align: center;">4 - 5 Tahun</td>
+                        <td style="text-align: right;">{cost_med:,.2f}</td>
+                        <td style="text-align: right;">{(tot_dep * 0.3):,.2f}</td>
+                        <td style="text-align: right;">{(cost_med - (tot_dep * 0.3)):,.2f}</td>
+                    </tr>
+                    <tr>
+                        <td>Mesin Hemodialisis &amp; RO Water Treatment System</td>
+                        <td style="text-align: center;">5 - 8 Tahun</td>
+                        <td style="text-align: right;">{cost_hd:,.2f}</td>
+                        <td style="text-align: right;">{(tot_dep * 0.7):,.2f}</td>
+                        <td style="text-align: right;">{(cost_hd - (tot_dep * 0.7)):,.2f}</td>
+                    </tr>
+                    <tr style="font-weight: bold; background-color: #fafafa;">
+                        <td>TOTAL ASET TETAP MEDIS</td>
+                        <td style="text-align: center;">-</td>
+                        <td style="text-align: right;">{(cost_med + cost_hd):,.2f}</td>
+                        <td style="text-align: right; color: red;">-{tot_dep:,.2f}</td>
+                        <td style="text-align: right; color: blue;">{net_fixed:,.2f}</td>
+                    </tr>
+                </tbody>
+            </table>
+            """
 
         # 5. Catatan 5: Rekonsiliasi Jasa Medis & Pajak PPh 21 Dokter
         d_j_prat, c_j_prat = self._get_account_balance("51011", self.date_from, self.date_to)

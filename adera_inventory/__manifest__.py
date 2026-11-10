@@ -21,6 +21,7 @@
         'data/products_data.xml',
         'data/ir_cron_data.xml',
         'views/stock_lot_views.xml',
+        'views/stock_scrap_clinic_view.xml',
         'views/purchase_order_views.xml',
     ],
     'installable': True,
