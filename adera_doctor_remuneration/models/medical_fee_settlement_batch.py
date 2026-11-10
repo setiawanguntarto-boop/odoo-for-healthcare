@@ -256,6 +256,22 @@ class MedicalFeeSettlementBatch(models.Model):
     # WORKFLOW TRANSITION ENGINES
     # =========================================================================
 
+    def compute_settlement_lines(self):
+        """Alias untuk action_load_fee_lines."""
+        return self.action_load_fee_lines()
+
+    def action_submit_to_medical_manager(self):
+        """Alias untuk action_submit_verification."""
+        return self.action_submit_verification()
+
+    def action_verify_medical_services(self):
+        """Alias untuk action_medical_manager_verify."""
+        return self.action_medical_manager_verify()
+
+    def action_execute_bank_disbursement(self):
+        """Alias untuk action_finance_approve_and_pay."""
+        return self.action_finance_approve_and_pay()
+
     def action_submit_verification(self):
         """Tier 1: Claims Admin mengajukan ke Manajer Medis (draft -> verified)."""
         self.ensure_one()
@@ -379,8 +395,11 @@ class MedicalFeeSettlementBatch(models.Model):
                     ("name", "in", enc_refs),
                 ])
                 for enc in encounters:
-                    if hasattr(enc, "state") and enc.state == "posted":
-                        enc.message_post(body=_("Jasa Medis Dokter telah dibayarkan melalui Batch %s") % self.name)
+                    if hasattr(enc, "message_post"):
+                        try:
+                            enc.message_post(body=_("Jasa Medis Dokter telah dibayarkan melalui Batch %s") % self.name)
+                        except Exception:
+                            pass
 
         self.write({
             "payment_move_id": move.id,

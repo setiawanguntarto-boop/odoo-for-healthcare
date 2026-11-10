@@ -104,19 +104,29 @@ class ClinicApiController(http.Controller):
             doc_data = payload.get('doctor', {})
             doc_sip = doc_data.get('sip_number')
             doc_name = doc_data.get('name')
+            doc_nik = doc_data.get('nik')
+            doc_npwp = doc_data.get('npwp') or doc_data.get('vat')
+            doc_role = doc_data.get('role') or payload.get('doctor_role')
             if doc_sip:
                 doctor_rec = env['res.partner'].search([('sip_number', '=', doc_sip)], limit=1)
-                doc_type = 'specialist_hd' if unit == 'hd' else 'general'
+                doc_type = 'specialist_hd' if (unit == 'hd' or doc_role == 'subspecialist_hd') else 'general'
                 if not doctor_rec and doc_name:
-                    doctor_rec = env['res.partner'].create({
+                    doc_vals = {
                         'name': doc_name,
                         'sip_number': doc_sip,
                         'is_doctor': True,
                         'doctor_type': doc_type,
-                    })
-                elif doctor_rec and doctor_rec.doctor_type != doc_type and unit == 'pratama':
-                    # Ensure pratama doctor_type if practicing in pratama
-                    doctor_rec.doctor_type = 'general'
+                    }
+                    if doc_npwp:
+                        doc_vals['vat'] = doc_npwp
+                    if doc_nik:
+                        doc_vals['ref'] = doc_nik
+                    doctor_rec = env['res.partner'].create(doc_vals)
+                elif doctor_rec:
+                    if doctor_rec.doctor_type != doc_type and unit == 'pratama':
+                        doctor_rec.doctor_type = 'general'
+                    if doc_npwp and not doctor_rec.vat:
+                        doctor_rec.vat = doc_npwp
 
             # Safe parse ISO encounter_datetime
             raw_dt = payload.get('encounter_datetime')
@@ -145,6 +155,7 @@ class ClinicApiController(http.Controller):
                 'clinic_unit': unit,
                 'poli_code': poli,
                 'doctor_id': doctor_rec.id if doctor_rec else False,
+                'doctor_role': doc_role if doc_role else False,
                 'payer_type': payer,
                 'sep_claim_number': sep,
                 'raw_payload': json.dumps(payload),

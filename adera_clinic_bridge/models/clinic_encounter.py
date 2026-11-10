@@ -36,6 +36,12 @@ class ClinicEncounter(models.Model):
     ], string='Poli / Sub-Unit', required=True, default='umum')
 
     doctor_id = fields.Many2one('res.partner', string='Dokter Pemeriksa / Penanggung Jawab', domain="[('is_doctor', '=', True)]")
+    doctor_role = fields.Selection([
+        ('general_practitioner', 'Dokter Umum (Pratama)'),
+        ('specialist', 'Dokter Spesialis'),
+        ('dentist', 'Dokter Gigi'),
+        ('subspecialist_hd', 'Spesialis Penyakit Dalam / Konsultan Ginjal Hipertensi (HD)'),
+    ], string='Peran / Spesialisasi Dokter', compute='_compute_doctor_role', store=True, readonly=False)
     payer_type = fields.Selection([
         ('cash', 'Tunai'),
         ('qris', 'QRIS / Non-Tunai'),
@@ -65,6 +71,20 @@ class ClinicEncounter(models.Model):
     _sql_constraints = [
         ('uniq_external_encounter_id', 'unique(external_encounter_id)', 'External Encounter ID sudah pernah diproses sebelumnya!')
     ]
+
+    @api.depends('doctor_id', 'clinic_unit', 'poli_code')
+    def _compute_doctor_role(self):
+        for rec in self:
+            if rec.doctor_role:
+                continue
+            if rec.clinic_unit == 'hd' or rec.poli_code in ('hd_routine', 'hd_special'):
+                rec.doctor_role = 'subspecialist_hd'
+            elif rec.poli_code == 'gigi':
+                rec.doctor_role = 'dentist'
+            elif rec.doctor_id and getattr(rec.doctor_id, 'doctor_type', False) == 'specialist_hd':
+                rec.doctor_role = 'subspecialist_hd'
+            else:
+                rec.doctor_role = 'general_practitioner'
 
     @api.model_create_multi
     def create(self, vals_list):

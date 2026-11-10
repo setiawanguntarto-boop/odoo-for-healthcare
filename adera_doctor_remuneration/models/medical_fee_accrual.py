@@ -99,6 +99,7 @@ class MedicalFeeAccrual(models.Model):
                 (0, 0, {
                     'name': f"Beban Jasa Medis: {self.product_id.name} - {self.doctor_id.name}",
                     'account_id': expense_acc.id,
+                    'partner_id': self.doctor_id.id,
                     'debit': self.doctor_fee_amount,
                     'credit': 0.0,
                     'analytic_distribution': dist,
