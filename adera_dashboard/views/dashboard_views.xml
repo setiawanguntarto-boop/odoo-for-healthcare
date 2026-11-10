@@ -15,14 +15,6 @@
               web_icon="adera_dashboard,static/description/icon.png"
               groups="account.group_account_user,account.group_account_manager"/>
 
-    <!-- Quick Access Submenu in PSAK Accounting Reports -->
-    <menuitem id="menu_accounting_executive_dashboard"
-              name="Executive Management Dashboard"
-              parent="adera_accounting.menu_psak_reports_categ"
-              action="action_clinic_management_dashboard"
-              sequence="1"
-              groups="account.group_account_user,account.group_account_manager"/>
-
     <!-- Deactivate generic Odoo Spreadsheet Dashboards to avoid cluttering Executive Healthcare UI -->
     <record id="spreadsheet_dashboard.spreadsheet_dashboard_menu_root" model="ir.ui.menu">
         <field name="active" eval="False"/>

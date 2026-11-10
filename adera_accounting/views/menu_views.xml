@@ -1,241 +1,245 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- ===================================================================
-         ROOT APPLICATION MENU: Akuntansi & Keuangan (Sequence 10)
+         ROOT ACCOUNTING APPLICATION MENU
          Promoted to top-level Root Application on Enterprise App Switcher
+         Default Landing Action: Native Account Journal Dashboard Kanban
          =================================================================== -->
-    <menuitem id="menu_adera_accounting_root"
-              name="Akuntansi &amp; Keuangan"
-              sequence="10"
-              web_icon="adera_accounting,static/description/icon.png"/>
+    <record id="menu_adera_accounting_root" model="ir.ui.menu">
+        <field name="name">Akuntansi &amp; Keuangan</field>
+        <field name="sequence">20</field>
+        <field name="web_icon">adera_accounting,static/description/icon.png</field>
+        <field name="action" ref="account.open_account_journal_dashboard_kanban"/>
+    </record>
 
     <!-- ===================================================================
-         1. LAPORAN KEUANGAN
+         1. DASHBOARD OPERASIONAL (Action Center, Bank & Kasir, Rekonsiliasi)
          =================================================================== -->
-    <menuitem id="menu_psak_reports_categ"
-              name="Laporan Keuangan"
+    <menuitem id="menu_accounting_operational_dashboard"
+              name="Dashboard Operasional"
               parent="menu_adera_accounting_root"
+              action="account.open_account_journal_dashboard_kanban"
               sequence="10"/>
-
-    <menuitem id="menu_psak_profit_loss"
-              name="Laporan Laba Rugi"
-              parent="menu_psak_reports_categ"
-              action="action_psak_wizard_profit_loss"
-              sequence="10"/>
-
-    <menuitem id="menu_psak_balance_sheet"
-              name="Laporan Posisi Keuangan"
-              parent="menu_psak_reports_categ"
-              action="action_psak_wizard_balance_sheet"
-              sequence="20"/>
-
-    <menuitem id="menu_psak_cash_flow"
-              name="Laporan Arus Kas"
-              parent="menu_psak_reports_categ"
-              action="action_psak_wizard_cash_flow"
-              sequence="30"/>
-
-    <menuitem id="menu_psak_equity_change"
-              name="Laporan Perubahan Ekuitas"
-              parent="menu_psak_reports_categ"
-              action="action_psak_wizard_equity_change"
-              sequence="35"/>
-
-    <menuitem id="menu_psak_calk"
-              name="Catatan Atas Laporan Keuangan"
-              parent="menu_psak_reports_categ"
-              action="action_psak_wizard_calk"
-              sequence="38"/>
-
-    <menuitem id="menu_fiscal_reconciliation_action"
-              name="Rekonsiliasi Fiskal PPh Badan"
-              parent="menu_psak_reports_categ"
-              action="action_clinic_fiscal_reconciliation"
-              sequence="39"/>
-
-    <menuitem id="menu_sinking_fund_wizard_action"
-              name="Alokasi Cadangan &amp; Sinking Fund (320020)"
-              parent="menu_psak_reports_categ"
-              action="action_clinic_sinking_fund_wizard"
-              sequence="39"/>
-
-    <menuitem id="menu_psak_general_ledger"
-              name="Buku Besar"
-              parent="menu_psak_reports_categ"
-              action="account_financial_report.action_general_ledger_wizard"
-              sequence="40"/>
-
-    <menuitem id="menu_psak_trial_balance"
-              name="Neraca Saldo"
-              parent="menu_psak_reports_categ"
-              action="account_financial_report.action_trial_balance_wizard"
-              sequence="50"/>
-
-    <menuitem id="menu_psak_report_history"
-              name="Riwayat Laporan Keuangan"
-              parent="menu_psak_reports_categ"
-              action="action_psak_financial_report_history"
-              sequence="60"/>
 
     <!-- ===================================================================
-         2. PIUTANG & KLAIM BPJS KLINIK
+         2. PIUTANG & BILLING KLINIK
          =================================================================== -->
-    <menuitem id="menu_ar_billing_categ"
+    <menuitem id="menu_clinic_receivables_root"
               name="Piutang &amp; Billing Klinik"
               parent="menu_adera_accounting_root"
               sequence="20"/>
 
-    <menuitem id="menu_ar_invout_action"
-              name="Faktur Pasien Rawat Jalan (INVOUT)"
-              parent="menu_ar_billing_categ"
-              action="action_invoice_outpatient_invout"
+    <menuitem id="menu_action_move_out_invoice_type"
+              name="Tagihan Pasien &amp; Penjamin"
+              parent="menu_clinic_receivables_root"
+              action="account.action_move_out_invoice_type"
               sequence="10"/>
 
     <menuitem id="menu_ar_bpjs_claim_action"
-              name="Piutang Klaim BPJS (112020)"
-              parent="menu_ar_billing_categ"
+              name="Klaim Piutang BPJS (112020)"
+              parent="menu_clinic_receivables_root"
               action="action_ar_bpjs_claim_ledger"
+              sequence="15"/>
+
+    <menuitem id="menu_action_account_payments_in"
+              name="Pembayaran Piutang Diterima"
+              parent="menu_clinic_receivables_root"
+              action="account.action_account_payments"
               sequence="20"/>
 
     <menuitem id="menu_bpjs_dispute_action"
               name="Cadangan Dispute Klaim BPJS (112990)"
-              parent="menu_ar_billing_categ"
+              parent="menu_clinic_receivables_root"
               action="action_bpjs_dispute_wizard"
               sequence="25"/>
 
     <menuitem id="menu_bpjs_claim_writeoff_action"
               name="Penghapusan Dispute BPJS (Write-Off)"
-              parent="menu_ar_billing_categ"
+              parent="menu_clinic_receivables_root"
               action="action_bpjs_claim_dispute_writeoff_wizard"
               sequence="26"/>
 
     <menuitem id="menu_ar_pos_copay_action"
-              name="Settlement Co-Pay POS"
-              parent="menu_ar_billing_categ"
+              name="Settlement Co-Pay Kasir POS"
+              parent="menu_clinic_receivables_root"
               action="action_pos_copay_settlement_ledger"
               sequence="30"/>
 
     <menuitem id="menu_prepaid_package_action"
-              name="Paket Dialisis Dimuka"
-              parent="menu_ar_billing_categ"
+              name="Paket Dialisis Dimuka (214010)"
+              parent="menu_clinic_receivables_root"
               action="action_clinic_prepaid_dialysis_packages"
               sequence="40"/>
 
     <!-- ===================================================================
          3. HUTANG & PENGADAAN MEDIS
          =================================================================== -->
-    <menuitem id="menu_ap_procure_categ"
+    <menuitem id="menu_clinic_payables_root"
               name="Hutang &amp; Pengadaan"
               parent="menu_adera_accounting_root"
               sequence="30"/>
 
-    <menuitem id="menu_ap_bmed_action"
-              name="Tagihan Distributor / Vendor (BMED)"
-              parent="menu_ap_procure_categ"
-              action="action_vendor_bills_medical_procure"
+    <menuitem id="menu_action_move_in_invoice_type"
+              name="Faktur Distributor &amp; PBF"
+              parent="menu_clinic_payables_root"
+              action="account.action_move_in_invoice_type"
               sequence="10"/>
 
     <menuitem id="menu_ap_gr_ir_action"
-              name="Rekonsiliasi GR/IR Clearing (211500)"
-              parent="menu_ap_procure_categ"
+              name="Kliring Penerimaan Barang GR/IR (211500)"
+              parent="menu_clinic_payables_root"
               action="action_gr_ir_clearing_ledger"
+              sequence="15"/>
+
+    <menuitem id="menu_action_account_payments_payable"
+              name="Pembayaran Hutang Vendor"
+              parent="menu_clinic_payables_root"
+              action="account.action_account_payments_payable"
               sequence="20"/>
 
     <!-- ===================================================================
-         4. JASA MEDIS & PERPAJAKAN DOKTER
+         4. JASA MEDIS & PERPAJAKAN
          =================================================================== -->
-    <menuitem id="menu_doctor_tax_categ"
+    <menuitem id="menu_clinic_doctor_tax_root"
               name="Jasa Medis &amp; Perpajakan"
               parent="menu_adera_accounting_root"
               sequence="40"/>
 
-    <menuitem id="menu_doctor_accrual_action"
-              name="Akrual Utang Jasa Dokter (2130xx)"
-              parent="menu_doctor_tax_categ"
-              action="action_doctor_fee_accrual_lines"
+    <menuitem id="menu_action_doctor_settlement_batch"
+              name="Batch Remunerasi Dokter"
+              parent="menu_clinic_doctor_tax_root"
+              action="adera_doctor_remuneration.action_medical_fee_settlement_batch"
               sequence="10"/>
 
+    <menuitem id="menu_doctor_accrual_action"
+              name="Buku Akrual Utang Jasa Dokter (2130xx)"
+              parent="menu_clinic_doctor_tax_root"
+              action="action_doctor_fee_accrual_lines"
+              sequence="15"/>
+
     <menuitem id="menu_pph21_ledger_action"
-              name="Buku Besar PPh 21 Tenaga Ahli (212030)"
-              parent="menu_doctor_tax_categ"
+              name="Rekapitulasi Pajak PPh 21 Dokter (212030)"
+              parent="menu_clinic_doctor_tax_root"
               action="action_pph21_tax_withholding_ledger"
               sequence="20"/>
 
     <menuitem id="menu_ebupot_log_action"
               name="Log Ekspor e-Bupot DJP"
-              parent="menu_doctor_tax_categ"
+              parent="menu_clinic_doctor_tax_root"
               action="action_ebupot_settlement_log"
+              sequence="25"/>
+
+    <menuitem id="menu_action_fiscal_reconciliation"
+              name="Rekonsiliasi Fiskal &amp; SPT 1771"
+              parent="menu_clinic_doctor_tax_root"
+              action="action_clinic_fiscal_reconciliation_wizard"
               sequence="30"/>
 
     <!-- ===================================================================
-         5. BIAYA DIBAYAR DI MUKA
+         5. BIAYA DIBAYAR DI MUKA & ASET TETAP
          =================================================================== -->
-    <menuitem id="menu_prepaid_expenses_categ"
-              name="Biaya Dibayar di Muka"
+    <menuitem id="menu_clinic_assets_root"
+              name="Biaya Dibayar di Muka &amp; Aset Tetap"
               parent="menu_adera_accounting_root"
-              sequence="44"/>
+              sequence="50"/>
 
-    <menuitem id="menu_clinic_prepaid_lease_action"
-              name="Amortisasi Sewa Gedung"
-              parent="menu_prepaid_expenses_categ"
-              action="action_clinic_prepaid_lease"
-              sequence="10"/>
-
-    <!-- ===================================================================
-         6. MANAJEMEN ASET TETAP
-         =================================================================== -->
-    <menuitem id="menu_fixed_assets_categ"
-              name="Manajemen Aset Tetap"
-              parent="menu_adera_accounting_root"
-              sequence="45"/>
-
-    <menuitem id="menu_clinic_asset_action"
+    <menuitem id="menu_action_clinic_asset"
               name="Daftar Aset Medis &amp; Fasilitas"
-              parent="menu_fixed_assets_categ"
+              parent="menu_clinic_assets_root"
               action="action_clinic_asset_view"
               sequence="10"/>
 
     <menuitem id="menu_clinic_asset_depreciation_action"
               name="Jadwal &amp; Buku Penyusutan"
-              parent="menu_fixed_assets_categ"
+              parent="menu_clinic_assets_root"
               action="action_clinic_asset_depreciation_board"
               sequence="20"/>
 
+    <menuitem id="menu_clinic_asset_disposal_action"
+              name="Penghapusan Aset (Disposal)"
+              parent="menu_clinic_assets_root"
+              action="action_clinic_asset_disposal"
+              sequence="25"/>
+
     <menuitem id="menu_clinic_asset_rollforward_action"
               name="Rincian Aset Tetap (Roll-Forward)"
-              parent="menu_fixed_assets_categ"
+              parent="menu_clinic_assets_root"
               action="action_clinic_asset_rollforward_wizard"
               sequence="30"/>
 
-    <menuitem id="menu_medical_assets_action"
-              name="Peralatan Medis (Permenkes 14/2021)"
-              parent="menu_fixed_assets_categ"
-              action="action_medical_fixed_assets"
+    <menuitem id="menu_action_clinic_prepaid_lease"
+              name="Amortisasi Sewa Gedung Dibayar di Muka"
+              parent="menu_clinic_assets_root"
+              action="action_clinic_prepaid_lease"
               sequence="40"/>
+
+    <menuitem id="menu_sinking_fund_wizard_action"
+              name="Alokasi Cadangan &amp; Sinking Fund (320020)"
+              parent="menu_clinic_assets_root"
+              action="action_clinic_sinking_fund_wizard"
+              sequence="50"/>
 
     <!-- ===================================================================
          6. KAS & BANK
          =================================================================== -->
-    <menuitem id="menu_cash_bank_categ"
+    <menuitem id="menu_clinic_cash_bank_root"
               name="Kas &amp; Bank"
               parent="menu_adera_accounting_root"
-              sequence="50"/>
+              sequence="60"/>
 
-    <menuitem id="menu_bpjs_capitation_action"
-              name="Pengakuan Kapitasi BPJS (410040)"
-              parent="menu_cash_bank_categ"
-              action="action_bpjs_capitation_wizard"
-              sequence="5"/>
+    <menuitem id="menu_action_bank_journal_entries"
+              name="Jurnal Kas &amp; Bank"
+              parent="menu_clinic_cash_bank_root"
+              action="account.action_move_journal_line"
+              sequence="10"/>
 
     <menuitem id="menu_cashier_variance_action"
               name="Audit Selisih Kasir (619990)"
-              parent="menu_cash_bank_categ"
+              parent="menu_clinic_cash_bank_root"
               action="action_cashier_variance_audit_ledger"
-              sequence="10"/>
+              sequence="20"/>
 
     <menuitem id="menu_bank_recon_action"
               name="Rekonsiliasi Bank"
-              parent="menu_cash_bank_categ"
+              parent="menu_clinic_cash_bank_root"
               action="action_bank_journal_reconciliation"
+              sequence="30"/>
+
+    <menuitem id="menu_bpjs_capitation_action"
+              name="Pengakuan Kapitasi BPJS (410040)"
+              parent="menu_clinic_cash_bank_root"
+              action="action_bpjs_capitation_wizard"
+              sequence="40"/>
+
+    <!-- ===================================================================
+         7. LAPORAN KEUANGAN
+         =================================================================== -->
+    <menuitem id="menu_clinic_financial_reports_root"
+              name="Laporan Keuangan"
+              parent="menu_adera_accounting_root"
+              sequence="70"/>
+
+    <menuitem id="menu_action_financial_report_wizard"
+              name="Cetak Laporan Keuangan (Wizard)"
+              parent="menu_clinic_financial_reports_root"
+              action="action_financial_report_wizard"
+              sequence="10"/>
+
+    <menuitem id="menu_action_financial_report_snapshot"
+              name="Arsip &amp; Pengesahan Laporan"
+              parent="menu_clinic_financial_reports_root"
+              action="action_psak_financial_report_history"
               sequence="20"/>
+
+    <menuitem id="menu_psak_general_ledger"
+              name="Buku Besar (General Ledger)"
+              parent="menu_clinic_financial_reports_root"
+              action="account_financial_report.action_general_ledger_wizard"
+              sequence="30"/>
+
+    <menuitem id="menu_psak_trial_balance"
+              name="Neraca Saldo (Trial Balance)"
+              parent="menu_clinic_financial_reports_root"
+              action="account_financial_report.action_trial_balance_wizard"
+              sequence="40"/>
 </odoo>
