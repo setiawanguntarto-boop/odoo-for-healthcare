@@ -171,6 +171,57 @@
         <field name="target">new</field>
     </record>
 
+    <!-- Single-Click BPJS Claim Dispute Write-off Wizard (Dr 112990 / Cr 112020) -->
+    <record id="view_bpjs_claim_dispute_writeoff_form" model="ir.ui.view">
+        <field name="name">bpjs.claim.dispute.writeoff.form</field>
+        <field name="model">bpjs.claim.dispute.writeoff</field>
+        <field name="arch" type="xml">
+            <form string="Rekonsiliasi &amp; Penghapusan Dispute Klaim BPJS (Dr 112990 / Cr 112020)">
+                <sheet>
+                    <div class="oe_title">
+                        <h2>Penghapusan Dispute Klaim BPJS (Write-Off)</h2>
+                        <p class="text-muted">Membukukan pemotongan klaim terverifikasi: Dr 112990 (Cadangan Dispute) / Cr 112020 (Piutang Klaim BPJS)</p>
+                    </div>
+                    <group>
+                        <group string="Identifikasi Berkas &amp; SEP">
+                            <field name="name"/>
+                            <field name="sep_number" placeholder="Contoh: 0123S0010124V000001"/>
+                            <field name="patient_name" placeholder="Nama Pasien Peserta BPJS"/>
+                            <field name="date"/>
+                        </group>
+                        <group string="Nilai Pemotongan &amp; Klasifikasi Dispute">
+                            <field name="writeoff_amount" widget="monetary"/>
+                            <field name="dispute_category"/>
+                            <field name="reason" placeholder="Keterangan berita acara rekonsiliasi verifikator BPJS..."/>
+                        </group>
+                    </group>
+                    <group string="Pemetaan Akun Jurnal &amp; Unit Analitik">
+                        <group>
+                            <field name="allowance_account_id"/>
+                            <field name="bpjs_receivable_account_id"/>
+                        </group>
+                        <group>
+                            <field name="analytic_account_id"/>
+                            <field name="journal_id"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_post_writeoff" string="Eksekusi Write-Off Dispute" type="object" class="btn-danger"/>
+                    <button string="Batal" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_bpjs_claim_dispute_writeoff_wizard" model="ir.actions.act_window">
+        <field name="name">Penghapusan Dispute Klaim BPJS (Write-Off)</field>
+        <field name="res_model">bpjs.claim.dispute.writeoff</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
     <!-- Clinic Prepaid Dialysis Package Views (PSAK 72) -->
     <record id="view_clinic_prepaid_dialysis_package_tree" model="ir.ui.view">
         <field name="name">clinic.prepaid.dialysis.package.tree</field>

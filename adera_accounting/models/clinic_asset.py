@@ -19,14 +19,16 @@ class ClinicAsset(models.Model):
 
     asset_category = fields.Selection(
         [
-            ("medical_equipment", "Alat Medis / Hemodialisis (Permenkes 14/2021)"),
+            ("medical_device_hd", "Alat Medis / Mesin HD & RO (Direct COGS 510030)"),
+            ("medical_device_pratama", "Alat Medis Rawat Jalan Pratama (Beban OpEx 610030)"),
+            ("medical_equipment", "Peralatan Medis & Fasilitas Umum"),
             ("office_equipment", "Peralatan Kantor & IT"),
             ("vehicle", "Kendaraan / Ambulans"),
             ("building_improvement", "Renovasi Gedung Klinik"),
         ],
         string="Kategori Aset",
         required=True,
-        default="medical_equipment",
+        default="medical_device_hd",
         tracking=True,
     )
 
@@ -160,26 +162,46 @@ class ClinicAsset(models.Model):
         return self.env["account.account"].search([("code", "=", "122010")], limit=1)
 
     def _default_expense_account(self):
-        return self.env["account.account"].search([("code", "in", ["610050", "610030"])], limit=1)
+        return self.env["account.account"].search([("code", "in", ["510030", "610030", "610050"])], limit=1)
 
     @api.onchange("asset_category")
     def _onchange_asset_category(self):
         category_config = {
+            "medical_device_hd": {
+                "useful_life": 60,
+                "asset_code": "121010",
+                "expense_code": "510030",
+                "analytic_code": "ACC-HD",
+            },
+            "medical_device_pratama": {
+                "useful_life": 60,
+                "asset_code": "121010",
+                "expense_code": "610030",
+                "analytic_code": "ACC-PRATAMA",
+            },
             "medical_equipment": {
                 "useful_life": 60,
                 "asset_code": "121010",
+                "expense_code": "610030",
+                "analytic_code": "ACC-PRATAMA",
             },
             "office_equipment": {
                 "useful_life": 48,
                 "asset_code": "121010",
+                "expense_code": "610030",
+                "analytic_code": "HOLDING-IT",
             },
             "vehicle": {
                 "useful_life": 96,
                 "asset_code": "121010",
+                "expense_code": "610030",
+                "analytic_code": "ACC-PRATAMA",
             },
             "building_improvement": {
                 "useful_life": 120,
                 "asset_code": "121010",
+                "expense_code": "610030",
+                "analytic_code": "ACC-HOLDING",
             },
         }
         cfg = category_config.get(self.asset_category)
@@ -188,6 +210,12 @@ class ClinicAsset(models.Model):
             asset_acc = self.env["account.account"].search([("code", "=", cfg["asset_code"])], limit=1)
             if asset_acc:
                 self.asset_account_id = asset_acc.id
+            exp_acc = self.env["account.account"].search([("code", "=", cfg["expense_code"])], limit=1)
+            if exp_acc:
+                self.expense_account_id = exp_acc.id
+            analytic_acc = self.env["account.analytic.account"].search([("code", "=", cfg["analytic_code"])], limit=1)
+            if analytic_acc:
+                self.analytic_distribution = {str(analytic_acc.id): 100.0}
 
     @api.depends("purchase_value", "salvage_value", "useful_life_months", "depreciation_line_ids.state", "depreciation_line_ids.amount")
     def _compute_totals(self):
@@ -206,6 +234,26 @@ class ClinicAsset(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        for vals in vals_list:
+            cat = vals.get("asset_category")
+            if cat == "medical_device_hd":
+                if "expense_account_id" not in vals:
+                    acc_510030 = self.env["account.account"].search([("code", "=", "510030")], limit=1)
+                    if acc_510030:
+                        vals["expense_account_id"] = acc_510030.id
+                if "analytic_distribution" not in vals:
+                    hd_acc = self.env["account.analytic.account"].search([("code", "=", "ACC-HD")], limit=1)
+                    if hd_acc:
+                        vals["analytic_distribution"] = {str(hd_acc.id): 100.0}
+            elif cat in ("medical_device_pratama", "medical_equipment"):
+                if "expense_account_id" not in vals:
+                    acc_610030 = self.env["account.account"].search([("code", "=", "610030")], limit=1)
+                    if acc_610030:
+                        vals["expense_account_id"] = acc_610030.id
+                if "analytic_distribution" not in vals:
+                    prat_acc = self.env["account.analytic.account"].search([("code", "=", "ACC-PRATAMA")], limit=1)
+                    if prat_acc:
+                        vals["analytic_distribution"] = {str(prat_acc.id): 100.0}
         records = super().create(vals_list)
         for rec in records:
             if rec.state == "running" and not rec.depreciation_line_ids:

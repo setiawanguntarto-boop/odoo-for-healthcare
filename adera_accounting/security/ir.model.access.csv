@@ -9,3 +9,4 @@ access_clinic_prepaid_dialysis_package_user,clinic.prepaid.dialysis.package.user
 access_clinic_asset_user,clinic.asset.user,model_clinic_asset,base.group_user,1,1,1,1
 access_clinic_asset_depreciation_line_user,clinic.asset.depreciation.line.user,model_clinic_asset_depreciation_line,base.group_user,1,1,1,1
 access_clinic_asset_rollforward_wizard_user,clinic.asset.rollforward.wizard.user,model_clinic_asset_rollforward_wizard,base.group_user,1,1,1,1
+access_bpjs_claim_dispute_writeoff_user,bpjs.claim.dispute.writeoff.user,model_bpjs_claim_dispute_writeoff,base.group_user,1,1,1,1

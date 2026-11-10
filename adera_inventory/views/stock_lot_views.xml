@@ -13,7 +13,7 @@
                             class="btn-primary"
                             invisible="is_opened or not is_multi_dose"/>
                     <button name="action_open_spoilage_wizard"
-                            string="Pemusnahan Sisa Vial (Spoilage 510010)"
+                            string="Catat Sisa Dosis Terbuang (Scrap Open-Vial)"
                             type="object"
                             class="btn-outline-danger"
                             invisible="not is_opened"/>

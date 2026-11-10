@@ -87,6 +87,17 @@ class TestDashboardReconciliation(TransactionCase):
         expected_net_margin = float(round((net_profit / total_rev * 100.0), 2)) if total_rev > 0 else 0.0
         self.assertAlmostEqual(sc['net_margin_pct']['value'], expected_net_margin, places=2)
 
+        # Kemenkes 2025 Financial Governance: Operating Ratio
+        total_operating_cost = float(cogs + doctor_fees + opex)
+        expected_operating_ratio = float(round((total_operating_cost / total_rev * 100.0), 2)) if total_rev > 0 else 0.0
+        self.assertAlmostEqual(sc['operating_ratio']['value'], expected_operating_ratio, places=2)
+        if expected_operating_ratio < 75.0:
+            self.assertEqual(sc['operating_ratio']['rag'], 'success')
+        elif expected_operating_ratio <= 80.0:
+            self.assertEqual(sc['operating_ratio']['rag'], 'warning')
+        else:
+            self.assertEqual(sc['operating_ratio']['rag'], 'danger')
+
     def test_03_clinical_operational_ratios_arpt_arpp(self):
         """Verify ARPT (Avg Rev per Treatment) and ARPP (Avg Rev per Patient)."""
         sc = self.metrics['scorecards']

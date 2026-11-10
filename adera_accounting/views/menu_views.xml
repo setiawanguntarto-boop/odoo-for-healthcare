@@ -91,6 +91,12 @@
               action="action_bpjs_dispute_wizard"
               sequence="25"/>
 
+    <menuitem id="menu_bpjs_claim_writeoff_action"
+              name="Penghapusan Dispute BPJS (Write-Off)"
+              parent="menu_ar_billing_categ"
+              action="action_bpjs_claim_dispute_writeoff_wizard"
+              sequence="26"/>
+
     <menuitem id="menu_ar_pos_copay_action"
               name="Settlement Co-Pay POS"
               parent="menu_ar_billing_categ"

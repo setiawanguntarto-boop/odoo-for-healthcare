@@ -125,3 +125,68 @@ class TestBenchmarkCompliance(TransactionCase):
         report_cf.action_recompute()
         self.assertTrue(len(report_cf.line_ids) > 0, "Laporan Arus Kas Metode Tidak Langsung tidak menghasilkan baris!")
 
+    def test_05_direct_medical_depreciation_allocation(self):
+        """Uji Kemenkes 2025: Depresiasi Mesin HD Nipro langsung ke Akun 510030 & Tag Analitik ACC-HD."""
+        asset_model = self.env["clinic.asset"]
+        
+        # 1. Test HD Medical Device (Direct COGS 510030)
+        hd_asset = asset_model.create({
+            "name": "Mesin Hemodialisis Nipro Surdial X Test QA",
+            "asset_code": "QA-HD-001",
+            "asset_category": "medical_device_hd",
+            "purchase_date": date(2024, 1, 1),
+            "purchase_value": 240000000.0,
+            "salvage_value": 0.0,
+            "useful_life_months": 60,
+        })
+        self.assertEqual(hd_asset.expense_account_id.code, "510030", "Akun beban aset HD harus 510030 (Direct COGS)!")
+        hd_analytic = self.env["account.analytic.account"].search([("code", "=", "ACC-HD")], limit=1)
+        self.assertTrue(str(hd_analytic.id) in hd_asset.analytic_distribution, "Tag analitik harus ACC-HD!")
+
+        hd_asset.action_confirm()
+        self.assertTrue(len(hd_asset.depreciation_line_ids) == 60, "Jadwal amortisasi harus 60 baris!")
+        first_line = hd_asset.depreciation_line_ids[0]
+        move = hd_asset.action_post_depreciation_line(first_line.id)
+        
+        debit_line = move.line_ids.filtered(lambda l: l.debit > 0)
+        credit_line = move.line_ids.filtered(lambda l: l.credit > 0)
+        self.assertEqual(debit_line.account_id.code, "510030", "Jurnal depresiasi harus mendebit Akun 510030!")
+        self.assertTrue(str(hd_analytic.id) in debit_line.analytic_distribution, "Baris debit harus tertag analitik ACC-HD!")
+        self.assertEqual(credit_line.account_id.code, "122010", "Jurnal depresiasi harus mengkredit Akun 122010!")
+
+        # 2. Test Pratama Medical Device (OpEx 610030)
+        prat_asset = asset_model.create({
+            "name": "USG Mindray DC-30 Test QA",
+            "asset_code": "QA-PRAT-USG",
+            "asset_category": "medical_device_pratama",
+            "purchase_date": date(2024, 1, 1),
+            "purchase_value": 120000000.0,
+            "salvage_value": 0.0,
+            "useful_life_months": 60,
+        })
+        self.assertEqual(prat_asset.expense_account_id.code, "610030", "Akun beban aset Pratama harus 610030 (OpEx)!")
+        prat_analytic = self.env["account.analytic.account"].search([("code", "=", "ACC-PRATAMA")], limit=1)
+        self.assertTrue(str(prat_analytic.id) in prat_asset.analytic_distribution, "Tag analitik harus ACC-PRATAMA!")
+
+    def test_06_bpjs_claim_dispute_writeoff(self):
+        """Uji Eksekusi Single-Click Write-Off Dispute BPJS: Dr 112990 / Cr 112020."""
+        wizard = self.env["bpjs.claim.dispute.writeoff"].create({
+            "name": "REKON-QA-202611",
+            "sep_number": "0123S0010124V009999",
+            "patient_name": "Pasien Uji Rekon BPJS",
+            "date": fields.Date.today(),
+            "writeoff_amount": 750000.0,
+            "dispute_category": "coding_dispute",
+            "reason": "Koreksi tarif koding klaim INA-CBG dialisis oleh verifikator BPJS",
+        })
+        action = wizard.action_post_writeoff()
+        move_id = action.get("res_id")
+        move = self.env["account.move"].browse(move_id)
+        
+        self.assertTrue(move.exists() and move.state == "posted", "Jurnal write-off harus berhasil terposting!")
+        dr_line = move.line_ids.filtered(lambda l: l.debit > 0)
+        cr_line = move.line_ids.filtered(lambda l: l.credit > 0)
+        self.assertEqual(dr_line.account_id.code, "112990", "Baris debit harus akun 112990 (Cadangan Dispute)!")
+        self.assertEqual(cr_line.account_id.code, "112020", "Baris kredit harus akun 112020 (Piutang BPJS)!")
+        self.assertEqual(dr_line.debit, 750000.0, "Nominal write-off harus sesuai!")
+

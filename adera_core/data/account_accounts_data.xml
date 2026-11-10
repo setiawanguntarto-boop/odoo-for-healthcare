@@ -278,28 +278,29 @@
 
         <!-- ===================================================================
              5-xxxx: BEBAN POKOK PENDAPATAN / HPP (account_type = expense_direct_cost)
+             Kemenkes 2025 & Permenkes 14/2021 Direct Cost Segmentation
              =================================================================== -->
         <record id="account_510010" model="account.account">
             <field name="code">510010</field>
-            <field name="name">HPP Obat Farmasi Rawat Jalan</field>
+            <field name="name">HPP Obat Farmasi &amp; BMHP Rawat Jalan (Direct Medical Consumables)</field>
             <field name="account_type">expense_direct_cost</field>
         </record>
 
         <record id="account_510020" model="account.account">
             <field name="code">510020</field>
-            <field name="name">HPP BHP &amp; Konsumabel Medis Rawat Jalan</field>
+            <field name="name">HPP BMHP Dialisis, Dialyzer &amp; Cairan HD (Hemodialysis Direct Consumables)</field>
             <field name="account_type">expense_direct_cost</field>
         </record>
 
         <record id="account_510030" model="account.account">
             <field name="code">510030</field>
-            <field name="name">HPP Dialyzer &amp; BHP Khusus Hemodialisis</field>
+            <field name="name">Beban Penyusutan Langsung Mesin HD &amp; RO Plant (Direct Medical Equipment Depreciation)</field>
             <field name="account_type">expense_direct_cost</field>
         </record>
 
         <record id="account_510040" model="account.account">
             <field name="code">510040</field>
-            <field name="name">HPP Reagen &amp; Konsumabel Laboratorium</field>
+            <field name="name">Beban Rujukan Medis, Laboratorium &amp; Radiologi Luar (External Referral Expenses)</field>
             <field name="account_type">expense_direct_cost</field>
         </record>
 

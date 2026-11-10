@@ -38,6 +38,16 @@ class StockScrapClinic(models.TransientModel):
         required=True,
         default=1,
     )
+    discarded_doses = fields.Integer(
+        string="Dosis Terbuang (Discarded Doses)",
+        compute="_compute_discarded_doses",
+        inverse="_inverse_discarded_doses",
+        store=True,
+    )
+    opened_datetime = fields.Datetime(
+        string="Waktu Buka / Penusukan Segel",
+        default=fields.Datetime.now,
+    )
     vial_unit_quantity = fields.Float(
         string="Ekuivalen Satuan Unit (Vial/Ampul)",
         compute="_compute_spoilage_cost",
@@ -45,13 +55,16 @@ class StockScrapClinic(models.TransientModel):
     )
     scrap_reason = fields.Selection(
         [
+            ("expired_open_vial", "Kadaluarsa Pasca Buka (>24 Jam Stabilitas Vial Terbuka)"),
+            ("cold_chain_failure", "Kegagalan Rantai Dingin / Suhu Cold Chain"),
+            ("damaged_during_prep", "Kerusakan Fisik / Partikel Saat Preparasi"),
             ("exceeded_24h", "Melewati Batas Stabilitas Terbuka (>24 Jam)"),
             ("contamination", "Kontaminasi / Partikel Asing Saat Penusukan"),
             ("temperature_deviation", "Penyimpangan Suhu Cold Chain Pasca Buka"),
             ("clinical_waste", "Sisa Dosis Pasien / Limbah Medis B3"),
         ],
         string="Alasan Pemusnahan (Spoilage)",
-        default="exceeded_24h",
+        default="expired_open_vial",
         required=True,
     )
     analytic_account_id = fields.Many2one(
@@ -111,12 +124,44 @@ class StockScrapClinic(models.TransientModel):
             ("code", "in", ["114010", "113010"])
         ], limit=1)
 
+    @api.depends("dose_scrap_quantity")
+    def _compute_discarded_doses(self):
+        for rec in self:
+            rec.discarded_doses = rec.dose_scrap_quantity
+
+    def _inverse_discarded_doses(self):
+        for rec in self:
+            rec.dose_scrap_quantity = rec.discarded_doses
+
     @api.onchange("lot_id")
     def _onchange_lot_id(self):
         if self.lot_id:
             self.product_id = self.lot_id.product_id.id
             if self.lot_id.doses_remaining > 0:
                 self.dose_scrap_quantity = self.lot_id.doses_remaining
+                self.discarded_doses = self.lot_id.doses_remaining
+            if self.lot_id.opened_date:
+                self.opened_datetime = fields.Datetime.to_datetime(self.lot_id.opened_date)
+            # Route analytic account and inventory asset
+            prod_name = (self.product_id.name or "").lower()
+            if "heparin" in prod_name or "dialyzer" in prod_name or "epo" in prod_name:
+                hd_pharm = self.env["account.analytic.account"].search([("code", "=", "HD-PHARM")], limit=1)
+                if hd_pharm:
+                    self.analytic_account_id = hd_pharm.id
+                inv_hd = self.env["account.account"].search([("code", "in", ["114030", "113020"])], limit=1)
+                if inv_hd:
+                    self.inventory_account_id = inv_hd.id
+            else:
+                prat_farm = self.env["account.analytic.account"].search([("code", "=", "PRAT-FARM")], limit=1)
+                if prat_farm:
+                    self.analytic_account_id = prat_farm.id
+                inv_pharma = self.env["account.account"].search([("code", "in", ["114010", "113010"])], limit=1)
+                if inv_pharma:
+                    self.inventory_account_id = inv_pharma.id
+
+    def action_scrap_open_vial(self):
+        """Action alias method matching specification."""
+        return self.action_confirm_scrap()
 
     @api.depends("product_id", "dose_scrap_quantity", "lot_id.dose_capacity")
     def _compute_spoilage_cost(self):

@@ -21,7 +21,9 @@ class ClinicAssetRollforwardWizard(models.TransientModel):
     asset_category = fields.Selection(
         [
             ("all", "Semua Golongan Aset"),
-            ("medical_equipment", "Alat Medis / Hemodialisis (Permenkes 14/2021)"),
+            ("medical_device_hd", "Peralatan Medis & Fasilitas Mesin HD/RO (Direct COGS)"),
+            ("medical_device_pratama", "Peralatan Medis Rawat Jalan Pratama"),
+            ("medical_equipment", "Peralatan Medis & Fasilitas Umum"),
             ("office_equipment", "Peralatan Kantor & IT"),
             ("vehicle", "Kendaraan / Ambulans"),
             ("building_improvement", "Renovasi Gedung Klinik"),
@@ -51,10 +53,12 @@ class ClinicAssetRollforwardWizard(models.TransientModel):
         assets = self.env["clinic.asset"].search(domain, order="asset_category, purchase_date asc")
         
         category_labels = {
-            "medical_equipment": "I. Peralatan Medis & Fasilitas Hemodialisis (Permenkes 14/2021)",
-            "office_equipment": "II. Peralatan Kantor & Infrastruktur IT",
-            "vehicle": "III. Kendaraan Operasional & Ambulans",
-            "building_improvement": "IV. Renovasi Gedung & Prasarana Klinik",
+            "medical_device_hd": "I. Peralatan Medis & Fasilitas Mesin HD/RO (Direct COGS 510030)",
+            "medical_device_pratama": "II. Peralatan Medis Poli Rawat Jalan Pratama (OpEx 610030)",
+            "medical_equipment": "III. Peralatan Medis & Fasilitas Umum",
+            "office_equipment": "IV. Peralatan Kantor & Infrastruktur IT",
+            "vehicle": "V. Kendaraan Operasional & Ambulans",
+            "building_improvement": "VI. Renovasi Gedung & Prasarana Klinik",
         }
 
         grouped_data = {}

@@ -171,6 +171,102 @@ class BpjsDisputeProvision(models.TransientModel):
         }
 
 
+class BpjsClaimDisputeWriteoff(models.TransientModel):
+    _name = "bpjs.claim.dispute.writeoff"
+    _description = "Rekonsiliasi & Penghapusan Piutang Dispute Klaim BPJS (Dr 112990 / Cr 112020)"
+
+    name = fields.Char(string="Nomor Berita Acara Rekonsiliasi", required=True, default=lambda self: f"REKON-BPJS-{fields.Date.today().strftime('%Y%m')}")
+    sep_number = fields.Char(string="Nomor SEP Klaim BPJS", required=True, help="Nomor Surat Eligibilitas Peserta (SEP) yang disengketakan/dipotong")
+    patient_name = fields.Char(string="Nama Pasien", help="Identitas pasien pemilik berkas klaim")
+    date = fields.Date(string="Tanggal Rekonsiliasi / Pemotongan", required=True, default=fields.Date.today)
+    writeoff_amount = fields.Monetary(string="Nominal Pemotongan Klaim (Rp)", required=True, currency_field="currency_id")
+
+    dispute_category = fields.Selection(
+        [
+            ("coding_dispute", "Dispute Koding INA-CBG (Penurunan Tarif/Grouper)"),
+            ("administrative", "Ketidaklengkapan Berkas / Resep / Resume Medis"),
+            ("medical_audit", "Audit Pasca Bayar / Dispute Medis Tim Pencegahan Fraud"),
+            ("claim_deduction", "Pemotongan Selisih Bayar / Denda Administrasi"),
+            ("other", "Lainnya / Sengketa Berkas"),
+        ],
+        string="Kategori Dispute",
+        default="coding_dispute",
+        required=True,
+    )
+    reason = fields.Text(string="Keterangan Verifikator BPJS / Berita Acara", required=True)
+
+    company_id = fields.Many2one("res.company", default=lambda self: self.env.company)
+    currency_id = fields.Many2one("res.currency", related="company_id.currency_id")
+
+    allowance_account_id = fields.Many2one(
+        "account.account",
+        string="Akun Cadangan Dispute BPJS (Dr 112990)",
+        required=True,
+        default=lambda self: self.env["account.account"].search([("code", "=", "112990")], limit=1),
+    )
+    bpjs_receivable_account_id = fields.Many2one(
+        "account.account",
+        string="Akun Piutang Klaim BPJS (Cr 112020)",
+        required=True,
+        default=lambda self: self.env["account.account"].search([("code", "=", "112020")], limit=1),
+    )
+    analytic_account_id = fields.Many2one(
+        "account.analytic.account",
+        string="Unit Bisnis Analitik",
+        default=lambda self: self.env["account.analytic.account"].search([("code", "in", ["ACC-HD", "ACC-PRATAMA"])], limit=1),
+    )
+    journal_id = fields.Many2one(
+        "account.journal",
+        string="Jurnal Operasional",
+        required=True,
+        default=lambda self: self.env["account.journal"].search([("type", "=", "general")], limit=1),
+    )
+
+    def action_post_writeoff(self):
+        """Membukukan Single-Click Write-off Dispute Klaim: Dr 112990 (Cadangan Dispute) / Cr 112020 (Piutang BPJS)."""
+        self.ensure_one()
+        if self.writeoff_amount <= 0:
+            raise UserError("Nominal pemotongan klaim harus lebih besar dari Rp 0,00!")
+
+        analytic_dist = {str(self.analytic_account_id.id): 100.0} if self.analytic_account_id else False
+        cat_label = dict(self._fields["dispute_category"].selection).get(self.dispute_category, self.dispute_category)
+        ref_desc = f"Write-off Dispute BPJS (SEP: {self.sep_number}) - {cat_label}"
+
+        move_vals = {
+            "journal_id": self.journal_id.id,
+            "date": self.date,
+            "ref": ref_desc,
+            "move_type": "entry",
+            "line_ids": [
+                (0, 0, {
+                    "name": f"Pengurangan Cadangan Dispute (SEP: {self.sep_number})",
+                    "account_id": self.allowance_account_id.id,
+                    "debit": self.writeoff_amount,
+                    "credit": 0.0,
+                    "analytic_distribution": analytic_dist,
+                }),
+                (0, 0, {
+                    "name": f"Penyelesaian Piutang Klaim BPJS (SEP: {self.sep_number} - {self.patient_name or ''})",
+                    "account_id": self.bpjs_receivable_account_id.id,
+                    "debit": 0.0,
+                    "credit": self.writeoff_amount,
+                }),
+            ],
+        }
+
+        move = self.env["account.move"].create(move_vals)
+        move.action_post()
+
+        return {
+            "name": "Jurnal Write-Off Dispute Klaim BPJS",
+            "type": "ir.actions.act_window",
+            "res_model": "account.move",
+            "res_id": move.id,
+            "view_mode": "form",
+            "target": "current",
+        }
+
+
 class ClinicPrepaidDialysisPackage(models.Model):
     _name = "clinic.prepaid.dialysis.package"
     _description = "Pengelolaan Deposit & Voucher Paket Terapi Hemodialisis (PSAK 72)"

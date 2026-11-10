@@ -22,9 +22,10 @@
                             <field name="currency_id" invisible="1"/>
                         </group>
                         <group string="Kapasitas Dosis &amp; Kuantitas Pemusnahan">
+                            <field name="opened_datetime"/>
                             <field name="dose_capacity" readonly="1"/>
                             <field name="doses_remaining" readonly="1"/>
-                            <field name="dose_scrap_quantity"/>
+                            <field name="discarded_doses" string="Dosis Terbuang / Dimusnahkan"/>
                             <field name="vial_unit_quantity" readonly="1"/>
                             <field name="scrap_reason"/>
                         </group>

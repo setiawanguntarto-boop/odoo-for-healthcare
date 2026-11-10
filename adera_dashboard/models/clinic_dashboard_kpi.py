@@ -108,6 +108,16 @@ class ClinicDashboardKPI(models.AbstractModel):
         gross_margin_pct = float(round(((total_revenue - cogs) / total_revenue * 100.0), 2)) if total_revenue > 0 else 0.0
         net_margin_pct = float(round((net_profit / total_revenue * 100.0), 2)) if total_revenue > 0 else 0.0
 
+        # Kemenkes 2025 Financial Governance: Operating Ratio (Beban Pokok + OpEx / Pendapatan Operasional)
+        total_operating_cost = float(cogs + doctor_fees + opex)
+        operating_ratio_pct = float(round((total_operating_cost / total_revenue * 100.0), 2)) if total_revenue > 0 else 0.0
+        if operating_ratio_pct < 75.0:
+            operating_ratio_rag = "success"
+        elif operating_ratio_pct <= 80.0:
+            operating_ratio_rag = "warning"
+        else:
+            operating_ratio_rag = "danger"
+
         # RAG Rules
         gross_margin_rag = "success" if gross_margin_pct >= 55.0 else ("warning" if gross_margin_pct >= 40.0 else "danger")
         net_margin_rag = "success" if net_margin_pct >= 20.0 else ("warning" if net_margin_pct >= 10.0 else "danger")
@@ -595,6 +605,12 @@ class ClinicDashboardKPI(models.AbstractModel):
                 'net_margin_pct': {
                     'value': net_margin_pct,
                     'rag': net_margin_rag,
+                },
+                'operating_ratio': {
+                    'value': operating_ratio_pct,
+                    'rag': operating_ratio_rag,
+                    'total_operating_cost': total_operating_cost,
+                    'is_capped': operating_ratio_pct > 80.0,
                 },
                 'total_ar': total_ar,
                 'ar_breakdown': {

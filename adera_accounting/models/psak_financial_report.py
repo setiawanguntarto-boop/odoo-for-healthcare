@@ -1095,7 +1095,9 @@ class PsakFinancialReport(models.Model):
             tot_dep_all = 0.0
             tot_nbv_all = 0.0
             cat_labels = {
-                'medical_equipment': 'Peralatan Medis &amp; Hemodialisis',
+                'medical_device_hd': 'Peralatan Medis &amp; Mesin Hemodialisis/RO (Direct COGS 510030)',
+                'medical_device_pratama': 'Peralatan Medis Poli Rawat Jalan Pratama (OpEx 610030)',
+                'medical_equipment': 'Peralatan Medis &amp; Hemodialisis Umum',
                 'building_improvement': 'Renovasi Gedung Klinik &amp; Utilitas RO',
                 'office_equipment': 'Peralatan Kantor, IT &amp; Server',
                 'vehicle': 'Kendaraan &amp; Ambulans Siaga',
@@ -1105,9 +1107,9 @@ class PsakFinancialReport(models.Model):
                 categories.setdefault(asset.asset_category, []).append(asset)
 
             for cat, items in categories.items():
-                cat_cost = sum(items.mapped('purchase_value'))
-                cat_dep = sum(items.mapped('accumulated_depreciation'))
-                cat_nbv = sum(items.mapped('net_book_value'))
+                cat_cost = sum(a.purchase_value for a in items)
+                cat_dep = sum(a.accumulated_depreciation for a in items)
+                cat_nbv = sum(a.net_book_value for a in items)
                 tot_cost_all += cat_cost
                 tot_dep_all += cat_dep
                 tot_nbv_all += cat_nbv
@@ -1145,6 +1147,7 @@ class PsakFinancialReport(models.Model):
                 </tbody>
             </table>
             """
+            net_fixed = tot_nbv_all
         else:
             d_med, c_med = self._get_account_balance("12101", False, self.date_to, is_cumulative=True)
             cost_med = d_med - c_med
