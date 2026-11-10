@@ -258,10 +258,15 @@ class PsakFinancialReport(models.Model):
             valid_analytic_ids = {str(self.analytic_account_id.id)}
             # Expand child analytic accounts if parent unit is chosen
             if self.analytic_account_id.code == 'ACC-PRATAMA':
-                child_ids = self.env['account.analytic.account'].search([('code', '=like', 'PRAT-%')]).ids
+                child_ids = self.env['account.analytic.account'].search([
+                    '|', ('code', '=like', 'PRAT-%'), ('code', '=like', 'ACC-PRATAMA-%')
+                ]).ids
                 valid_analytic_ids.update(str(cid) for cid in child_ids)
             elif self.analytic_account_id.code == 'ACC-HD':
                 child_ids = self.env['account.analytic.account'].search([('code', '=like', 'HD-%')]).ids
+                valid_analytic_ids.update(str(cid) for cid in child_ids)
+            elif self.analytic_account_id.code == 'ACC-HOLDING':
+                child_ids = self.env['account.analytic.account'].search([('code', '=like', 'HOLDING-%')]).ids
                 valid_analytic_ids.update(str(cid) for cid in child_ids)
 
             matched_lines = matched_lines.filtered(
