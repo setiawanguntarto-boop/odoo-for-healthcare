@@ -16,7 +16,9 @@
         'account',
         'analytic',
         'adera_core',
+        'adera_inventory',
         'adera_doctor_remuneration',
+        'adera_clinic_bridge',
         'account_financial_report',
     ],
     'data': [

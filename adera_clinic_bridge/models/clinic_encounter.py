@@ -211,7 +211,7 @@ class ClinicEncounter(models.Model):
                                 'payment_type': 'inbound',
                                 'partner_type': 'customer',
                                 'date': invoice.invoice_date,
-                                'ref': f"Co-Pay QRIS/Kasir: {self.name}",
+                                'memo': f"Co-Pay QRIS/Kasir: {self.name}",
                             })
                             payment.action_post()
                             lines_to_rec = (invoice.line_ids + payment.move_id.line_ids).filtered(

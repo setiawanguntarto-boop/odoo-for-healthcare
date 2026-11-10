@@ -305,7 +305,7 @@ class DoctorSettlement(models.Model):
         move = self.env['account.move'].create(move_vals)
         move.action_post()
 
-        self.fee_line_ids.write({'state': 'paid'})
+        self.fee_line_ids.write({'state': 'disbursed'})
         self.write({
             'payment_move_id': move.id,
             'state': 'paid',

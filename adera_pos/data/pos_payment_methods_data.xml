@@ -29,7 +29,7 @@
         <!-- 2. METODE BAYAR: QRIS STATIS / DINAMIS / MIDTRANS -->
         <record id="pos_pay_qris" model="pos.payment.method">
             <field name="name">QRIS &amp; EDC Electronic</field>
-            <field name="journal_id" ref="adera_core.journal_pg_midtrans"/>
+            <field name="journal_id" ref="adera_core.journal_qris_edc"/>
             <field name="receivable_account_id" ref="adera_core.account_111220"/>
             <field name="payment_type_category">electronic</field>
         </record>

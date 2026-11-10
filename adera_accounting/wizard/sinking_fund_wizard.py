@@ -51,13 +51,15 @@ class ClinicSinkingFundWizard(models.TransientModel):
         default=lambda self: str(date.today().month),
     )
 
-    date_from = fields.Date(string="Tanggal Awal Periode", compute="_compute_dates")
-    date_to = fields.Date(string="Tanggal Akhir Periode", compute="_compute_dates")
+    date_from = fields.Date(string="Tanggal Awal Periode", compute="_compute_dates", store=True)
+    date_to = fields.Date(string="Tanggal Akhir Periode", compute="_compute_dates", store=True)
 
     net_operating_profit = fields.Monetary(
         string="Laba Bersih Operasional Periode (Net Operating Profit)",
         currency_field="currency_id",
-        default=lambda self: self._default_net_profit(),
+        compute="_compute_profit",
+        readonly=False,
+        store=True,
         help="Laba bersih terposting dari buku besar (Pendapatan - HPP - Beban Operasional).",
     )
 
@@ -128,24 +130,6 @@ class ClinicSinkingFundWizard(models.TransientModel):
             ("company_id", "=", self.env.company.id),
         ], limit=1)
 
-    @api.model
-    def _default_net_profit(self):
-        today = date.today()
-        start_d = date(today.year, today.month, 1)
-        end_d = start_d + relativedelta(months=1, days=-1)
-        lines = self.env["account.move.line"].search([
-            ("company_id", "=", self.env.company.id),
-            ("parent_state", "=", "posted"),
-            ("date", ">=", start_d),
-            ("date", "<=", end_d),
-        ])
-        rev = sum(l.credit - l.debit for l in lines if l.account_id.code and l.account_id.code.startswith("41"))
-        cogs = sum(l.debit - l.credit for l in lines if l.account_id.code and l.account_id.code.startswith("51"))
-        opex = sum(l.debit - l.credit for l in lines if l.account_id.code and l.account_id.code.startswith("61"))
-        other_inc = sum(l.credit - l.debit for l in lines if l.account_id.code and l.account_id.code.startswith("42"))
-        profit = float(rev - cogs - opex + other_inc)
-        return max(0.0, profit)
-
     @api.depends("fiscal_year", "period_month")
     def _compute_dates(self):
         for rec in self:
@@ -159,25 +143,29 @@ class ClinicSinkingFundWizard(models.TransientModel):
                 rec.date_from = False
                 rec.date_to = False
 
-    @api.onchange("fiscal_year", "period_month")
-    def _onchange_period(self):
+    @api.depends("date_from", "date_to", "company_id")
+    def _compute_profit(self):
         for rec in self:
-            if rec.fiscal_year and rec.period_month:
-                m = int(rec.period_month)
-                start_d = date(rec.fiscal_year, m, 1)
-                end_d = start_d + relativedelta(months=1, days=-1)
-                lines = self.env["account.move.line"].search([
-                    ("company_id", "=", rec.company_id.id),
-                    ("parent_state", "=", "posted"),
-                    ("date", ">=", start_d),
-                    ("date", "<=", end_d),
-                ])
-                rev = sum(l.credit - l.debit for l in lines if l.account_id.code and l.account_id.code.startswith("41"))
-                cogs = sum(l.debit - l.credit for l in lines if l.account_id.code and l.account_id.code.startswith("51"))
-                opex = sum(l.debit - l.credit for l in lines if l.account_id.code and l.account_id.code.startswith("61"))
-                other_inc = sum(l.credit - l.debit for l in lines if l.account_id.code and l.account_id.code.startswith("42"))
-                profit = float(rev - cogs - opex + other_inc)
-                rec.net_operating_profit = max(0.0, profit)
+            if rec.net_operating_profit and rec.net_operating_profit > 0.0:
+                continue
+            if not rec.date_from or not rec.date_to:
+                rec.net_operating_profit = 0.0
+                continue
+
+            lines = self.env["account.move.line"].search([
+                ("company_id", "=", rec.company_id.id),
+                ("parent_state", "=", "posted"),
+                ("date", ">=", rec.date_from),
+                ("date", "<=", rec.date_to),
+            ])
+
+            rev = sum(l.credit - l.debit for l in lines if l.account_id.code and l.account_id.code.startswith("41"))
+            cogs = sum(l.debit - l.credit for l in lines if l.account_id.code and l.account_id.code.startswith("51"))
+            opex = sum(l.debit - l.credit for l in lines if l.account_id.code and l.account_id.code.startswith("61"))
+            other_inc = sum(l.credit - l.debit for l in lines if l.account_id.code and l.account_id.code.startswith("42"))
+
+            profit = float(rev - cogs - opex + other_inc)
+            rec.net_operating_profit = max(0.0, profit)
 
     @api.depends("net_operating_profit", "allocation_percentage")
     def _compute_allocation_amount(self):

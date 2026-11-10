@@ -26,6 +26,7 @@ class MedicalFeeAccrual(models.Model):
         ('accrued', 'Telah Diakru (Accrued)'),
         ('in_settlement', 'Dalam Proses Settlement'),
         ('disbursed', 'Telah Dibayar (Disbursed)'),
+        ('paid', 'Telah Dibayar (Paid)'),
         ('cancelled', 'Dibatalkan'),
     ], string='Status', default='accrued', index=True, required=True)
 

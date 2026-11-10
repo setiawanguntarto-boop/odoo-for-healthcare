@@ -19,10 +19,17 @@
         </record>
 
         <record id="journal_pg_midtrans" model="account.journal">
-            <field name="name">Payment Gateway &amp; QRIS</field>
+            <field name="name">Payment Gateway &amp; QRIS Online</field>
             <field name="code">PGATE</field>
             <field name="type">bank</field>
             <field name="default_account_id" ref="account_111210"/>
+        </record>
+
+        <record id="journal_qris_edc" model="account.journal">
+            <field name="name">Kliring EDC &amp; QRIS Kasir</field>
+            <field name="code">QRIS</field>
+            <field name="type">bank</field>
+            <field name="default_account_id" ref="account_111220"/>
         </record>
 
         <record id="journal_ar_bpjs" model="account.journal">
