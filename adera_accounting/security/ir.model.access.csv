@@ -6,3 +6,6 @@ access_medical_fixed_asset_user,medical.fixed.asset.user,model_medical_fixed_ass
 access_bpjs_capitation_recognition_user,bpjs.capitation.recognition.user,model_bpjs_capitation_recognition,base.group_user,1,1,1,1
 access_bpjs_dispute_provision_user,bpjs.dispute.provision.user,model_bpjs_dispute_provision,base.group_user,1,1,1,1
 access_clinic_prepaid_dialysis_package_user,clinic.prepaid.dialysis.package.user,model_clinic_prepaid_dialysis_package,base.group_user,1,1,1,1
+access_clinic_asset_user,clinic.asset.user,model_clinic_asset,base.group_user,1,1,1,1
+access_clinic_asset_depreciation_line_user,clinic.asset.depreciation.line.user,model_clinic_asset_depreciation_line,base.group_user,1,1,1,1
+access_clinic_asset_rollforward_wizard_user,clinic.asset.rollforward.wizard.user,model_clinic_asset_rollforward_wizard,base.group_user,1,1,1,1

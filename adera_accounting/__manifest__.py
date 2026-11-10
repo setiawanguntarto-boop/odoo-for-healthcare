@@ -12,6 +12,7 @@
     'auto_install': False,
     'depends': [
         'base',
+        'mail',
         'account',
         'analytic',
         'adera_core',
@@ -24,8 +25,9 @@
         'views/account_report_views.xml',
         'views/operational_ledger_views.xml',
         'views/specialized_accounting_views.xml',
+        'views/clinic_asset_views.xml',
         'views/menu_views.xml',
         'reports/psak_report_templates.xml',
+        'reports/clinic_asset_report_templates.xml',
     ],
 }
-

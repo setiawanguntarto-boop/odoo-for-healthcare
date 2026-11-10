@@ -75,7 +75,7 @@
         <field name="res_model">psak.report.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>
-        <field name="context">{'default_report_type': 'cash_flow'}</field>
+        <field name="context">{'default_report_type': 'cash_flow', 'default_cash_flow_method': 'indirect'}</field>
     </record>
 
     <record id="action_psak_wizard_equity_change" model="ir.actions.act_window">

@@ -150,18 +150,36 @@
               sequence="30"/>
 
     <!-- ===================================================================
-         5. ASET TETAP MEDIS (PERMENKES 14/2021)
+         5. MANAJEMEN ASET TETAP
          =================================================================== -->
     <menuitem id="menu_fixed_assets_categ"
-              name="Aset Tetap Medis"
+              name="Manajemen Aset Tetap"
               parent="menu_adera_accounting_root"
               sequence="45"/>
 
+    <menuitem id="menu_clinic_asset_action"
+              name="Daftar Aset Medis &amp; Fasilitas"
+              parent="menu_fixed_assets_categ"
+              action="action_clinic_asset_view"
+              sequence="10"/>
+
+    <menuitem id="menu_clinic_asset_depreciation_action"
+              name="Jadwal &amp; Buku Penyusutan"
+              parent="menu_fixed_assets_categ"
+              action="action_clinic_asset_depreciation_board"
+              sequence="20"/>
+
+    <menuitem id="menu_clinic_asset_rollforward_action"
+              name="Rincian Aset Tetap (Roll-Forward)"
+              parent="menu_fixed_assets_categ"
+              action="action_clinic_asset_rollforward_wizard"
+              sequence="30"/>
+
     <menuitem id="menu_medical_assets_action"
-              name="Peralatan Medis &amp; HD (121010/121020)"
+              name="Peralatan Medis (Permenkes 14/2021)"
               parent="menu_fixed_assets_categ"
               action="action_medical_fixed_assets"
-              sequence="10"/>
+              sequence="40"/>
 
     <!-- ===================================================================
          6. KAS & BANK

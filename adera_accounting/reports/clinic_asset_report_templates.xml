@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_clinic_asset_rollforward" model="ir.actions.report">
+        <field name="name">Daftar Rincian Aset Tetap &amp; Penyusutan (PDF)</field>
+        <field name="model">clinic.asset.rollforward.wizard</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">adera_accounting.report_clinic_asset_rollforward</field>
+        <field name="report_file">adera_accounting.report_clinic_asset_rollforward</field>
+        <field name="print_report_name">'Rincian_Aset_Tetap_Klinik_ADERA_%s_%s' % (object.date_from, object.date_to)</field>
+        <field name="binding_model_id" ref="model_clinic_asset_rollforward_wizard"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_clinic_asset_rollforward">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-set="report_data" t-value="o.get_asset_rollforward_data()"/>
+                <t t-set="grouped_data" t-value="report_data['grouped_data']"/>
+                <t t-set="grand_totals" t-value="report_data['grand_totals']"/>
+                <t t-set="curr" t-value="report_data['currency']"/>
+
+                <div class="article" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 11px; color: #212529;">
+                    <!-- Corporate Statutory Header -->
+                    <div style="border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 12px;">
+                        <table style="width: 100%;">
+                            <tr>
+                                <td style="width: 70%; vertical-align: top;">
+                                    <div style="font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">
+                                        PT PROSPERRA MEDIKA UTAMA
+                                    </div>
+                                    <div style="font-size: 12px; font-weight: 700; color: #495057;">
+                                        KLINIK ADERA (KLINIK PRATAMA &amp; HEMODIALISIS)
+                                    </div>
+                                    <div style="font-size: 16px; font-weight: 800; margin-top: 6px; text-transform: uppercase; color: #1a237e;">
+                                        DAFTAR RINCIAN ASET TETAP &amp; AKUMULASI PENYUSUTAN
+                                    </div>
+                                    <div style="font-size: 11px; color: #495057; margin-top: 2px;">
+                                        Periode: <strong t-esc="o.date_from.strftime('%d/%m/%Y')"/> s/d <strong t-esc="o.date_to.strftime('%d/%m/%Y')"/>
+                                    </div>
+                                </td>
+                                <td style="width: 30%; text-align: right; vertical-align: top;">
+                                    <div style="font-size: 10px; color: #6c757d;">
+                                        Jadwal Mutasi Aset (Roll-Forward)
+                                    </div>
+                                    <div style="font-size: 10px; font-style: italic; color: #495057; margin-top: 4px;">
+                                        (Dinyatakan dalam Rupiah, kecuali dinyatakan lain)
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <!-- Asset Schedule Table -->
+                    <table class="table table-sm table-bordered mt-2 mb-4" style="width: 100%; border-collapse: collapse; font-size: 9.5px;">
+                        <thead>
+                            <tr style="background-color: #e9ecef; border-bottom: 2px solid #343a40; font-weight: 700; text-align: center;">
+                                <th style="width: 22%; padding: 5px; border: 1px solid #dee2e6;">Nama Aset / Peralatan</th>
+                                <th style="width: 8%; padding: 5px; border: 1px solid #dee2e6;">Tgl Perolehan</th>
+                                <th style="width: 11%; padding: 5px; border: 1px solid #dee2e6;">Nilai Awal</th>
+                                <th style="width: 11%; padding: 5px; border: 1px solid #dee2e6;">Penambahan</th>
+                                <th style="width: 11%; padding: 5px; border: 1px solid #dee2e6;">Akum. Awal</th>
+                                <th style="width: 11%; padding: 5px; border: 1px solid #dee2e6;">Beban Berjalan</th>
+                                <th style="width: 12%; padding: 5px; border: 1px solid #dee2e6;">Total Akumulasi</th>
+                                <th style="width: 14%; padding: 5px; border: 1px solid #dee2e6;">Nilai Buku Bersih</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="grouped_data.items()" t-as="group_item">
+                                <!-- Category Header -->
+                                <tr style="background-color: #f1f5f9; font-weight: 800;">
+                                    <td colspan="8" style="padding: 5px 8px; border: 1px solid #dee2e6; color: #1e293b;">
+                                        <t t-esc="group_item[0]"/>
+                                    </td>
+                                </tr>
+
+                                <!-- Asset Rows -->
+                                <t t-foreach="group_item[1]['rows']" t-as="row">
+                                    <tr style="line-height: 1.3;">
+                                        <td style="padding: 3px 6px; border: 1px solid #dee2e6;">
+                                            <t t-esc="row['name']"/>
+                                            <span style="font-size: 8.5px; color: #64748b;" t-if="row['code'] != '-'"> (<t t-esc="row['code']"/>)</span>
+                                        </td>
+                                        <td class="text-center" style="padding: 3px 4px; border: 1px solid #dee2e6;">
+                                            <t t-esc="row['purchase_date']"/>
+                                        </td>
+                                        <td class="text-end" style="padding: 3px 4px; border: 1px solid #dee2e6; font-family: 'Courier New', monospace;">
+                                            <t t-esc="row['init_cost']" t-options='{"widget": "monetary", "display_currency": curr}'/>
+                                        </td>
+                                        <td class="text-end" style="padding: 3px 4px; border: 1px solid #dee2e6; font-family: 'Courier New', monospace;">
+                                            <t t-esc="row['period_add']" t-options='{"widget": "monetary", "display_currency": curr}'/>
+                                        </td>
+                                        <td class="text-end" style="padding: 3px 4px; border: 1px solid #dee2e6; font-family: 'Courier New', monospace;">
+                                            <t t-esc="row['init_deprec']" t-options='{"widget": "monetary", "display_currency": curr}'/>
+                                        </td>
+                                        <td class="text-end" style="padding: 3px 4px; border: 1px solid #dee2e6; font-family: 'Courier New', monospace;">
+                                            <t t-esc="row['period_deprec']" t-options='{"widget": "monetary", "display_currency": curr}'/>
+                                        </td>
+                                        <td class="text-end" style="padding: 3px 4px; border: 1px solid #dee2e6; font-family: 'Courier New', monospace;">
+                                            <t t-esc="row['total_deprec']" t-options='{"widget": "monetary", "display_currency": curr}'/>
+                                        </td>
+                                        <td class="text-end" style="padding: 3px 4px; border: 1px solid #dee2e6; font-weight: 700; font-family: 'Courier New', monospace;">
+                                            <t t-esc="row['nbv']" t-options='{"widget": "monetary", "display_currency": curr}'/>
+                                        </td>
+                                    </tr>
+                                </t>
+
+                                <!-- Subtotal per Category -->
+                                <tr style="background-color: #f8fafc; font-weight: 700; border-top: 1px solid #64748b;">
+                                    <td colspan="2" style="padding: 4px 6px; border: 1px solid #dee2e6;">
+                                        Subtotal <t t-esc="group_item[0].split('.')[1] if '.' in group_item[0] else group_item[0]"/>
+                                    </td>
+                                    <td class="text-end" style="padding: 4px; border: 1px solid #dee2e6; font-family: 'Courier New', monospace;">
+                                        <t t-esc="group_item[1]['totals']['init_cost']" t-options='{"widget": "monetary", "display_currency": curr}'/>
+                                    </td>
+                                    <td class="text-end" style="padding: 4px; border: 1px solid #dee2e6; font-family: 'Courier New', monospace;">
+                                        <t t-esc="group_item[1]['totals']['period_add']" t-options='{"widget": "monetary", "display_currency": curr}'/>
+                                    </td>
+                                    <td class="text-end" style="padding: 4px; border: 1px solid #dee2e6; font-family: 'Courier New', monospace;">
+                                        <t t-esc="group_item[1]['totals']['init_deprec']" t-options='{"widget": "monetary", "display_currency": curr}'/>
+                                    </td>
+                                    <td class="text-end" style="padding: 4px; border: 1px solid #dee2e6; font-family: 'Courier New', monospace;">
+                                        <t t-esc="group_item[1]['totals']['period_deprec']" t-options='{"widget": "monetary", "display_currency": curr}'/>
+                                    </td>
+                                    <td class="text-end" style="padding: 4px; border: 1px solid #dee2e6; font-family: 'Courier New', monospace;">
+                                        <t t-esc="group_item[1]['totals']['total_deprec']" t-options='{"widget": "monetary", "display_currency": curr}'/>
+                                    </td>
+                                    <td class="text-end" style="padding: 4px; border: 1px solid #dee2e6; font-weight: 800; font-family: 'Courier New', monospace;">
+                                        <t t-esc="group_item[1]['totals']['nbv']" t-options='{"widget": "monetary", "display_currency": curr}'/>
+                                    </td>
+                                </tr>
+                            </t>
+
+                            <!-- Grand Total Row -->
+                            <tr style="background-color: #e2e8f0; font-weight: 800; border-top: 2px solid #000; border-bottom: 3px double #000;">
+                                <td colspan="2" style="padding: 6px; border: 1px solid #dee2e6; text-transform: uppercase;">
+                                    TOTAL SELURUH ASET TETAP
+                                </td>
+                                <td class="text-end" style="padding: 6px 4px; border: 1px solid #dee2e6; font-family: 'Courier New', monospace;">
+                                    <t t-esc="grand_totals['init_cost']" t-options='{"widget": "monetary", "display_currency": curr}'/>
+                                </td>
+                                <td class="text-end" style="padding: 6px 4px; border: 1px solid #dee2e6; font-family: 'Courier New', monospace;">
+                                    <t t-esc="grand_totals['period_add']" t-options='{"widget": "monetary", "display_currency": curr}'/>
+                                </td>
+                                <td class="text-end" style="padding: 6px 4px; border: 1px solid #dee2e6; font-family: 'Courier New', monospace;">
+                                    <t t-esc="grand_totals['init_deprec']" t-options='{"widget": "monetary", "display_currency": curr}'/>
+                                </td>
+                                <td class="text-end" style="padding: 6px 4px; border: 1px solid #dee2e6; font-family: 'Courier New', monospace;">
+                                    <t t-esc="grand_totals['period_deprec']" t-options='{"widget": "monetary", "display_currency": curr}'/>
+                                </td>
+                                <td class="text-end" style="padding: 6px 4px; border: 1px solid #dee2e6; font-family: 'Courier New', monospace;">
+                                    <t t-esc="grand_totals['total_deprec']" t-options='{"widget": "monetary", "display_currency": curr}'/>
+                                </td>
+                                <td class="text-end" style="padding: 6px 4px; border: 1px solid #dee2e6; font-family: 'Courier New', monospace; font-size: 10px;">
+                                    <t t-esc="grand_totals['nbv']" t-options='{"widget": "monetary", "display_currency": curr}'/>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- Statutory Signature Box -->
+                    <table style="width: 100%; margin-top: 30px; page-break-inside: avoid;">
+                        <tr>
+                            <td style="width: 50%; text-align: center;">
+                                <div>Disusun Oleh:</div>
+                                <div style="font-weight: 700; margin-top: 50px;">Staff Akuntansi &amp; Keuangan</div>
+                                <div style="font-size: 9px; color: #6c757d;">Klinik ADERA</div>
+                            </td>
+                            <td style="width: 50%; text-align: center;">
+                                <div>Disetujui Oleh:</div>
+                                <div style="font-weight: 700; margin-top: 50px;">Direktur Utama / Manajemen Eksekutif</div>
+                                <div style="font-size: 9px; color: #6c757d;">PT Prosperra Medika Utama</div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

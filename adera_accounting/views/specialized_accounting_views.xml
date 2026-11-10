@@ -107,7 +107,7 @@
                             <field name="registered_participants"/>
                             <field name="rate_per_participant" widget="monetary"/>
                         </group>
-                        <group string="Finansial &amp; Konfigurasi Akun">
+                        <group string="Finansial &amp; Akun PSAK">
                             <field name="total_amount" widget="monetary"/>
                             <field name="bank_journal_id"/>
                             <field name="income_account_id"/>
@@ -171,12 +171,12 @@
         <field name="target">new</field>
     </record>
 
-    <!-- Clinic Prepaid Dialysis Package Views -->
+    <!-- Clinic Prepaid Dialysis Package Views (PSAK 72) -->
     <record id="view_clinic_prepaid_dialysis_package_tree" model="ir.ui.view">
         <field name="name">clinic.prepaid.dialysis.package.tree</field>
         <field name="model">clinic.prepaid.dialysis.package</field>
         <field name="arch" type="xml">
-            <list string="Paket Terapi Hemodialisis">
+            <list string="Paket Terapi Hemodialisis (PSAK 72)">
                 <field name="name"/>
                 <field name="partner_id"/>
                 <field name="purchase_date"/>
@@ -195,7 +195,7 @@
         <field name="name">clinic.prepaid.dialysis.package.form</field>
         <field name="model">clinic.prepaid.dialysis.package</field>
         <field name="arch" type="xml">
-            <form string="Paket Terapi Hemodialisis">
+            <form string="Paket Terapi Hemodialisis (PSAK 72)">
                 <header>
                     <button name="action_confirm_payment" string="Konfirmasi Penerimaan Uang Dimuka (214020)" type="object" class="btn-primary" invisible="state != 'draft'"/>
                     <button name="action_redeem_single_session" string="Tebus 1 Sesi Terapi (Akui Pendapatan 410120)" type="object" class="btn-success" invisible="state != 'active'"/>
@@ -215,7 +215,7 @@
                             <field name="package_type"/>
                             <field name="payment_journal_id"/>
                         </group>
-                        <group string="Kuota Sesi &amp; Nilai Kontrak">
+                        <group string="Kuota Sesi &amp; Nilai PSAK 72">
                             <field name="total_sessions"/>
                             <field name="sessions_used"/>
                             <field name="sessions_remaining"/>
@@ -224,7 +224,7 @@
                             <field name="currency_id" invisible="1"/>
                         </group>
                     </group>
-                    <group string="Akun Pendapatan Diterima Dimuka">
+                    <group string="Akun PSAK 72 Pendapatan Diterima Dimuka">
                         <field name="deferred_revenue_account_id"/>
                         <field name="earned_income_account_id"/>
                     </group>
@@ -234,7 +234,7 @@
     </record>
 
     <record id="action_clinic_prepaid_dialysis_packages" model="ir.actions.act_window">
-        <field name="name">Paket Dialisis Dimuka</field>
+        <field name="name">Paket Dialisis Dimuka (PSAK 72)</field>
         <field name="res_model">clinic.prepaid.dialysis.package</field>
         <field name="view_mode">list,form</field>
     </record>
