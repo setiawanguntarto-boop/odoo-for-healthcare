@@ -10,10 +10,7 @@
         <field name="res_model">stock.picking</field>
         <field name="view_mode">list,form,calendar</field>
         <field name="domain">[('picking_type_id.code', '=', 'incoming')]</field>
-        <field name="context">{
-            'default_picking_type_id': ref('adera_inventory.stock_picking_type_grn_pbf'),
-            'contact_display': 'partner_address',
-        }</field>
+        <field name="context" eval="{'default_picking_type_id': ref('adera_inventory.stock_picking_type_grn_pbf'), 'contact_display': 'partner_address'}"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Catat penerimaan obat dan alat kesehatan dari Pedagang Besar Farmasi (PBF).
@@ -30,9 +27,7 @@
         <field name="res_model">stock.picking</field>
         <field name="view_mode">list,form</field>
         <field name="domain">[('picking_type_id.code', '=', 'outgoing')]</field>
-        <field name="context">{
-            'default_picking_type_id': ref('adera_inventory.stock_picking_type_outpatient_dispensing'),
-        }</field>
+        <field name="context" eval="{'default_picking_type_id': ref('adera_inventory.stock_picking_type_outpatient_dispensing')}"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Daftar pengeluaran obat resep pasien rawat jalan dan sinkronisasi kasir POS.
@@ -46,9 +41,7 @@
         <field name="res_model">stock.picking</field>
         <field name="view_mode">list,form</field>
         <field name="domain">[('picking_type_id.code', '=', 'internal')]</field>
-        <field name="context">{
-            'default_picking_type_id': ref('adera_inventory.stock_picking_type_depo_transfer'),
-        }</field>
+        <field name="context" eval="{'default_picking_type_id': ref('adera_inventory.stock_picking_type_depo_transfer')}"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Buat mutasi stok dari Gudang Medis Pusat (WH/Stock) ke Depo Farmasi, Depo HD, atau Poli.

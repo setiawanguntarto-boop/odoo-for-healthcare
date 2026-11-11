@@ -9,13 +9,10 @@
             <xpath expr="//filter[@name='group_by_product']" position="before">
                 <filter string="Waspada: Mendekati Expired (&lt; 60 Hari)"
                         name="filter_expiring_soon"
-                        domain="[
-                            ('expiration_date', '&lt;=', (context_today() + datetime.timedelta(days=60)).strftime('%Y-%m-%d')),
-                            ('expiration_date', '&gt;', context_today().strftime('%Y-%m-%d'))
-                        ]"/>
+                        domain="[('expiration_status', '=', 'expiring_soon')]"/>
                 <filter string="BAHAYA: Sudah Kedaluwarsa"
                         name="filter_expired"
-                        domain="[('expiration_date', '&lt;=', context_today().strftime('%Y-%m-%d'))]"/>
+                        domain="[('expiration_status', '=', 'expired')]"/>
                 <separator/>
                 <filter string="Dalam Karantina / Batch Recall"
                         name="filter_quarantined"

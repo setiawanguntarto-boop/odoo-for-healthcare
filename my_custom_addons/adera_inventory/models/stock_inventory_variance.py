@@ -150,3 +150,4 @@ class StockInventoryVariance(models.Model):
 
             rec.write({"state": "adjusted"})
         return True
+
