@@ -34,6 +34,7 @@
         'views/fiscal_reconciliation_views.xml',
         'views/prepaid_amortization_views.xml',
         'views/sinking_fund_wizard_views.xml',
+        'views/clinic_shared_cost_allocation_views.xml',
         'views/menu_views.xml',
         'reports/psak_report_templates.xml',
         'reports/clinic_asset_report_templates.xml',

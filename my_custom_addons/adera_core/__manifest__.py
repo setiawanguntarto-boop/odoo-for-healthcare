@@ -19,6 +19,7 @@
         'data/account_accounts_data.xml',
         'data/account_journals_data.xml',
         'data/account_analytic_data.xml',
+        'data/account_analytic_multi_entity_data.xml',
         'views/landing_page_views.xml',
     ],
     'assets': {

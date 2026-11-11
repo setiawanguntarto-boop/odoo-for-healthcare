@@ -71,6 +71,19 @@ class FinancialReportWizard(models.TransientModel):
         required=True,
     )
 
+    entity_segmentation = fields.Selection(
+        [
+            ("consolidated", "Konsolidasi Grup PT Prosperra Medika Utama (Holding + Pratama + HD)"),
+            ("pratama", "Standalone Klinik Pratama ADERA (ACC-PRATAMA)"),
+            ("hd", "Standalone Klinik Utama Hemodialisis (ACC-HD)"),
+            ("holding", "Standalone Holding & Corporate Management (ACC-HOLDING)"),
+        ],
+        string="Segmentasi Entitas / Unit Bisnis",
+        default="consolidated",
+        required=True,
+        help="Pilih cakupan entitas operasional atau konsolidasi holding.",
+    )
+
     analytic_plan_id = fields.Many2one(
         "account.analytic.plan",
         string="Rencana Analitik",
@@ -203,7 +216,18 @@ class FinancialReportWizard(models.TransientModel):
             "equity_change": "Laporan Perubahan Ekuitas",
             "calk": "Catatan Atas Laporan Keuangan (CaLK)",
         }
-        unit_label = f"[{self.analytic_account_id.name}] " if self.analytic_account_id else "[Konsolidasi Klinik] "
+
+        # Resolve analytic account based on entity_segmentation or direct selection
+        selected_analytic = self.analytic_account_id
+        if not selected_analytic and self.entity_segmentation != "consolidated":
+            if self.entity_segmentation == "pratama":
+                selected_analytic = self.env.ref("adera_core.analytic_acc_pratama", raise_if_not_found=False) or self.env.ref("adera_core.analytic_account_pratama_root", raise_if_not_found=False)
+            elif self.entity_segmentation == "hd":
+                selected_analytic = self.env.ref("adera_core.analytic_acc_hd", raise_if_not_found=False) or self.env.ref("adera_core.analytic_account_hd_root", raise_if_not_found=False)
+            elif self.entity_segmentation == "holding":
+                selected_analytic = self.env.ref("adera_core.analytic_acc_holding", raise_if_not_found=False) or self.env.ref("adera_core.analytic_account_holding_root", raise_if_not_found=False)
+
+        unit_label = f"[{selected_analytic.name}] " if selected_analytic else "[Konsolidasi Grup] "
         name = f"{unit_label}{report_titles.get(engine_report_type, 'Laporan Keuangan')} ({self.date_from.strftime('%d/%m/%Y')} - {self.date_to.strftime('%d/%m/%Y')})"
 
         # SAK EP required for equity change and cash flow
@@ -222,7 +246,7 @@ class FinancialReportWizard(models.TransientModel):
             "comparison_type": engine_comparison,
             "date_from_cmp": self.date_from_cmp,
             "date_to_cmp": self.date_to_cmp,
-            "analytic_account_id": self.analytic_account_id.id if self.analytic_account_id else False,
+            "analytic_account_id": selected_analytic.id if selected_analytic else False,
         })
         report.action_recompute()
 

@@ -6,6 +6,26 @@ from odoo.exceptions import UserError
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
 
+    analytic_account_id = fields.Many2one(
+        'account.analytic.account',
+        string="Unit Bisnis Analitik",
+        compute="_compute_analytic_account_id",
+        store=True,
+        readonly=False,
+        help="Penanda analitik unit bisnis otomatis berdasarkan lokasi tujuan/gudang",
+    )
+
+    @api.depends('location_dest_id', 'picking_type_id')
+    def _compute_analytic_account_id(self):
+        for picking in self:
+            dest_code = picking.location_dest_id.complete_name or ''
+            if 'HD' in dest_code:
+                picking.analytic_account_id = self.env.ref('adera_core.analytic_acc_hd', raise_if_not_found=False) or self.env.ref('adera_core.analytic_account_hd_root', raise_if_not_found=False)
+            elif 'Farmasi' in dest_code or 'Poli' in dest_code or 'Dental' in dest_code or 'Lab' in dest_code:
+                picking.analytic_account_id = self.env.ref('adera_core.analytic_acc_pratama', raise_if_not_found=False) or self.env.ref('adera_core.analytic_account_pratama_root', raise_if_not_found=False)
+            else:
+                picking.analytic_account_id = self.env.ref('adera_core.analytic_acc_holding', raise_if_not_found=False) or self.env.ref('adera_core.analytic_account_holding_root', raise_if_not_found=False)
+
     def button_validate(self):
         # Enforce validation: cegah pengeluaran / dispense barang kadaluarsa
         for picking in self:
