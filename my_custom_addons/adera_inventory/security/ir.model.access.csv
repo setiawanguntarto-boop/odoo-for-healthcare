@@ -3,3 +3,9 @@ access_stock_lot_user,stock.lot.user,stock.model_stock_lot,stock.group_stock_use
 access_stock_scrap_clinic_user,stock.scrap.clinic.user,model_stock_scrap_clinic,stock.group_stock_user,1,1,1,1
 access_clinic_inventory_dashboard_user,clinic.inventory.dashboard.user,model_clinic_inventory_dashboard,stock.group_stock_user,1,1,1,1
 access_clinic_inventory_dashboard_manager,clinic.inventory.dashboard.manager,model_clinic_inventory_dashboard,stock.group_stock_manager,1,1,1,1
+access_stock_lot_aging_report_user,stock.lot.aging.report.user,model_stock_lot_aging_report,stock.group_stock_user,1,0,0,0
+access_stock_lot_aging_report_manager,stock.lot.aging.report.manager,model_stock_lot_aging_report,stock.group_stock_manager,1,1,1,1
+access_stock_lot_traceability_report_user,stock.lot.traceability.report.user,model_stock_lot_traceability_report,stock.group_stock_user,1,0,0,0
+access_stock_lot_traceability_report_manager,stock.lot.traceability.report.manager,model_stock_lot_traceability_report,stock.group_stock_manager,1,1,1,1
+access_stock_inventory_variance_user,stock.inventory.variance.user,model_stock_inventory_variance,stock.group_stock_user,1,1,1,0
+access_stock_inventory_variance_manager,stock.inventory.variance.manager,model_stock_inventory_variance,stock.group_stock_manager,1,1,1,1

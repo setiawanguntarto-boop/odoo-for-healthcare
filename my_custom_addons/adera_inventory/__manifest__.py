@@ -29,6 +29,8 @@
         'views/product_menu_views.xml',
         'views/purchase_order_views.xml',
         'views/clinic_inventory_dashboard_views.xml',
+        'views/stock_report_views.xml',
+        'views/stock_report_menu_views.xml',
         'reports/stock_scrap_spoilage_report.xml',
     ],
     'assets': {

@@ -50,3 +50,4 @@ class ProductTemplate(models.Model):
                 if "is_storable" not in vals:
                     vals["is_storable"] = True
         return super(ProductTemplate, self).write(vals)
+

@@ -38,3 +38,4 @@ class StockLot(models.Model):
                 lot.expiration_status = "expiring_soon"
             else:
                 lot.expiration_status = "valid"
+
