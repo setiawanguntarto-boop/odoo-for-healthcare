@@ -57,8 +57,8 @@ class PsakFinancialReport(models.Model):
     date_to = fields.Date(string="Tanggal Akhir", required=True)
     target_move = fields.Selection(
         [
-            ("posted", "Semua Entri yang Diposting (Audit Ready)"),
-            ("all", "Semua Entri (Termasuk Draf/Staging)"),
+            ("posted", "Entri Terposting (Posted Only)"),
+            ("all", "Semua Entri (Termasuk Draf)"),
         ],
         string="Target Entri",
         default="posted",

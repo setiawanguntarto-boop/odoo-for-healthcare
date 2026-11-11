@@ -24,9 +24,9 @@
         </field>
     </record>
 
-    <!-- Kategori Produk & Akuntansi (Product Categories - Linked to GL & Analytics) -->
+    <!-- Kategori Produk (Klasifikasi Akuntansi & Penilaian HPP FIFO) -->
     <record id="action_clinic_product_category" model="ir.actions.act_window">
-        <field name="name">Kategori Produk &amp; Akuntansi</field>
+        <field name="name">Kategori Produk</field>
         <field name="res_model">product.category</field>
         <field name="view_mode">list,form</field>
         <field name="help" type="html">
@@ -68,8 +68,14 @@
 
 
     <!-- ========================================================================= -->
-    <!-- 2. PRODUCTS SUB-MENU RESTRUCTURING                                        -->
+    <!-- 2. PRODUCTS SUB-MENU RESTRUCTURING (Produk)                                -->
     <!-- ========================================================================= -->
+
+    <!-- Rename and sequence Products parent menu -->
+    <record id="stock.menu_stock_inventory_control" model="ir.ui.menu">
+        <field name="name">Produk</field>
+        <field name="sequence">30</field>
+    </record>
 
     <!-- Hide legacy generic menus under stock.menu_stock_inventory_control -->
     <record id="stock.menu_product_variant_config_stock" model="ir.ui.menu">
@@ -85,32 +91,33 @@
         <field name="active" eval="False"/>
     </record>
 
-    <!-- Menu 1: Katalog Produk Medis -->
+    <!-- Clean Produk Sub-Menus (Strictly 3 routes) -->
+    <!-- 1. Katalog Produk Medis -->
     <menuitem id="menu_clinic_product_template"
               name="Katalog Produk Medis"
               parent="stock.menu_stock_inventory_control"
               action="action_clinic_product_template"
               sequence="10"/>
 
-    <!-- Menu 2: Kategori Produk & Akuntansi -->
+    <!-- 2. Kategori Produk -->
     <menuitem id="menu_clinic_product_category"
-              name="Kategori Produk &amp; Akuntansi"
+              name="Kategori Produk"
               parent="stock.menu_stock_inventory_control"
               action="action_clinic_product_category"
               sequence="20"/>
 
-    <!-- Menu 3: Pusat Kendali Batch & Kedaluwarsa -->
+    <!-- 3. Pusat Kendali Batch & Kedaluwarsa (Exclusive location for stock.lot) -->
     <menuitem id="menu_clinic_stock_production_lot"
               name="Pusat Kendali Batch &amp; Kedaluwarsa"
               parent="stock.menu_stock_inventory_control"
               action="action_clinic_stock_production_lot"
               sequence="30"/>
 
-    <!-- Menu 4: Satuan & Kemasan Obat -->
+    <!-- Keep Satuan & Kemasan Obat cleanly in Configuration menu -->
     <menuitem id="menu_clinic_uom_packaging"
               name="Satuan &amp; Kemasan Obat"
-              parent="stock.menu_stock_inventory_control"
+              parent="stock.menu_stock_config_settings"
               action="action_clinic_uom_packaging"
-              sequence="40"/>
+              sequence="50"/>
 
 </odoo>

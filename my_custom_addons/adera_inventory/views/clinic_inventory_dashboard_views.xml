@@ -2,21 +2,25 @@
 <odoo>
     <!-- Client Action for Clinical Supply & Pharmacy Cockpit -->
     <record id="action_clinical_supply_cockpit" model="ir.actions.client">
-        <field name="name">Clinical Supply &amp; Pharmacy Cockpit</field>
+        <field name="name">Overview</field>
         <field name="tag">adera_inventory.clinical_supply_cockpit</field>
         <field name="target">current</field>
     </record>
 
-    <!-- Cockpit Menu as sequence 1 under Inventory Operations / Root -->
+    <!-- Deactivate standard generic stock picking type menu ("Overview") to eliminate double menu -->
+    <record id="stock.stock_picking_type_menu" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+
+    <!-- Cockpit Menu as sequence 10 under Inventory Root -->
     <menuitem id="menu_clinical_supply_cockpit"
-              name="Cockpit Rantai Pasok"
+              name="Overview"
               parent="stock.menu_stock_root"
               action="action_clinical_supply_cockpit"
-              sequence="1"/>
+              sequence="10"/>
 
     <!-- Set default action of root menu to Cockpit -->
     <record id="stock.menu_stock_root" model="ir.ui.menu">
         <field name="action" ref="action_clinical_supply_cockpit"/>
     </record>
 </odoo>
-

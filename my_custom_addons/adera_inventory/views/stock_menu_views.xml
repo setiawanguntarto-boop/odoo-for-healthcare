@@ -4,9 +4,9 @@
     <!-- 1. ACTION WINDOW DEFINITIONS FOR CLINICAL SUPPLY OPERATIONS               -->
     <!-- ========================================================================= -->
 
-    <!-- Penerimaan Barang PBF (Goods Receipts) -->
+    <!-- Penerimaan Barang (GRN / Pembelian PBF dengan Validasi Lot) -->
     <record id="action_picking_pbf_receipts" model="ir.actions.act_window">
-        <field name="name">Penerimaan Barang PBF (GRN)</field>
+        <field name="name">Penerimaan Barang (GRN)</field>
         <field name="res_model">stock.picking</field>
         <field name="view_mode">list,form,calendar</field>
         <field name="domain">[('picking_type_id.code', '=', 'incoming')]</field>
@@ -21,9 +21,9 @@
         </field>
     </record>
 
-    <!-- Dispensing Resep & Pasien (Outpatient Dispensing) -->
+    <!-- Pengeluaran & Dispensing (Resep Rawat Jalan & Konsumsi Unit Hemodialisis) -->
     <record id="action_picking_outpatient_dispensing" model="ir.actions.act_window">
-        <field name="name">Dispensing &amp; Pengeluaran Medis</field>
+        <field name="name">Pengeluaran &amp; Dispensing</field>
         <field name="res_model">stock.picking</field>
         <field name="view_mode">list,form</field>
         <field name="domain">[('picking_type_id.code', '=', 'outgoing')]</field>
@@ -35,7 +35,7 @@
         </field>
     </record>
 
-    <!-- Mutasi Antar Depo (Internal Depo Transfers) -->
+    <!-- Mutasi Antar Depo (Gudang Sentral ke Depo Farmasi & HD) -->
     <record id="action_picking_internal_depo_transfers" model="ir.actions.act_window">
         <field name="name">Mutasi Antar Depo</field>
         <field name="res_model">stock.picking</field>
@@ -74,10 +74,16 @@
 
 
     <!-- ========================================================================= -->
-    <!-- 2. OPERATIONAL SUB-MENU RESTRUCTURING                                      -->
+    <!-- 2. OPERATIONAL SUB-MENU RESTRUCTURING (Operasi)                            -->
     <!-- ========================================================================= -->
 
-    <!-- Hide or clean legacy generic menus -->
+    <!-- Rename and sequence Operations parent menu -->
+    <record id="stock.menu_stock_warehouse_mgmt" model="ir.ui.menu">
+        <field name="name">Operasi</field>
+        <field name="sequence">20</field>
+    </record>
+
+    <!-- Hide legacy generic menus to avoid redundancy -->
     <record id="stock.menu_stock_transfers" model="ir.ui.menu">
         <field name="active" eval="False"/>
     </record>
@@ -87,54 +93,38 @@
     <record id="stock.menu_stock_procurement" model="ir.ui.menu">
         <field name="active" eval="False"/>
     </record>
+    <record id="stock.menu_procurement_compute" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
 
-    <!-- Reorganize Operasi (Operations) sub-menus -->
-    <!-- Menu 1: Penerimaan Barang PBF -->
+    <!-- Clean Operasi Sub-Menus (Strictly 3 routes) -->
+    <!-- 1. Penerimaan Barang -->
     <menuitem id="menu_clinical_pbf_receipts"
-              name="Penerimaan Barang PBF"
+              name="Penerimaan Barang"
               parent="stock.menu_stock_warehouse_mgmt"
               action="action_picking_pbf_receipts"
               sequence="10"/>
 
-    <!-- Menu 2: Dispensing & Pengeluaran Medis -->
+    <!-- 2. Pengeluaran & Dispensing -->
     <menuitem id="menu_clinical_dispensing"
-              name="Dispensing &amp; Pengeluaran Medis"
+              name="Pengeluaran &amp; Dispensing"
               parent="stock.menu_stock_warehouse_mgmt"
               action="action_picking_outpatient_dispensing"
               sequence="20"/>
 
-    <!-- Menu 3: Mutasi Antar Depo -->
+    <!-- 3. Mutasi Antar Depo -->
     <menuitem id="menu_clinical_internal_transfers"
               name="Mutasi Antar Depo"
               parent="stock.menu_stock_warehouse_mgmt"
               action="action_picking_internal_depo_transfers"
               sequence="30"/>
 
-    <!-- Menu 4: Stock Opname & Audit Siklus (Physical Inventory) -->
-    <menuitem id="menu_clinical_stock_opname"
-              name="Stock Opname &amp; Audit Siklus"
-              parent="stock.menu_stock_warehouse_mgmt"
-              action="stock.action_view_quants"
-              sequence="40"/>
-
-    <!-- Menu 5: Parent Karantina & Pemusnahan Obat -->
-    <menuitem id="menu_clinical_quarantine_root"
-              name="Karantina &amp; Pemusnahan Obat"
-              parent="stock.menu_stock_warehouse_mgmt"
-              sequence="50"/>
-
-    <!-- Sub 5.1: Karantina Batch & Penarikan Obat -->
-    <menuitem id="menu_clinical_batch_recall"
-              name="Karantina Batch &amp; Penarikan Obat"
-              parent="menu_clinical_quarantine_root"
-              action="action_stock_lot_quarantine_recall"
-              sequence="1"/>
-
-    <!-- Sub 5.2: Catat Vaksin / Obat Terbuang (Open-Vial Spoilage Wizard) -->
-    <menuitem id="menu_clinical_spoilage_wizard"
-              name="Catat Vaksin / Obat Terbuang"
-              parent="menu_clinical_quarantine_root"
-              action="action_stock_scrap_clinic"
-              sequence="2"/>
+    <!-- Deactivate any legacy custom menus from previous builds to keep IA pure -->
+    <record id="menu_clinical_stock_opname" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="menu_clinical_quarantine_root" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
 
 </odoo>

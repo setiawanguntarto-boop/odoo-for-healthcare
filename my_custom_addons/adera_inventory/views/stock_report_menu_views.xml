@@ -4,9 +4,9 @@
     <!-- 1. ACTION WINDOW FOR STOCK VALUATION (PERPETUAL FIFO)                     -->
     <!-- ========================================================================= -->
 
-    <!-- Valuasi Persediaan (Stock Valuation - Grouped by Location & Product) -->
+    <!-- Valuasi Persediaan (Perpetual FIFO per Lokasi) -->
     <record id="action_clinic_stock_valuation" model="ir.actions.act_window">
-        <field name="name">Valuasi Persediaan (Perpetual FIFO)</field>
+        <field name="name">Valuasi Persediaan</field>
         <field name="res_model">stock.quant</field>
         <field name="view_mode">list,pivot</field>
         <field name="domain">[('location_id.usage', '=', 'internal')]</field>
@@ -16,18 +16,21 @@
         }</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
-                Pantau nilai buku persediaan obat dan BMHP secara perpetual FIFO.
-            </p>
-            <p>
-                Nilai total di layar ini mencerminkan saldo buku besar pada Akun 113010 (Persediaan Farmasi) dan Akun 113020 (Persediaan BMHP Hemodialisis).
+                Pantau nilai fisik persediaan obat dan BMHP secara perpetual FIFO per lokasi depo.
             </p>
         </field>
     </record>
 
 
     <!-- ========================================================================= -->
-    <!-- 2. REPORTING SUB-MENU RESTRUCTURING                                       -->
+    <!-- 2. REPORTING SUB-MENU RESTRUCTURING (Pelaporan)                           -->
     <!-- ========================================================================= -->
+
+    <!-- Rename and sequence Reporting parent menu -->
+    <record id="stock.menu_warehouse_report" model="ir.ui.menu">
+        <field name="name">Pelaporan</field>
+        <field name="sequence">40</field>
+    </record>
 
     <!-- Deactivate legacy reporting generic submenus -->
     <record id="stock.stock_move_line_menu" model="ir.ui.menu">
@@ -43,39 +46,34 @@
         <field name="active" eval="False"/>
     </record>
 
-    <!-- Menu 1: Valuasi Persediaan -->
+    <!-- Clean Pelaporan Sub-Menus (Strictly 3 routes) -->
+    <!-- 1. Valuasi Persediaan -->
     <menuitem id="menu_clinic_stock_valuation"
               name="Valuasi Persediaan"
               parent="stock.menu_warehouse_report"
               action="action_clinic_stock_valuation"
               sequence="10"/>
 
-    <!-- Menu 2: Analisis Kedaluwarsa & Batch -->
+    <!-- 2. Analisis Kedaluwarsa -->
     <menuitem id="menu_clinic_lot_aging_report"
-              name="Analisis Kedaluwarsa &amp; Batch"
+              name="Analisis Kedaluwarsa"
               parent="stock.menu_warehouse_report"
               action="action_stock_lot_aging_report"
               sequence="20"/>
 
-    <!-- Menu 3: Riwayat Pergerakan Stok (Audit Trail) -->
+    <!-- 3. Riwayat Pergerakan Stok -->
     <menuitem id="menu_clinic_stock_moves_history"
               name="Riwayat Pergerakan Stok"
               parent="stock.menu_warehouse_report"
               action="stock.stock_move_action"
               sequence="30"/>
 
-    <!-- Menu 4: Kartu Stok & Keterlacakan Pasien -->
-    <menuitem id="menu_clinic_lot_traceability_patient"
-              name="Kartu Stok &amp; Keterlacakan Pasien"
-              parent="stock.menu_warehouse_report"
-              action="action_stock_lot_traceability_report"
-              sequence="40"/>
-
-    <!-- Menu 5: Laporan Selisih Stock Opname -->
-    <menuitem id="menu_clinic_stock_inventory_variance"
-              name="Laporan Selisih Stock Opname"
-              parent="stock.menu_warehouse_report"
-              action="action_stock_inventory_variance"
-              sequence="50"/>
+    <!-- Deactivate extra specialized reports from direct menu to maintain strict 3-route clean IA -->
+    <record id="menu_clinic_lot_traceability_patient" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="menu_clinic_stock_inventory_variance" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
 
 </odoo>
