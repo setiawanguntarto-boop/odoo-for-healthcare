@@ -5,17 +5,35 @@
         <field name="model">pos.session</field>
         <field name="inherit_id" ref="point_of_sale.view_pos_session_form"/>
         <field name="arch" type="xml">
+            <!-- Header Supervisor Action Button -->
+            <xpath expr="//header" position="inside">
+                <button name="action_supervisor_approve_variance"
+                        string="Otorisasi Supervisor Kasir"
+                        type="object"
+                        class="btn-warning"
+                        invisible="state == 'closed' or cash_variance_amount == 0"
+                        groups="point_of_sale.group_pos_manager,adera_core.group_clinic_director"/>
+            </xpath>
+
+            <!-- Blind Count Governance Fields -->
             <xpath expr="//field[@name='stop_at']" position="after">
                 <field name="is_blind_count_mode" widget="boolean_toggle"/>
-                <field name="blind_count_cash_counted"
-                       invisible="state == 'closed' and not is_blind_count_mode"/>
-                <field name="cash_variance" widget="monetary"
-                       decoration-danger="cash_variance != 0"
-                       invisible="state != 'closed'"/>
-                <field name="variance_reason"
-                       invisible="cash_variance == 0"/>
+                <field name="blind_count_physical_total" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                <field name="cash_variance_amount" widget="monetary" options="{'currency_field': 'currency_id'}"
+                       decoration-danger="cash_variance_amount &lt; -50000 or cash_variance_amount &gt; 50000"
+                       decoration-warning="cash_variance_amount != 0 and abs(cash_variance_amount) &lt;= 50000"
+                       decoration-success="cash_variance_amount == 0"/>
+                <field name="variance_tolerance_limit" widget="monetary" options="{'currency_field': 'currency_id'}"
+                       groups="point_of_sale.group_pos_manager,adera_core.group_clinic_director"/>
+                <field name="supervisor_override_user_id"
+                       invisible="not supervisor_override_user_id"/>
+                <field name="discrepancy_reason"
+                       required="abs(cash_variance_amount) &gt; variance_tolerance_limit"
+                       invisible="cash_variance_amount == 0"/>
+                <field name="variance_move_id"
+                       readonly="1"
+                       invisible="not variance_move_id"/>
             </xpath>
         </field>
     </record>
 </odoo>
-

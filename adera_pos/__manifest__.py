@@ -20,8 +20,13 @@
         'views/pos_order_views.xml',
         'views/pos_session_views.xml',
     ],
+    'assets': {
+        'point_of_sale._assets_pos': [
+            'adera_pos/static/src/js/close_pos_blind_count.js',
+            'adera_pos/static/src/xml/close_pos_blind_count.xml',
+        ],
+    },
     'installable': True,
     'application': False,
     'auto_install': False,
 }
-

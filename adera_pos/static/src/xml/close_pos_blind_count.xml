@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <!-- Extend ClosePosPopup for Blind Count Protocol -->
+    <t t-name="adera_pos.ClosePosBlindCount" t-inherit="point_of_sale.ClosePosPopup" t-inherit-mode="extension">
+
+        <!-- 1. Hide System Expected Cash & Difference when Blind-Count is active and user is not supervisor -->
+        <xpath expr="//div[hasclass('payment-methods-overview')]" position="replace">
+            <div class="payment-methods-overview">
+                <!-- If Manager / Supervisor, show full transparency overview -->
+                <div t-if="isSupervisorUser and pos.config.cash_control" class="w-100 mb-3 border p-2 rounded bg-light">
+                    <div class="badge bg-primary mb-2">Tampilan Supervisor (Otorisasi Aktif)</div>
+                    <t t-set="diff" t-value="getDifference(props.default_cash_details.id)" />
+                    <t t-set="counted" t-value="state.payments[props.default_cash_details.id]?.counted || '0'" />
+                    <div class="d-flex align-items-center justify-content-between fs-4 fw-bold">
+                        <span>Saldo Kas Sistem (Expected)</span>
+                        <span class="text-primary" t-esc="env.utils.formatCurrency(props.default_cash_details.amount)" />
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between text-muted border-start ps-2">
+                        <span>Modal Awal (Opening)</span>
+                        <span t-esc="env.utils.formatCurrency(props.default_cash_details.opening)" />
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between text-muted border-start ps-2">
+                        <span>Fisik Dihitung (Counted)</span>
+                        <span t-esc="env.utils.formatCurrency(env.utils.parseValidFloat(counted))" />
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between border-start ps-2 pt-1" t-att-class="{'text-danger fw-bold fs-5': diff, 'text-success': !diff}">
+                        <span>Selisih Fisik vs Sistem</span>
+                        <span class="cash-difference" t-esc="env.utils.formatCurrency(diff)" />
+                    </div>
+                </div>
+
+                <!-- Blind Count Notice for Cashiers -->
+                <div t-if="!isSupervisorUser and pos.config.cash_control" class="alert alert-info d-flex align-items-center justify-content-between mb-3">
+                    <div>
+                        <i class="fa fa-shield fa-2x me-2 align-middle text-primary"></i>
+                        <span class="align-middle fw-bold">Protokol Blind-Count Aktif:</span>
+                        <span class="align-middle ms-1">Saldo sistem disembunyikan. Hitung fisik uang di laci kasir secara teliti.</span>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-secondary ms-2" t-on-click="unlockSupervisorVariance">
+                        <i class="fa fa-lock me-1"></i>Otorisasi Supervisor
+                    </button>
+                </div>
+
+                <!-- Non-Cash Payment Methods (QRIS, Bank, BPJS) -->
+                <div class="w-100 mb-2" t-foreach="props.non_cash_payment_methods" t-as="pm" t-key="pm.id">
+                    <t t-set="_showDiff" t-value="pm.type === 'bank' and pm.number !== 0" />
+                    <t t-set="diff" t-value="_showDiff ? getDifference(pm.id) : 0" />
+                    <t t-set="counted" t-value="_showDiff ? env.utils.parseValidFloat(state.payments[pm.id].counted) : 0" />
+                    <div class="d-flex align-items-center justify-content-between fs-5">
+                        <span t-esc="pm.name" />
+                        <span t-esc="env.utils.formatCurrency(pm.amount)" />
+                    </div>
+                    <div t-if="isSupervisorUser" class="d-flex align-items-center justify-content-between text-muted border-start ps-2">
+                        <span>Counted</span>
+                        <span t-esc="env.utils.formatCurrency(counted)" />
+                    </div>
+                    <div t-if="isSupervisorUser and diff" class="d-flex align-items-center justify-content-between text-muted border-start ps-2 text-danger fw-bold">
+                        <span>Difference</span>
+                        <span t-esc="env.utils.formatCurrency(diff)" />
+                    </div>
+                </div>
+            </div>
+        </xpath>
+
+        <!-- 2. Denomination Breakdown Grid for Blind Count -->
+        <xpath expr="//div[hasclass('mb-3') and t-if='pos.config.cash_control']" position="replace">
+            <div t-if="pos.config.cash_control" class="mb-3 border rounded p-3 bg-white shadow-sm">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h5 class="m-0 fw-bold text-dark"><i class="fa fa-money me-2 text-success"></i>Tabel Pecahan Fisik Uang (Denomination Grid)</h5>
+                    <span class="fs-4 fw-bold text-success">Total: <t t-esc="env.utils.formatCurrency(physicalDenominationTotal)"/></span>
+                </div>
+                <p class="text-muted small mb-3">Masukkan jumlah lembar / keping uang hasil penghitungan fisik langsung dari laci kasir:</p>
+
+                <div class="row g-2">
+                    <!-- Rp 100.000 -->
+                    <div class="col-6 col-md-3">
+                        <label class="form-label small fw-bold text-danger m-0">Rp 100.000</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text"><i class="fa fa-money"></i></span>
+                            <input type="number" min="0" class="form-control text-end fw-bold" placeholder="0 lbr"
+                                   t-att-value="blindState.denominations.d100k"
+                                   t-on-input="(ev) => this.onDenominationChange('d100k', ev.target.value)"/>
+                        </div>
+                    </div>
+                    <!-- Rp 50.000 -->
+                    <div class="col-6 col-md-3">
+                        <label class="form-label small fw-bold text-primary m-0">Rp 50.000</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text"><i class="fa fa-money"></i></span>
+                            <input type="number" min="0" class="form-control text-end fw-bold" placeholder="0 lbr"
+                                   t-att-value="blindState.denominations.d50k"
+                                   t-on-input="(ev) => this.onDenominationChange('d50k', ev.target.value)"/>
+                        </div>
+                    </div>
+                    <!-- Rp 20.000 -->
+                    <div class="col-6 col-md-3">
+                        <label class="form-label small fw-bold text-success m-0">Rp 20.000</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text"><i class="fa fa-money"></i></span>
+                            <input type="number" min="0" class="form-control text-end fw-bold" placeholder="0 lbr"
+                                   t-att-value="blindState.denominations.d20k"
+                                   t-on-input="(ev) => this.onDenominationChange('d20k', ev.target.value)"/>
+                        </div>
+                    </div>
+                    <!-- Rp 10.000 -->
+                    <div class="col-6 col-md-3">
+                        <label class="form-label small fw-bold text-purple m-0">Rp 10.000</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text"><i class="fa fa-money"></i></span>
+                            <input type="number" min="0" class="form-control text-end fw-bold" placeholder="0 lbr"
+                                   t-att-value="blindState.denominations.d10k"
+                                   t-on-input="(ev) => this.onDenominationChange('d10k', ev.target.value)"/>
+                        </div>
+                    </div>
+
+                    <!-- Rp 5.000 -->
+                    <div class="col-6 col-md-3">
+                        <label class="form-label small fw-bold text-warning m-0">Rp 5.000</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text"><i class="fa fa-money"></i></span>
+                            <input type="number" min="0" class="form-control text-end fw-bold" placeholder="0 lbr"
+                                   t-att-value="blindState.denominations.d5k"
+                                   t-on-input="(ev) => this.onDenominationChange('d5k', ev.target.value)"/>
+                        </div>
+                    </div>
+                    <!-- Rp 2.000 -->
+                    <div class="col-6 col-md-3">
+                        <label class="form-label small fw-bold text-secondary m-0">Rp 2.000</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text"><i class="fa fa-money"></i></span>
+                            <input type="number" min="0" class="form-control text-end fw-bold" placeholder="0 lbr"
+                                   t-att-value="blindState.denominations.d2k"
+                                   t-on-input="(ev) => this.onDenominationChange('d2k', ev.target.value)"/>
+                        </div>
+                    </div>
+                    <!-- Rp 1.000 -->
+                    <div class="col-6 col-md-3">
+                        <label class="form-label small fw-bold text-secondary m-0">Rp 1.000</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text"><i class="fa fa-money"></i></span>
+                            <input type="number" min="0" class="form-control text-end fw-bold" placeholder="0 lbr"
+                                   t-att-value="blindState.denominations.d1k"
+                                   t-on-input="(ev) => this.onDenominationChange('d1k', ev.target.value)"/>
+                        </div>
+                    </div>
+                    <!-- Koin / Receh -->
+                    <div class="col-6 col-md-3">
+                        <label class="form-label small fw-bold text-dark m-0">Total Koin / Receh (Rp)</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text"><i class="fa fa-circle"></i></span>
+                            <input type="number" min="0" class="form-control text-end fw-bold" placeholder="0"
+                                   t-att-value="blindState.denominations.coins"
+                                   t-on-input="(ev) => this.onDenominationChange('coins', ev.target.value)"/>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fast Input / Direct Entry Fallback -->
+                <div class="d-flex align-items-center justify-content-between mt-3 pt-2 border-top">
+                    <span class="text-muted small">Atau input langsung total kas dihitung:</span>
+                    <div class="d-flex gap-2">
+                        <Input tModel="[state.payments[props.default_cash_details.id], 'counted']"
+                               callback.bind="(value) => this.setManualCashInput(value)"
+                               isValid.bind="env.utils.isValidFloat" class="'cash-input form-control-sm'"/>
+                    </div>
+                </div>
+            </div>
+        </xpath>
+
+    </t>
+
+</templates>
