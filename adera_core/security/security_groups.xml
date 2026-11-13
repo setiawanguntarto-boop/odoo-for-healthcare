@@ -11,9 +11,19 @@
         <field name="implied_ids" eval="[(4, ref('adera_core.group_claims_admin'))]"/>
     </record>
 
+    <record id="group_clinic_doctor" model="res.groups">
+        <field name="name">Tata Kelola Klinik: Dokter Spesialis &amp; Praktik</field>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
     <record id="group_pharmacy_pic" model="res.groups">
         <field name="name">Tata Kelola Klinik: Apoteker Penanggung Jawab (PJ Farmasi)</field>
         <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <record id="group_clinic_finance_manager" model="res.groups">
+        <field name="name">Tata Kelola Klinik: Manajer Keuangan &amp; Akuntansi</field>
+        <field name="implied_ids" eval="[(4, ref('adera_core.group_claims_admin'))]"/>
     </record>
 
     <record id="group_medical_manager" model="res.groups">
@@ -23,6 +33,6 @@
 
     <record id="group_clinic_director" model="res.groups">
         <field name="name">Tata Kelola Klinik: Direktur Klinik &amp; Keuangan</field>
-        <field name="implied_ids" eval="[(4, ref('adera_core.group_medical_manager'))]"/>
+        <field name="implied_ids" eval="[(4, ref('adera_core.group_medical_manager')), (4, ref('adera_core.group_clinic_finance_manager'))]"/>
     </record>
 </odoo>

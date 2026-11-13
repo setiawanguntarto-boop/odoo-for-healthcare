@@ -32,9 +32,11 @@
                     <button name="action_load_fee_lines" string="Tarik Jasa Medis (Load Accruals)"
                             type="object" class="oe_highlight" invisible="state != 'draft'"/>
                     <button name="action_approve" string="Setujui Direksi"
-                            type="object" class="oe_highlight" invisible="state != 'calculated'"/>
+                            type="object" class="oe_highlight" invisible="state != 'calculated'"
+                            groups="adera_core.group_clinic_director"/>
                     <button name="action_post_disbursement" string="Posting Pembayaran &amp; Potong PPh 21"
-                            type="object" class="oe_highlight" invisible="state != 'approved'"/>
+                            type="object" class="oe_highlight" invisible="state != 'approved'"
+                            groups="adera_core.group_clinic_director"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,calculated,approved,paid"/>
                 </header>
                 <sheet>

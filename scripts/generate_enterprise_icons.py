@@ -292,3 +292,4 @@ if __name__ == '__main__':
     generate_clinic_bridge_icon("/mnt/extra-addons/adera_clinic_bridge/static/description/icon.png")
     generate_clinic_core_icon("/mnt/extra-addons/adera_core/static/description/icon.png")
     print("\nALL 5 ENTERPRISE SQUIRCLE ICONS CREATED SUCCESSFULLY!")
+

@@ -38,8 +38,12 @@
                             type="object" class="btn-primary" invisible="state != 'draft'"/>
 
                     <button name="action_approve" string="Setujui"
-                            type="object" class="btn-success" invisible="state not in ['draft', 'verified', 'approved']"
+                            type="object" class="btn-success" invisible="state not in ['draft', 'verified']"
                             groups="adera_core.group_clinic_director,adera_doctor_remuneration.group_medical_manager"/>
+
+                    <button name="action_finance_approve_and_pay" string="Posting Pembayaran"
+                            type="object" class="btn-primary" invisible="state != 'approved'"
+                            groups="adera_core.group_clinic_director"/>
 
                     <button name="action_reject" string="Tolak / Minta Revisi"
                             type="object" class="btn-danger" invisible="state in ('draft', 'paid', 'cancelled')"

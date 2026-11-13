@@ -21,5 +21,30 @@
             </xpath>
         </field>
     </record>
+
+    <!-- Inherit POS Order Search View to add Clinic Group By and Filters -->
+    <record id="view_pos_order_search_inherit_adera" model="ir.ui.view">
+        <field name="name">pos.order.search.inherit.adera</field>
+        <field name="model">pos.order</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_order_search"/>
+        <field name="arch" type="xml">
+            <field name="config_id" position="after">
+                <field name="medical_record_no"/>
+                <field name="sep_claim_number"/>
+                <field name="encounter_reference"/>
+                <field name="patient_id"/>
+                <field name="payer_type"/>
+                <separator/>
+                <filter string="Pasien Umum (Self-Pay)" name="filter_self_pay" domain="[('payer_type', '=', 'self_pay')]"/>
+                <filter string="Pasien BPJS" name="filter_bpjs" domain="[('payer_type', '=', 'bpjs')]"/>
+                <filter string="Asuransi / Split Co-Pay" name="filter_split" domain="[('payer_type', 'in', ['insurance', 'split'])]"/>
+                <group>
+                    <filter string="Tanggal Transaksi (Hari)" name="group_date_day" context="{'group_by': 'date_order:day'}"/>
+                    <filter string="Tipe Penjamin" name="group_payer_type" context="{'group_by': 'payer_type'}"/>
+                    <filter string="Sesi Kasir" name="group_session" context="{'group_by': 'session_id'}"/>
+                </group>
+            </field>
+        </field>
+    </record>
 </odoo>
 
