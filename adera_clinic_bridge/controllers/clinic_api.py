@@ -10,10 +10,11 @@ _logger = logging.getLogger(__name__)
 
 class ClinicApiController(http.Controller):
 
-    def _authenticate(self):
-        """Verifikasi token via header X-ADERA-API-KEY atau Authorization Bearer."""
+    def _authenticate(self, raw_body=b""):
+        """Verifikasi token via Authorization Bearer, X-ADERA-API-KEY, atau HMAC Signature (X-Adera-Signature)."""
         auth_header = request.httprequest.headers.get('Authorization', '')
         custom_key_header = request.httprequest.headers.get('X-ADERA-API-KEY', '')
+        hmac_sig = request.httprequest.headers.get('X-Adera-Signature', '')
 
         token = False
         if custom_key_header:
@@ -21,34 +22,36 @@ class ClinicApiController(http.Controller):
         elif auth_header.startswith('Bearer '):
             token = auth_header.replace('Bearer ', '').strip()
 
+        env = request.env(user=SUPERUSER_ID)
+        sys_token = env['ir.config_parameter'].get_param('adera_clinic_bridge.api_token', 'adera_secret_token_2026')
+
+        # 1. HMAC Verification if signature header provided
+        if hmac_sig and raw_body:
+            import hmac
+            import hashlib
+            expected_sig = hmac.new(sys_token.encode('utf-8'), raw_body, hashlib.sha256).hexdigest()
+            if hmac.compare_digest(hmac_sig.lower().strip(), expected_sig.lower().strip()):
+                return True
+
         if not token:
             return False
 
-        env = request.env(user=SUPERUSER_ID)
-        # Verifikasi terhadap adera.api.config atau system parameter
+        # 2. Verifikasi terhadap adera.api.config atau system parameter
         config = env['adera.api.config'].search([('api_key', '=', token), ('active', '=', True)], limit=1)
         if config:
             config.last_accessed = fields.Datetime.now()
             return True
 
         # Fallback default key
-        sys_token = env['ir.config_parameter'].get_param('adera_clinic_bridge.api_token', 'adera_secret_token_2026')
         return token == sys_token
 
     @http.route('/api/v1/clinic/encounter/sync', type='http', auth='none', methods=['POST'], csrf=False)
     def sync_clinic_encounter(self, **kwargs):
         """Inbound webhook receiver untuk kunjungan pasien dari Electronic Health Record (EHR)."""
-        # 1. Autentikasi API Key
-        if not self._authenticate():
-            return request.make_json_response({
-                'status': 'error',
-                'code': 401,
-                'message': 'Unauthorized: API Key atau Bearer Token tidak valid.'
-            }, status=401)
-
-        # 2. Parsing Payload
+        # 1. Parsing Payload & Raw Body
         try:
-            raw_data = request.httprequest.get_data().decode('utf-8')
+            raw_body = request.httprequest.get_data()
+            raw_data = raw_body.decode('utf-8')
             payload = json.loads(raw_data)
         except Exception as e:
             return request.make_json_response({
@@ -57,15 +60,32 @@ class ClinicApiController(http.Controller):
                 'message': f"Bad Request: Format JSON tidak valid ({str(e)})."
             }, status=400)
 
-        ext_id = payload.get('external_encounter_id') or payload.get('encounter_ref')
-        patient_mrn = payload.get('patient', {}).get('mrn') or payload.get('patient_mrn')
-        patient_name = payload.get('patient', {}).get('name') or payload.get('patient_name')
+        # 2. Autentikasi API Key / HMAC
+        if not self._authenticate(raw_body=raw_body):
+            return request.make_json_response({
+                'status': 'error',
+                'code': 401,
+                'message': 'Unauthorized: API Key, Bearer Token, atau X-Adera-Signature tidak valid.'
+            }, status=401)
+
+        # Support both flat and nested 'data' payload structure
+        data_block = payload.get('data') if isinstance(payload.get('data'), dict) else payload
+
+        ext_id = (
+            data_block.get('encounter_id') or
+            data_block.get('external_encounter_id') or
+            data_block.get('encounter_ref') or
+            payload.get('external_encounter_id')
+        )
+        patient_block = data_block.get('patient', {})
+        patient_mrn = patient_block.get('mrn') or data_block.get('patient_mrn')
+        patient_name = patient_block.get('name') or data_block.get('patient_name')
 
         if not ext_id or not patient_mrn:
             return request.make_json_response({
                 'status': 'error',
                 'code': 400,
-                'message': 'Bad Request: Key external_encounter_id dan patient.mrn wajib disertakan.'
+                'message': 'Bad Request: Key encounter_id (atau external_encounter_id) dan patient.mrn wajib disertakan.'
             }, status=400)
 
         env = request.env(user=SUPERUSER_ID)
@@ -95,25 +115,85 @@ class ClinicApiController(http.Controller):
 
         # 4. Ingest ke Staging Ledger
         try:
-            unit = 'hd' if payload.get('business_unit') in ('KLINIK_UTAMA_HD', 'hd') else 'pratama'
-            poli = payload.get('poli_code', 'umum')
-            payer = payload.get('payer_type', 'cash')
-            sep = payload.get('sep_claim_number') or payload.get('claim_number')
+            # Service unit / business unit mapping
+            service_unit_val = data_block.get('service_unit') or data_block.get('business_unit', '')
+            unit = 'hd' if service_unit_val in ('hemodialysis', 'KLINIK_UTAMA_HD', 'hd') else 'pratama'
+            
+            # Poli code mapping
+            poli_val = data_block.get('poli_code', 'umum').lower()
+            if 'hd' in poli_val or unit == 'hd':
+                poli = 'hd_special' if 'special' in poli_val or 'vip' in poli_val else 'hd_routine'
+            elif 'gigi' in poli_val or 'dental' in poli_val:
+                poli = 'gigi'
+            elif 'kia' in poli_val:
+                poli = 'kia'
+            elif 'lab' in poli_val:
+                poli = 'lab'
+            elif 'rad' in poli_val:
+                poli = 'rad'
+            elif 'farm' in poli_val:
+                poli = 'farmasi'
+            else:
+                poli = 'umum'
 
+            # Payer type & split payment resolution
+            billing_block = data_block.get('billing', {})
+            payment_splits = billing_block.get('payment_split', [])
+            sep = data_block.get('sep_claim_number') or data_block.get('claim_number')
+
+            if payment_splits:
+                if len(payment_splits) > 1:
+                    payer = 'split'
+                else:
+                    pm = payment_splits[0].get('payment_method', '').lower()
+                    if 'bpjs' in pm:
+                        payer = 'bpjs'
+                    elif 'qris' in pm or 'bank' in pm or 'transfer' in pm:
+                        payer = 'qris'
+                    else:
+                        payer = 'cash'
+                
+                # Check for claim number in split payment
+                for ps in payment_splits:
+                    if ps.get('claim_number') and not sep:
+                        sep = ps.get('claim_number')
+            else:
+                payer = data_block.get('payer_type', 'cash')
+
+            # Doctor resolution
             doctor_rec = False
-            doc_data = payload.get('doctor', {})
-            doc_sip = doc_data.get('sip_number')
+            doc_data = data_block.get('attending_physician') or data_block.get('doctor', {})
+            doc_sip = doc_data.get('sip_number') or doc_data.get('doctor_id')
             doc_name = doc_data.get('name')
             doc_nik = doc_data.get('nik')
             doc_npwp = doc_data.get('npwp') or doc_data.get('vat')
-            doc_role = doc_data.get('role') or payload.get('doctor_role')
-            if doc_sip:
-                doctor_rec = env['res.partner'].search([('sip_number', '=', doc_sip)], limit=1)
-                doc_type = 'specialist_hd' if (unit == 'hd' or doc_role == 'subspecialist_hd') else 'general'
+            doc_role_raw = doc_data.get('specialty') or doc_data.get('role') or data_block.get('doctor_role', '')
+
+            # Normalize doctor_role to clinic.encounter selection
+            doc_role = 'general_practitioner'
+            if 'hd' in str(doc_role_raw).lower() or unit == 'hd':
+                doc_role = 'subspecialist_hd'
+            elif 'dentist' in str(doc_role_raw).lower() or 'gigi' in str(doc_role_raw).lower():
+                doc_role = 'dentist'
+            elif 'specialist' in str(doc_role_raw).lower() or 'spesialis' in str(doc_role_raw).lower():
+                doc_role = 'specialist'
+            else:
+                doc_role = 'general_practitioner'
+
+            if doc_sip or doc_name:
+                search_domain = []
+                if doc_sip:
+                    search_domain = ['|', ('sip_number', '=', doc_sip), ('ref', '=', doc_sip)]
+                elif doc_name:
+                    search_domain = [('name', 'ilike', doc_name.replace('dr. ', '').replace('dr.', '').strip())]
+
+                doctor_rec = env['res.partner'].search(search_domain, limit=1) if search_domain else False
+                doc_type = 'specialist_hd' if (unit == 'hd' or doc_role in ('subspecialist_hd', 'specialist_hd')) else 'general'
+
                 if not doctor_rec and doc_name:
                     doc_vals = {
                         'name': doc_name,
-                        'sip_number': doc_sip,
+                        'sip_number': doc_sip or False,
                         'is_doctor': True,
                         'doctor_type': doc_type,
                     }
@@ -123,13 +203,13 @@ class ClinicApiController(http.Controller):
                         doc_vals['ref'] = doc_nik
                     doctor_rec = env['res.partner'].create(doc_vals)
                 elif doctor_rec:
-                    if doctor_rec.doctor_type != doc_type and unit == 'pratama':
-                        doctor_rec.doctor_type = 'general'
                     if doc_npwp and not doctor_rec.vat:
                         doctor_rec.vat = doc_npwp
+                    if doc_nik and not doctor_rec.ref:
+                        doctor_rec.ref = doc_nik
 
             # Safe parse ISO encounter_datetime
-            raw_dt = payload.get('encounter_datetime')
+            raw_dt = data_block.get('encounter_date') or data_block.get('encounter_datetime')
             encounter_dt = fields.Datetime.now()
             if raw_dt:
                 try:
@@ -140,10 +220,10 @@ class ClinicApiController(http.Controller):
                             if dt_obj.tzinfo:
                                 dt_obj = dt_obj.astimezone(timezone.utc).replace(tzinfo=None)
                             encounter_dt = dt_obj.strftime('%Y-%m-%d %H:%M:%S')
+                        elif len(raw_dt) == 10:  # YYYY-MM-DD
+                            encounter_dt = f"{raw_dt} 00:00:00"
                         else:
                             encounter_dt = raw_dt
-                    else:
-                        encounter_dt = raw_dt
                 except Exception:
                     encounter_dt = fields.Datetime.now()
 
@@ -162,17 +242,32 @@ class ClinicApiController(http.Controller):
                 'state': 'received',
             })
 
-            # Buat Encounter Lines
-            items = payload.get('billing_items', [])
+            # Line Items resolution (support both 'billing.lines' and 'billing_items')
+            items = billing_block.get('lines', []) or data_block.get('billing_items', [])
             for item in items:
-                prod = env['product.product'].search([('default_code', '=', item.get('code'))], limit=1)
-                if not prod and item.get('code'):
-                    item_type = item.get('item_type', 'procedure')
-                    prod_type = 'consu' if item_type == 'medication' else 'service'
-                    is_storable = True if item_type == 'medication' else False
+                item_code = item.get('item_code') or item.get('code')
+                item_type = item.get('line_type') or item.get('item_type', 'procedure')
+                
+                # Normalize line_type to clinic.encounter.line selection
+                line_type_norm = 'procedure'
+                if item_type in ('medication', 'medicine', 'obat'):
+                    line_type_norm = 'medication'
+                elif item_type in ('consumable', 'bhp'):
+                    line_type_norm = 'bhp'
+                elif item_type in ('consultation', 'konsul'):
+                    line_type_norm = 'consultation'
+                elif item_type in ('lab', 'laboratory'):
+                    line_type_norm = 'lab'
+                elif item_type in ('rad', 'radiology'):
+                    line_type_norm = 'rad'
+
+                prod = env['product.product'].search([('default_code', '=', item_code)], limit=1) if item_code else False
+                if not prod and item_code:
+                    prod_type = 'consu' if line_type_norm in ('medication', 'bhp') else 'service'
+                    is_storable = True if line_type_norm in ('medication', 'bhp') else False
                     prod = env['product.product'].create({
-                        'name': item.get('name', item.get('code')),
-                        'default_code': item.get('code'),
+                        'name': item.get('item_name') or item.get('name', item_code),
+                        'default_code': item_code,
                         'type': prod_type,
                         'is_storable': is_storable,
                         'list_price': item.get('unit_price', 0.0),
@@ -198,7 +293,7 @@ class ClinicApiController(http.Controller):
                             "status": "error",
                             "code": 422,
                             "error": "MEDICAL_SAFETY_ALERT_BATCH_QUARANTINED",
-                            "message": f"Ditolak: Obat '{prod.name}' dengan Nomor Batch '{lot.name}' berada dalam status KARANTINA / BATCH RECALL ({reason_desc}). Obat ini dilarang keras diberikan kepada pasien!",
+                            "message": f"Ditolak: Obat/BHP '{prod.name}' dengan Nomor Batch '{lot.name}' berada dalam status KARANTINA / BATCH RECALL ({reason_desc}). Dilarang keras diberikan kepada pasien!",
                             "quarantined_lot": lot.name,
                             "product": prod.name,
                             "quarantine_reason": reason_desc,
@@ -212,9 +307,9 @@ class ClinicApiController(http.Controller):
 
                 env['clinic.encounter.line'].create({
                     'encounter_id': encounter.id,
-                    'product_id': prod.id,
-                    'line_type': item.get('item_type', 'procedure'),
-                    'qty': item.get('qty', 1.0),
+                    'product_id': prod.id if prod else False,
+                    'line_type': line_type_norm,
+                    'qty': item.get('quantity') or item.get('qty', 1.0),
                     'unit_price': item.get('unit_price', 0.0),
                     'lot_id': lot.id if lot else False,
                     'doctor_id': doctor_rec.id if doctor_rec else False,
@@ -233,6 +328,7 @@ class ClinicApiController(http.Controller):
                 'encounter_ref': encounter.name,
                 'external_encounter_id': encounter.external_encounter_id,
                 'state': encounter.state,
+                'invoice_id': encounter.account_move_id.id if encounter.account_move_id else False,
                 'invoice_number': encounter.account_move_id.name if encounter.account_move_id else False,
                 'picking_number': encounter.stock_picking_id.name if encounter.stock_picking_id else False,
             }, status=201)
