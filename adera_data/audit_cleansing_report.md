@@ -144,3 +144,4 @@ Execution within container finished. Success: True
 ## 7. SIGN-OFF & GO-LIVE AUTHORIZATION
 
 The sanitized datasets located in `c:\odoo\my_custom_addons\adera_data\sanitized\` are declared mathematically sound, legally compliant with Indonesian healthcare & tax statutes, and fully approved for production cut-over execution via `migrate_opening_balances.py`.
+

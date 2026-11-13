@@ -1,0 +1,8 @@
+product_code,product_name,dialyzer_type_or_item,manufacturer_lot_number,sterilization_expiry_date,physical_qty_boxes,packaging_conversion_factor,base_quantity,uom_name,storage_location,shelf_zone,counter_nurse_initials,head_nurse_hd_initials,audit_notes
+HD-DIAL-140H,High-Flux Dialyzer Single-Use (HIPS 1.4m2),High-Flux Polysulfone 1.4m2,,,,24,,Unit,WH/Stock/HD,RACK-HD-DIALYZER-A,,,Sterilisasi Kritis | Kemasan: Box isi 24 dialyzer steril
+HD-DIAL-180H,High-Flux Dialyzer Single-Use (HIPS 1.8m2),High-Flux Polysulfone 1.8m2,,,,24,,Unit,WH/Stock/HD,RACK-HD-DIALYZER-B,,,Sterilisasi Kritis | Kemasan: Box isi 24 dialyzer steril
+HD-BLD-LINE,Blood Tubing Set AV Line for Hemodialysis,Arterial & Venous Bloodline Set,,,,30,,Set,WH/Stock/HD,RACK-HD-BLOODLINE,,,Sterilisasi Kritis | Kemasan: Box isi 30 set steril
+HD-AVF-16G,AV Fistula Needle 16G Backeye Fixed Wing,Fistula Needle 16 Gauge,,,,50,,Pasang,WH/Stock/HD,RACK-HD-NEEDLE,,,Sterilisasi Kritis | Kemasan: Box isi 50 pasang jarum AVF
+HD-ACID-10L,Cairan Acidic Hemodialisis Plus 10 Liter,Liquid Acidic Concentrate Gallon,,,,1,,Jerigen,WH/Stock/HD,PALLET-HD-CONCENTRATE-ACID,,,Sterilisasi Kritis | Kemasan: Jerigen 10 Liter
+HD-BICARB-CAR,Sodium Bicarbonate Dry Cartridge 650g,Online Bicarbonate Cartridge,,,,10,,Pcs,WH/Stock/HD,PALLET-HD-CONCENTRATE-BIC,,,Sterilisasi Kritis | Kemasan: Box isi 10 cartridge
+HD-HEP-5000,Heparin Sodium Injection 5000 IU/ml 5ml,Anticoagulant Vial,,,,10,,Vial,WH/Stock/HD,CHILLER-HD-MED (2-8 C),,,Sterilisasi Kritis | Kemasan: Box isi 10 vial @ 5ml

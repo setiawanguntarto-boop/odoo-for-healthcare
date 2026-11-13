@@ -1,0 +1,8 @@
+product_code,product_name,dialyzer_type_or_item,manufacturer_lot_number,sterilization_expiry_date,physical_qty_boxes,packaging_conversion_factor,base_quantity,uom_name,storage_location,shelf_zone,counter_nurse_initials,head_nurse_hd_initials,audit_notes
+HD-DIAL-140H,High-Flux Dialyzer Single-Use (HIPS 1.4m2),High-Flux Polysulfone 1.4m2,LOT-NP-260812,2028-08-31,5,24,120,Unit,WH/Stock/HD,RACK-HD-DIALYZER-A,NRS,HN,Sterilisasi EO Utuh
+HD-DIAL-180H,High-Flux Dialyzer Single-Use (HIPS 1.8m2),High-Flux Polysulfone 1.8m2,LOT-NP-260905,2028-09-30,3,24,72,Unit,WH/Stock/HD,RACK-HD-DIALYZER-B,NRS,HN,Sterilisasi EO Utuh
+HD-BLD-LINE,Blood Tubing Set AV Line for Hemodialysis,Arterial & Venous Bloodline Set,LOT-FM-241018,2028-10-31,10,30,300,Set,WH/Stock/HD,RACK-HD-BLOODLINE,NRS,HN,Kemasan Primer Rapat
+HD-AVF-16G,AV Fistula Needle 16G Backeye Fixed Wing,Fistula Needle 16 Gauge,LOT-JM-240702,2029-07-31,10,50,500,Pasang,WH/Stock/HD,RACK-HD-NEEDLE,NRS,HN,Steril
+HD-ACID-10L,Cairan Acidic Hemodialisis Plus 10 Liter,Liquid Acidic Concentrate Gallon,LOT-BR-241029,2027-10-31,60,1,60,Jerigen,WH/Stock/HD,PALLET-HD-CONCENTRATE-ACID,NRS,HN,Jerigen Segel Utuh
+HD-BICARB-CAR,Sodium Bicarbonate Dry Cartridge 650g,Online Bicarbonate Cartridge,LOT-BR-240911,2027-09-30,25,10,250,Pcs,WH/Stock/HD,PALLET-HD-CONCENTRATE-BIC,NRS,HN,Dry Powder Bebas Lembab
+HD-HEP-5000,Heparin Sodium Injection 5000 IU/ml 5ml,Anticoagulant Vial,LOT-SN-240630,2028-06-30,20,10,200,Vial,WH/Stock/HD,CHILLER-HD-MED (2-8 C),NRS,HN,Suhu Chiller 4.2 C

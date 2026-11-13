@@ -1,0 +1,9 @@
+product_code,product_name,manufacturer_lot_number,expiration_date_YYYY_MM_DD,physical_qty_boxes_or_strips,packaging_conversion_factor,physical_qty_base_uom,uom_name,storage_shelf_rack,counter_initials,verifier_pharmacist_initials,audit_notes
+FAR-AMOX500,Amoxicillin 500mg Kaplet,,,,100,,Tablet,RAK-FAR-A01,,,Satuan Dispensing: Tablet | Kemasan: Box isi 10 strip @ 10 tablet (100 tablet)
+FAR-PARA500,Paracetamol 500mg Tablet,,,,100,,Tablet,RAK-FAR-A02,,,Satuan Dispensing: Tablet | Kemasan: Box isi 10 strip @ 10 tablet (100 tablet)
+FAR-LANS30,Lansoprazole 30mg Kapsul,,,,30,,Kapsul,RAK-FAR-B01,,,Satuan Dispensing: Kapsul | Kemasan: Box isi 3 strip @ 10 kapsul (30 kapsul)
+FAR-ACET200,Acetylcysteine 200mg Kapsul,,,,100,,Kapsul,RAK-FAR-B02,,,Satuan Dispensing: Kapsul | Kemasan: Box isi 10 strip @ 10 kapsul (100 kapsul)
+FAR-ACYC200,Acyclovir 200mg Tablet,,,,50,,Tablet,RAK-FAR-B03,,,Satuan Dispensing: Tablet | Kemasan: Box isi 5 strip @ 10 tablet (50 tablet)
+BHP-SYR3CC,Spuit 3cc Disposable with Needle,,,,100,,Pcs,RAK-BHP-01,,,Satuan Dispensing: Pcs | Kemasan: Box isi 100 pcs spuit 3cc
+BHP-INF-SET,Infusion Set Dewasa Disposable,,,,50,,Pcs,RAK-BHP-02,,,Satuan Dispensing: Pcs | Kemasan: Box isi 50 pcs infus set
+VAC-GARD-9,Gardasil 9 HPV Vaccine 0.5ml Suspension,,,,1,,Dosis,CHILLER-VAKSIN-01 (2-8 C),,,Satuan Dispensing: Dosis | Kemasan: Single-dose prefilled syringe (1 dosis)
