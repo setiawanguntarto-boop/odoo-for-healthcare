@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Root Application in App Drawer -->
+    <menuitem id="menu_clinic_approval_root"
+              name="Pusat Otorisasi"
+              sequence="15"
+              web_icon="adera_approvals,static/description/icon.png"
+              groups="adera_core.group_clinic_director,adera_doctor_remuneration.group_medical_manager,adera_approvals.group_pharmacy_head"/>
+
+    <!-- 1. Default Landing: Kotak Masuk Otorisasi Saya -->
+    <menuitem id="menu_clinic_approval_inbox_all"
+              name="Kotak Masuk Otorisasi Saya"
+              parent="menu_clinic_approval_root"
+              sequence="10"
+              action="action_clinic_approval_inbox"/>
+
+    <!-- 2. Domain-Specific Sub-Menus for Targeted Deep-Dives -->
+    <menuitem id="menu_clinic_approval_doc_fee"
+              name="Remunerasi Dokter"
+              parent="menu_clinic_approval_root"
+              sequence="20"
+              action="adera_doctor_remuneration.action_medical_fee_settlement_batch"/>
+
+    <menuitem id="menu_clinic_approval_asset"
+              name="Pelepasan Aset Medis"
+              parent="menu_clinic_approval_root"
+              sequence="30"
+              action="adera_accounting.action_clinic_asset_disposal"/>
+
+    <menuitem id="menu_clinic_approval_scrap"
+              name="Pemusnahan Farmasi &amp; Spoilage"
+              parent="menu_clinic_approval_root"
+              sequence="40"
+              action="adera_inventory.action_stock_scrap_clinic"/>
+</odoo>

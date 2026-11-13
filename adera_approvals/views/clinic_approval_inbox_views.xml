@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Action Definition -->
+    <record id="action_clinic_approval_inbox" model="ir.actions.act_window">
+        <field name="name">Kotak Masuk Otorisasi</field>
+        <field name="res_model">clinic.approval.inbox</field>
+        <field name="view_mode">list,kanban</field>
+        <field name="context" eval="{'search_default_my_pending': 1}"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Semua dokumen telah selesai diotorisasi! Tidak ada berkas yang tertahan.
+            </p>
+        </field>
+    </record>
+
+    <!-- List (Tree) View with Quick Action Buttons -->
+    <record id="view_clinic_approval_inbox_tree" model="ir.ui.view">
+        <field name="name">clinic.approval.inbox.tree</field>
+        <field name="model">clinic.approval.inbox</field>
+        <field name="arch" type="xml">
+            <list string="Daftar Dokumen Membutuhkan Otorisasi" create="false" edit="false" delete="false"
+                  decoration-danger="priority == '3'"
+                  decoration-warning="priority == '2'"
+                  decoration-info="priority == '1'">
+                <field name="priority" widget="priority"/>
+                <field name="name" string="No. Dokumen" class="fw-bold"/>
+                <field name="document_type"/>
+                <field name="analytic_account_id"/>
+                <field name="originator_id" widget="many2one_avatar_user"/>
+                <field name="date" widget="date"/>
+                <field name="amount_total" widget="monetary" options="{'currency_field': 'currency_id'}" sum="Total Nominal"/>
+                <field name="currency_id" column_invisible="True"/>
+                <field name="required_role" widget="badge"/>
+                <field name="current_state" widget="badge" decoration-warning="current_state in ['draft', 'confirmed', 'closing_control']" decoration-success="current_state in ['verified', 'approved']"/>
+                
+                <!-- Quick Action Buttons -->
+                <button name="action_inline_approve" type="object" string="Setujui" class="btn-success btn-sm" icon="fa-check"/>
+                <button name="action_open_reject_wizard" type="object" string="Tolak" class="btn-danger btn-sm" icon="fa-times"/>
+                <button name="action_open_target_document" type="object" string="Periksa" class="btn-secondary btn-sm" icon="fa-external-link"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Kanban View -->
+    <record id="view_clinic_approval_inbox_kanban" model="ir.ui.view">
+        <field name="name">clinic.approval.inbox.kanban</field>
+        <field name="model">clinic.approval.inbox</field>
+        <field name="arch" type="xml">
+            <kanban create="false" edit="false" delete="false" default_group_by="document_type">
+                <field name="id"/>
+                <field name="name"/>
+                <field name="document_type"/>
+                <field name="priority"/>
+                <field name="amount_total"/>
+                <field name="currency_id"/>
+                <field name="originator_id"/>
+                <field name="date"/>
+                <field name="required_role"/>
+                <field name="current_state"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_global_click p-3 rounded border shadow-sm mb-2">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge text-bg-primary"><field name="document_type"/></span>
+                                <field name="priority" widget="priority"/>
+                            </div>
+                            <div class="fw-bold fs-6 mb-1 text-primary">
+                                <field name="name"/>
+                            </div>
+                            <div class="text-muted small mb-2">
+                                Diajukan: <field name="date" widget="date"/> oleh <field name="originator_id"/>
+                            </div>
+                            <div class="fs-5 fw-bold text-danger mb-3">
+                                <field name="amount_total" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                                <span class="badge text-bg-info"><field name="required_role"/></span>
+                                <div class="btn-group btn-group-sm">
+                                    <button name="action_inline_approve" type="object" class="btn btn-success btn-sm me-1" title="Setujui">
+                                        <i class="fa fa-check"/>
+                                    </button>
+                                    <button name="action_open_reject_wizard" type="object" class="btn btn-danger btn-sm me-1" title="Tolak">
+                                        <i class="fa fa-times"/>
+                                    </button>
+                                    <button name="action_open_target_document" type="object" class="btn btn-secondary btn-sm" title="Periksa">
+                                        <i class="fa fa-external-link"/>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Search View with Dynamic Role Filters -->
+    <record id="view_clinic_approval_inbox_search" model="ir.ui.view">
+        <field name="name">clinic.approval.inbox.search</field>
+        <field name="model">clinic.approval.inbox</field>
+        <field name="arch" type="xml">
+            <search string="Pencarian Otorisasi">
+                <field name="name"/>
+                <field name="originator_id"/>
+                <field name="analytic_account_id"/>
+                <filter name="my_pending" string="Membutuhkan Tindakan Saya" domain="[('current_state', 'in', ['draft', 'confirmed', 'verified', 'pending_approval', 'closing_control'])]"/>
+                <separator/>
+                <filter name="filter_doc_fee" string="Remunerasi Dokter" domain="[('document_type', '=', 'doctor_fee_batch')]"/>
+                <filter name="filter_asset" string="Pelepasan Aset" domain="[('document_type', '=', 'asset_disposal')]"/>
+                <filter name="filter_scrap" string="Pemusnahan Farmasi" domain="[('document_type', '=', 'pharmacy_scrap')]"/>
+                <filter name="filter_pos" string="Selisih Kasir" domain="[('document_type', '=', 'pos_shortage')]"/>
+                <group>
+                    <filter string="Jenis Dokumen" name="group_doc_type" domain="[]" context="{'group_by': 'document_type'}"/>
+                    <filter string="Unit Bisnis" name="group_analytic" domain="[]" context="{'group_by': 'analytic_account_id'}"/>
+                    <filter string="Wewenang" name="group_role" domain="[]" context="{'group_by': 'required_role'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+</odoo>

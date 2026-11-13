@@ -88,3 +88,4 @@ Sistem akan otomatis menghitung total uang fisik kasir pada pojok kanan atas tab
 ### 4. SANKSI KELALAIAN & INTEGRITAS KAS
 1. Segala bentuk penambahan kas pribadi ke laci kasir untuk menutupi kekurangan hitungan komputer dikategorikan sebagai pelanggaran integritas.
 2. Selisih kasir berulang tanpa alasan yang sah akan dievaluasi oleh Tim Internal Audit dan Manajemen Klinik ADERA.
+

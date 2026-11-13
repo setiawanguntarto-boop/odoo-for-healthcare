@@ -1,0 +1,5 @@
+id,name,model_id/id,group_id/id,perm_read,perm_write,perm_create,perm_unlink
+access_clinic_approval_inbox_director,clinic.approval.inbox.director,model_clinic_approval_inbox,adera_core.group_clinic_director,1,1,0,0
+access_clinic_approval_inbox_medical,clinic.approval.inbox.medical,model_clinic_approval_inbox,adera_doctor_remuneration.group_medical_manager,1,1,0,0
+access_clinic_approval_inbox_pharmacy,clinic.approval.inbox.pharmacy,model_clinic_approval_inbox,adera_approvals.group_pharmacy_head,1,1,0,0
+access_clinic_approval_reject_wizard_all,clinic.approval.reject.wizard.all,model_clinic_approval_reject_wizard,base.group_user,1,1,1,1

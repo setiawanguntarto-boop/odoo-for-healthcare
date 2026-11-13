@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Explicit Groups for Approval Hub -->
+    <record id="group_finance_director" model="res.groups">
+        <field name="name">Tata Kelola Klinik: Direktur Keuangan</field>
+        <field name="implied_ids" eval="[(4, ref('adera_core.group_clinic_director'))]"/>
+    </record>
+
+    <record id="group_pharmacy_head" model="res.groups">
+        <field name="name">Tata Kelola Klinik: Kepala / PJ Farmasi</field>
+        <field name="implied_ids" eval="[(4, ref('adera_core.group_pharmacy_pic'))]"/>
+    </record>
+</odoo>

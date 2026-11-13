@@ -81,3 +81,4 @@ patch(ClosePosPopup.prototype, {
         }
     },
 });
+

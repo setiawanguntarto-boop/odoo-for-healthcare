@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_clinic_approval_reject_wizard_form" model="ir.ui.view">
+        <field name="name">clinic.approval.reject.wizard.form</field>
+        <field name="model">clinic.approval.reject.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Tolak Otorisasi Dokumen">
+                <sheet>
+                    <div class="alert alert-warning" role="alert">
+                        Anda akan menolak dokumen <strong><field name="document_name" readonly="1"/></strong>. Dokumen akan dikembalikan ke staf pengaju untuk diperbaiki.
+                    </div>
+                    <group>
+                        <field name="rejection_reason" placeholder="Contoh: Jam tindakan dr. Handoko pada tanggal 12 Nov perlu diverifikasi ulang dengan log mesin HD."/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_confirm_rejection" type="object" string="Konfirmasi Penolakan" class="btn-danger"/>
+                    <button string="Batal" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>
