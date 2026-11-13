@@ -281,3 +281,4 @@ class ClinicSharedCostAllocation(models.Model):
                 rec.account_move_id.button_draft()
                 rec.account_move_id.button_cancel()
             rec.state = "cancelled"
+

@@ -243,7 +243,7 @@
         <record id="account_320020" model="account.account">
             <field name="code">320020</field>
             <field name="name">Cadangan Pengembangan Sarana, Prasarana &amp; Akreditasi (Sinking Fund)</field>
-            <field name="account_type">equity_unaffected</field>
+            <field name="account_type">equity</field>
         </record>
 
         <!-- ===================================================================

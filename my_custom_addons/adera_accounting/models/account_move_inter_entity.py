@@ -114,3 +114,4 @@ class AccountMoveInterEntity(models.Model):
         self.inter_entity_clearing_move_id = reciprocal_move.id
         self.message_post(body=f"Jurnal timbal-balik antar-entitas berhasil diposting: {reciprocal_move.name}.")
         return True
+
