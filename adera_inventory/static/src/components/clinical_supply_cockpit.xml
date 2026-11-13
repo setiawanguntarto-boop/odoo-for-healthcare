@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="adera_inventory.ClinicalSupplyCockpit">
+        <div class="o_action o_view_controller p-3 bg-light" style="overflow-y: auto; height: 100%;">
+            <!-- Header Title Banner -->
+            <div class="d-flex justify-content-between align-items-center mb-3 bg-white p-3 rounded shadow-sm border">
+                <div>
+                    <h3 class="fw-bold mb-1 text-primary">
+                        <i class="fa fa-cubes me-2"/>Cockpit Rantai Pasok &amp; Logistik Medis (Clinical Supply)
+                    </h3>
+                    <p class="text-muted small mb-0">
+                        Pusat Kendali Pengadaan Farmasi, BMHP Hemodialisis, Rotasi FEFO, &amp; Penilaian Perpetual FIFO Klinik ADERA
+                    </p>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-primary btn-sm" t-on-click="loadCockpitData">
+                        <i class="fa fa-refresh me-1"/> Segarkan Data
+                    </button>
+                    <button class="btn btn-outline-danger btn-sm" t-on-click="openOpenVialWizard">
+                        <i class="fa fa-flask me-1"/> Musnahkan Open-Vial
+                    </button>
+                </div>
+            </div>
+
+            <!-- Loading State -->
+            <t t-if="state.isLoading">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Memuat data...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Menghitung valuasi FIFO dan buffer konsumsi klinis...</p>
+                </div>
+            </t>
+
+            <t t-else="">
+                <!-- 1. Supply Chain Health KPI Scorecard Header (4 Columns Grid) -->
+                <div class="row g-3 mb-3">
+                    <!-- Card 1: DIO -->
+                    <div class="col-md-3">
+                        <div class="card h-100 border shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="text-muted small text-uppercase fw-bold">DIO (Hari Persediaan)</span>
+                                    <span t-att-class="'badge ' + (state.metrics.dio_status == 'safe' ? 'bg-success' : state.metrics.dio_status == 'warning' ? 'bg-warning text-dark' : 'bg-danger')">
+                                        <t t-esc="state.metrics.dio_label"/>
+                                    </span>
+                                </div>
+                                <h2 class="fw-bold my-2 text-dark">
+                                    <t t-esc="state.metrics.dio_days"/> <small class="fs-6 text-muted">Hari</small>
+                                </h2>
+                                <p class="text-muted small mb-0">
+                                    Target Operasional: <strong>14 - 21 Hari</strong>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 2: FIFO Valuation -->
+                    <div class="col-md-3">
+                        <div class="card h-100 border shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="text-muted small text-uppercase fw-bold">Valuasi Fisik (FIFO)</span>
+                                    <i class="fa fa-money text-success fs-5"/>
+                                </div>
+                                <h3 class="fw-bold my-2 text-success">
+                                    <t t-esc="formatCurrency(state.metrics.total_fifo_valuation)"/>
+                                </h3>
+                                <div class="small text-muted d-flex justify-content-between">
+                                    <span>Farmasi: <strong t-esc="formatCurrency(state.metrics.val_farmasi)"/></span>
+                                    <span>HD: <strong t-esc="formatCurrency(state.metrics.val_hd)"/></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 3: FEFO & Open-Vial Alerts -->
+                    <div class="col-md-3">
+                        <div class="card h-100 border shadow-sm cursor-pointer" t-on-click="openExpiringLots">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="text-muted small text-uppercase fw-bold">Peringatan FEFO &amp; Mutu</span>
+                                    <i class="fa fa-exclamation-triangle text-warning fs-5"/>
+                                </div>
+                                <h3 class="fw-bold my-2 text-danger">
+                                    <t t-esc="state.metrics.expiring_soon_count"/> <small class="fs-6 text-muted">Batch (&lt; 60 Hari)</small>
+                                </h3>
+                                <p class="small text-muted mb-0">
+                                    Open-Vial &gt;12 Jam: <strong class="text-danger"><t t-esc="state.metrics.open_vial_alert_count"/> Vial</strong>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 4: HD Session Buffer -->
+                    <div class="col-md-3">
+                        <div class="card h-100 border shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="text-muted small text-uppercase fw-bold">Buffer Sesi Dialisis</span>
+                                    <i class="fa fa-heartbeat text-primary fs-5"/>
+                                </div>
+                                <h2 class="fw-bold my-2 text-primary">
+                                    <t t-esc="state.metrics.hd_buffer_days"/> <small class="fs-6 text-muted">Hari</small>
+                                </h2>
+                                <p class="small text-muted mb-0">
+                                    Stok Dialyzer: <strong><t t-esc="state.metrics.total_dialyzer_qty"/> Unit Siap Pakai</strong>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Clinical Role Quick-Action Tiles -->
+                <div class="card border shadow-sm mb-3">
+                    <div class="card-header bg-white py-2 fw-bold text-dark">
+                        <i class="fa fa-bolt me-1 text-warning"/> Aksi Cepat Apoteker &amp; Logistik Farmasi
+                    </div>
+                    <div class="card-body py-2">
+                        <div class="row g-2">
+                            <div class="col-md-3">
+                                <button class="btn btn-outline-primary w-100 text-start py-2" t-on-click="openGoodsReceipts">
+                                    <div class="fw-bold"><i class="fa fa-truck me-2"/>Penerimaan PBF (GRN)</div>
+                                    <div class="small text-muted">Surat Jalan &amp; Faktur Distributor</div>
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn-outline-secondary w-100 text-start py-2" t-on-click="openInternalTransfers">
+                                    <div class="fw-bold"><i class="fa fa-exchange me-2"/>Transfer Antar Depo</div>
+                                    <div class="small text-muted">Mutasi WH/Central ke Depo Poli/HD</div>
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn-outline-success w-100 text-start py-2" t-on-click="openCyclicAudit">
+                                    <div class="fw-bold"><i class="fa fa-check-square-o me-2"/>Stock Opname Harian</div>
+                                    <div class="small text-muted">Audit Siklik Pareto Kelas A</div>
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn-outline-danger w-100 text-start py-2" t-on-click="openQuarantineLots">
+                                    <div class="fw-bold"><i class="fa fa-ban me-2"/>Karantina / Recall Batch</div>
+                                    <div class="small text-muted">Kunci Batch Rusak / ED dari Resep</div>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Dedicated Operational Depo Clusters -->
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <div class="card border shadow-sm h-100">
+                            <div class="card-header bg-primary text-white py-2 d-flex justify-content-between align-items-center">
+                                <span class="fw-bold"><i class="fa fa-medkit me-2"/>Depo Farmasi Rawat Jalan</span>
+                                <span class="badge bg-light text-primary">WH/Stock/Farmasi</span>
+                            </div>
+                            <div class="card-body">
+                                <p class="small text-muted mb-2">
+                                    Pusat peracikan dan dispensing resep pasien Outpatient (Poli Umum, Gigi, KIA).
+                                </p>
+                                <button class="btn btn-sm btn-outline-primary w-100" t-on-click="openDepoFarmasi">
+                                    <i class="fa fa-search me-1"/> Telusuri Stok Fisik Depo Farmasi
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="card border shadow-sm h-100">
+                            <div class="card-header bg-danger text-white py-2 d-flex justify-content-between align-items-center">
+                                <span class="fw-bold"><i class="fa fa-heartbeat me-2"/>Depo Logistik Hemodialisis</span>
+                                <span class="badge bg-light text-danger">WH/Stock/HD</span>
+                            </div>
+                            <div class="card-body">
+                                <p class="small text-muted mb-2">
+                                    Buffer consumable sesi cuci darah: Dialyzer Nipro, Acid/Bicarb, Bloodlines, Heparin.
+                                </p>
+                                <button class="btn btn-sm btn-outline-danger w-100" t-on-click="openDepoHD">
+                                    <i class="fa fa-search me-1"/> Telusuri Stok BMHP Hemodialisis
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="card border shadow-sm h-100">
+                            <div class="card-header bg-dark text-white py-2 d-flex justify-content-between align-items-center">
+                                <span class="fw-bold"><i class="fa fa-building me-2"/>Gudang Utama &amp; Penerimaan</span>
+                                <span class="badge bg-light text-dark">WH/Stock</span>
+                            </div>
+                            <div class="card-body">
+                                <p class="small text-muted mb-2">
+                                    Area penerimaan kargo dari PBF, karantina suhu dingin, dan kliring GR/IR (211500).
+                                </p>
+                                <button class="btn btn-sm btn-outline-dark w-100" t-on-click="openCentralWarehouse">
+                                    <i class="fa fa-search me-1"/> Buka Operasional Gudang Utama
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. Dynamic Low-Stock & Reorder Table (Replacing Blank Placeholder) -->
+                <div class="card border shadow-sm">
+                    <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
+                        <span class="fw-bold text-dark">
+                            <i class="fa fa-shopping-cart me-2 text-danger"/>Daftar Stok Kritis &amp; Reorder Kilat ke Distributor
+                        </span>
+                        <span class="badge bg-danger">
+                            <t t-esc="state.criticalItems.length"/> Item di Bawah Batas Aman
+                        </span>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-sm align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 12%;">Kode</th>
+                                        <th style="width: 28%;">Nama Produk Obat / BMHP</th>
+                                        <th style="width: 15%;">Kategori Klinis</th>
+                                        <th style="width: 10%;" class="text-end">Stok Fisik</th>
+                                        <th style="width: 10%;" class="text-end">Batas Min</th>
+                                        <th style="width: 15%;">Distributor Rekanan</th>
+                                        <th style="width: 10%;" class="text-center">Aksi Reorder</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-if="state.criticalItems.length == 0">
+                                        <tr>
+                                            <td colspan="7" class="text-center py-4 text-success fw-bold">
+                                                <i class="fa fa-check-circle me-1"/> Seluruh persediaan obat dan BMHP berada pada batas aman!
+                                            </td>
+                                        </tr>
+                                    </t>
+                                    <t t-else="">
+                                        <tr t-foreach="state.criticalItems" t-as="item" t-key="item.product_id">
+                                            <td class="font-monospace small text-muted"><t t-esc="item.product_code"/></td>
+                                            <td class="fw-bold text-dark"><t t-esc="item.product_name"/></td>
+                                            <td>
+                                                <span t-att-class="'badge ' + (item.category == 'BMHP Hemodialisis' ? 'bg-danger-subtle text-danger' : 'bg-primary-subtle text-primary')">
+                                                    <t t-esc="item.category"/>
+                                                </span>
+                                            </td>
+                                            <td class="text-end fw-bold text-danger">
+                                                <t t-esc="item.qty_available"/> <small class="text-muted" t-esc="item.uom_name"/>
+                                            </td>
+                                            <td class="text-end text-muted">
+                                                <t t-esc="item.min_qty"/> <small t-esc="item.uom_name"/>
+                                            </td>
+                                            <td class="small text-truncate" style="max-width: 140px;">
+                                                <t t-esc="item.vendor_name"/>
+                                            </td>
+                                            <td class="text-center">
+                                                <button class="btn btn-sm btn-danger py-0 px-2 fw-bold"
+                                                        t-on-click="() => this.createExpressPO(item)"
+                                                        title="Buat Draft Purchase Order (RFQ) ke Distributor">
+                                                    <i class="fa fa-plus me-1"/> PO (<t t-esc="item.suggested_order_qty"/>)
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </div>
+    </t>
+</templates>
+

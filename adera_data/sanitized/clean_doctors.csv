@@ -1,0 +1,14 @@
+partner_id,name,nik,npwp,specialization,poliklinik,role,pmk168_scheme,tax_rate_multiplier,status
+28946,"dr. Heru Prasanto, Sp.PD-KGH, FINASIM",3404011205720001,081234567542000,Spesialis Penyakit Dalam - Konsultan Ginjal Hipertensi,Hemodialisis,specialist_hd,berkesinambungan_satu_pemberi_kerja,1.0,active
+18,"dr. H. Handoko, Sp.PD-KGH",3404011808680002,072345678541000,Spesialis Penyakit Dalam - Konsultan Ginjal Hipertensi,Hemodialisis,specialist_hd,berkesinambungan_satu_pemberi_kerja,1.0,active
+28947,"dr. Abdi Marang Gusti Alhaq, M.Med.Sc",3471021404900003,812345678543000,Dokter Umum & Akupunktur Klinis,Poli Umum & Akupunktur,general,berkesinambungan_satu_pemberi_kerja,1.0,active
+28948,dr. Antonius Janottama Saga,3471032506920004,923456789544000,Dokter Umum & Akupunktur Klinis,Poli Umum,general,berkesinambungan_satu_pemberi_kerja,1.0,active
+28949,dr. Dedy Sukmo Anggoro,3404051010890005,734567890545000,Dokter Gigi & Bedah Mulut Dasar,Poli Gigi,dentist,berkesinambungan_satu_pemberi_kerja,1.0,active
+28950,dr. Farah Dina,3404062107930006,845678901546000,Dokter Umum,Poli Umum,general,berkesinambungan_satu_pemberi_kerja,1.0,active
+28951,dr. Imam Khoirul Fajri,3404071501910007,956789012547000,Dokter Umum,Poli Umum,general,berkesinambungan_satu_pemberi_kerja,1.0,active
+28952,dr. Janet Bins,3471010903940008,067890123548000,Praktisi Akupunktur & Komplementer,Poli Akupunktur,general,berkesinambungan_satu_pemberi_kerja,1.0,active
+28953,dr. Nareswari Dyah Wisesaningrum,3404081909950009,178901234549000,Dokter Umum,Poli Umum,general,berkesinambungan_satu_pemberi_kerja,1.0,active
+28954,dr. Raudi Akmal,3404010109950010,289012345550000,Dokter Konsultan & Manajemen Medis,Poli Umum,general,berkesinambungan_satu_pemberi_kerja,1.0,active
+28955,"dr. Rosyida Avicennianing Tyas, M.HPM",3471042811920011,390123456551000,Dokter Umum & Magister Manajemen Kebijakan Kesehatan,Poli Umum,general,berkesinambungan_satu_pemberi_kerja,1.0,active
+51610,dr. Ani Rahmawati,3404020705910012,401234567552000,Dokter Residen / Dokter Jaga,Poli Umum,general,tidak_berkesinambungan,1.0,active
+42943,dr. Erfian Yogy Fista,3404031704930013,512345678553000,Dokter Residen / Dokter Jaga,Poli Umum,general,tidak_berkesinambungan,1.0,active

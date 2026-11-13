@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-from odoo import models, fields, api
+from odoo import models, fields, api, _
+from odoo.exceptions import UserError
 
 
 class PosOrder(models.Model):
@@ -47,6 +48,28 @@ class PosOrderLine(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
+            # 1. Patient Safety Check: Cegah penjualan nomor batch yang dikarantina/ditarik
+            pack_lots = vals.get('pack_lot_ids', [])
+            lot_names_to_check = []
+            for item in pack_lots:
+                # Odoo command format (0, 0, {...}) or dict
+                if isinstance(item, (list, tuple)) and len(item) == 3 and isinstance(item[2], dict):
+                    if item[2].get('lot_name'):
+                        lot_names_to_check.append(item[2]['lot_name'])
+                elif isinstance(item, dict) and item.get('lot_name'):
+                    lot_names_to_check.append(item['lot_name'])
+
+            if lot_names_to_check:
+                quarantined = self.env['stock.lot'].search([
+                    ('name', 'in', lot_names_to_check),
+                    ('is_quarantined', '=', True),
+                ])
+                if quarantined:
+                    q_names = ", ".join(quarantined.mapped('name'))
+                    raise UserError(
+                        _("PERINGATAN KESELAMATAN PASIEN: Nomor Batch/Lot [%s] sedang dalam status KARANTINA/PENARIKAN. Obat ini dilarang keras dikeluarkan ke pasien!") % q_names
+                    )
+
             # Auto-assign default analytic distribution jika belum diset dari POS UI
             if not vals.get('analytic_distribution'):
                 product = self.env['product.product'].browse(vals.get('product_id'))

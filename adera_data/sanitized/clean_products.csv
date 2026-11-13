@@ -1,0 +1,10 @@
+code,name,category,type,tracking,uom,cost,sale_price,requires_prescription,fe_category
+MED-AMOX-500,Amoxicillin 500mg Kaplet,Farmasi - Obat Ethical (Resep Dokter),consu,lot,Tablet,3500.0,5000.0,True,MED
+BHP-SYR-3CC,Spuit 3cc Disposable with Needle,BHP Medis - Rawat Jalan,consu,lot,Pcs,2800.0,4500.0,False,BHP
+HD-DIAL-HIPS,High-Flux Dialyzer Single-Use (HIPS),Hemodialisis - Dialyzer & Bloodline,consu,lot,Pcs,380000.0,550000.0,True,HD
+LAB-REAG-GLU,Reagen Glukosa Darah Enzymatic 100ml,Penunjang - Reagen Laboratorium,consu,lot,Vial,320000.0,450000.0,False,LAB
+MED-PARA-500,Paracetamol 500mg Tablet,Farmasi - Obat Bebas & OTC,consu,lot,Tablet,750.0,1500.0,False,MED
+MED-LANS-30,Lansoprazole 30mg Kapsul,Farmasi - Obat Ethical (Resep Dokter),consu,lot,Kapsul,2200.0,3800.0,True,MED
+MED-ACET-200,Acetylcysteine 200mg Kapsul,Farmasi - Obat Ethical (Resep Dokter),consu,lot,Kapsul,1800.0,3200.0,True,MED
+HD-ACID-10L,Cairan Acidic Hemodialisis Plus 10 Liter,Hemodialisis - Konsentrat & Bikarbonat,consu,lot,Jerigen,145000.0,210000.0,True,HD
+VAC-GARD-9,Gardasil 9 HPV Vaccine 0.5ml Suspension,Farmasi - Vaksin & Imunisasi,consu,lot,Dosis,2150000.0,2650000.0,True,VAC

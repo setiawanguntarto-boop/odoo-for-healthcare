@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ========================================================================= -->
+    <!-- 1. BATCH & EXPIRY AGING MATRIX (stock.lot.aging.report)                   -->
+    <!-- ========================================================================= -->
+
+    <record id="view_stock_lot_aging_report_tree" model="ir.ui.view">
+        <field name="name">stock.lot.aging.report.tree</field>
+        <field name="model">stock.lot.aging.report</field>
+        <field name="arch" type="xml">
+            <list string="Matriks Kedaluwarsa &amp; Value-at-Risk" create="false" edit="false" delete="false">
+                <field name="product_id"/>
+                <field name="lot_id"/>
+                <field name="location_id"/>
+                <field name="quantity"/>
+                <field name="unit_cost" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                <field name="total_value_at_risk" widget="monetary" options="{'currency_field': 'currency_id'}" decoration-danger="aging_bucket == 'critical_quarantine'" decoration-warning="aging_bucket == 'near_expiry'"/>
+                <field name="days_to_expiry"/>
+                <field name="aging_bucket" widget="badge"
+                       decoration-danger="aging_bucket == 'critical_quarantine'"
+                       decoration-warning="aging_bucket == 'near_expiry'"
+                       decoration-success="aging_bucket == 'safe'"/>
+                <field name="is_quarantined" widget="badge" decoration-danger="is_quarantined"/>
+                <field name="currency_id" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_stock_lot_aging_report_pivot" model="ir.ui.view">
+        <field name="name">stock.lot.aging.report.pivot</field>
+        <field name="model">stock.lot.aging.report</field>
+        <field name="arch" type="xml">
+            <pivot string="Analisis Usia Batch &amp; Risiko Finansial" sample="1">
+                <field name="location_id" type="row"/>
+                <field name="product_id" type="row"/>
+                <field name="aging_bucket" type="col"/>
+                <field name="quantity" type="measure"/>
+                <field name="total_value_at_risk" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_stock_lot_aging_report_search" model="ir.ui.view">
+        <field name="name">stock.lot.aging.report.search</field>
+        <field name="model">stock.lot.aging.report</field>
+        <field name="arch" type="xml">
+            <search string="Pencarian Kedaluwarsa Batch">
+                <field name="product_id"/>
+                <field name="lot_id"/>
+                <field name="location_id"/>
+                <group>
+                    <filter string="Kritis / Kadaluwarsa (&lt;30 Hari)" name="filter_critical" domain="[('aging_bucket', '=', 'critical_quarantine')]"/>
+                    <filter string="Waspada FEFO (30-60 Hari)" name="filter_near_expiry" domain="[('aging_bucket', '=', 'near_expiry')]"/>
+                    <filter string="Aman (&gt;60 Hari)" name="filter_safe" domain="[('aging_bucket', '=', 'safe')]"/>
+                    <separator/>
+                    <filter string="Dalam Karantina" name="filter_quarantined" domain="[('is_quarantined', '=', True)]"/>
+                </group>
+                <group>
+                    <filter string="Lokasi Depo / Gudang" name="group_location" domain="[]" context="{'group_by': 'location_id'}"/>
+                    <filter string="Kategori Usia Batch" name="group_bucket" domain="[]" context="{'group_by': 'aging_bucket'}"/>
+                    <filter string="Produk Obat / Alkes" name="group_product" domain="[]" context="{'group_by': 'product_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_stock_lot_aging_report" model="ir.actions.act_window">
+        <field name="name">Analisis Kedaluwarsa &amp; Batch</field>
+        <field name="res_model">stock.lot.aging.report</field>
+        <field name="view_mode">list,pivot</field>
+        <field name="search_view_id" ref="view_stock_lot_aging_report_search"/>
+        <field name="context">{
+            'search_default_group_location': 1,
+            'search_default_filter_near_expiry': 1,
+        }</field>
+    </record>
+
+
+    <!-- ========================================================================= -->
+    <!-- 2. PATIENT-LINKED LOT TRACEABILITY REPORT (stock.lot.traceability.report)  -->
+    <!-- ========================================================================= -->
+
+    <record id="view_stock_lot_traceability_report_tree" model="ir.ui.view">
+        <field name="name">stock.lot.traceability.report.tree</field>
+        <field name="model">stock.lot.traceability.report</field>
+        <field name="arch" type="xml">
+            <list string="Keterlacakan Pasien &amp; Batch Recall" create="false" edit="false" delete="false">
+                <field name="event_date"/>
+                <field name="event_type" widget="badge" decoration-info="event_type == 'upstream'" decoration-success="event_type == 'downstream'"/>
+                <field name="product_id"/>
+                <field name="lot_name"/>
+                <field name="quantity"/>
+                <field name="uom_name"/>
+                <!-- Upstream info -->
+                <field name="vendor_id" optional="show"/>
+                <field name="po_reference" optional="hide"/>
+                <field name="grn_reference" optional="hide"/>
+                <!-- Downstream info -->
+                <field name="patient_name" optional="show"/>
+                <field name="patient_mrn" optional="show"/>
+                <field name="doctor_id" optional="show"/>
+                <field name="service_unit" optional="show"/>
+                <field name="is_quarantined" widget="badge" decoration-danger="is_quarantined"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_stock_lot_traceability_report_search" model="ir.ui.view">
+        <field name="name">stock.lot.traceability.report.search</field>
+        <field name="model">stock.lot.traceability.report</field>
+        <field name="arch" type="xml">
+            <search string="Pencarian Keterlacakan Pasien &amp; Batch">
+                <field name="lot_name" string="Nomor Batch / Lot"/>
+                <field name="patient_name" string="Nama Pasien"/>
+                <field name="patient_mrn" string="No. Rekam Medis (RM)"/>
+                <field name="product_id"/>
+                <field name="doctor_id"/>
+                <field name="vendor_id"/>
+                <group>
+                    <filter string="Pengeluaran Pasien (Downstream)" name="filter_downstream" domain="[('event_type', '=', 'downstream')]"/>
+                    <filter string="Penerimaan PBF (Upstream)" name="filter_upstream" domain="[('event_type', '=', 'upstream')]"/>
+                    <separator/>
+                    <filter string="Batch Dikarantina / Ditarik" name="filter_quarantined" domain="[('is_quarantined', '=', True)]"/>
+                </group>
+                <group>
+                    <filter string="Nomor Batch / Lot" name="group_lot" domain="[]" context="{'group_by': 'lot_name'}"/>
+                    <filter string="Produk Obat / Alkes" name="group_product" domain="[]" context="{'group_by': 'product_id'}"/>
+                    <filter string="Unit Pelayanan" name="group_unit" domain="[]" context="{'group_by': 'service_unit'}"/>
+                    <filter string="Dokter" name="group_doctor" domain="[]" context="{'group_by': 'doctor_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_stock_lot_traceability_report" model="ir.actions.act_window">
+        <field name="name">Kartu Stok &amp; Keterlacakan Pasien</field>
+        <field name="res_model">stock.lot.traceability.report</field>
+        <field name="view_mode">list</field>
+        <field name="search_view_id" ref="view_stock_lot_traceability_report_search"/>
+        <field name="context">{
+            'search_default_filter_downstream': 1,
+        }</field>
+    </record>
+
+
+    <!-- ========================================================================= -->
+    <!-- 3. STOCK OPNAME VARIANCE & ADJUSTMENT LOG (stock.inventory.variance)       -->
+    <!-- ========================================================================= -->
+
+    <record id="view_stock_inventory_variance_tree" model="ir.ui.view">
+        <field name="name">stock.inventory.variance.tree</field>
+        <field name="model">stock.inventory.variance</field>
+        <field name="arch" type="xml">
+            <list string="Log Selisih Stock Opname &amp; Penyesuaian">
+                <field name="name"/>
+                <field name="inventory_date"/>
+                <field name="product_id"/>
+                <field name="lot_id" optional="show"/>
+                <field name="location_id"/>
+                <field name="theoretical_qty"/>
+                <field name="counted_qty"/>
+                <field name="variance_qty" decoration-danger="variance_qty &lt; 0" decoration-success="variance_qty &gt; 0"/>
+                <field name="variance_value" widget="monetary" options="{'currency_field': 'currency_id'}" decoration-danger="variance_value &lt; 0"/>
+                <field name="variance_account_id"/>
+                <field name="account_move_id" optional="show"/>
+                <field name="auditor_id" optional="show"/>
+                <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'adjusted'"/>
+                <field name="currency_id" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_stock_inventory_variance_form" model="ir.ui.view">
+        <field name="name">stock.inventory.variance.form</field>
+        <field name="model">stock.inventory.variance</field>
+        <field name="arch" type="xml">
+            <form string="Formulir Selisih Stock Opname">
+                <header>
+                    <button name="action_post_adjustment"
+                            string="Eksekusi Penyesuaian Fisik &amp; Jurnal GL"
+                            type="object"
+                            class="btn-primary"
+                            invisible="state == 'adjusted'"
+                            confirm="Apakah Anda yakin ingin memposting jurnal penyesuaian selisih opname ini ke Buku Besar?"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,adjusted"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h2><field name="name"/></h2>
+                    </div>
+                    <group>
+                        <group string="Detail Sediaan &amp; Lokasi Audit">
+                            <field name="inventory_date" readonly="state == 'adjusted'"/>
+                            <field name="product_id" readonly="state == 'adjusted'"/>
+                            <field name="lot_id" domain="[('product_id', '=', product_id)]" readonly="state == 'adjusted'"/>
+                            <field name="location_id" readonly="state == 'adjusted'"/>
+                            <field name="auditor_id"/>
+                        </group>
+                        <group string="Kalkulasi Selisih Fisik &amp; Finansial">
+                            <field name="theoretical_qty"/>
+                            <field name="counted_qty" readonly="state == 'adjusted'"/>
+                            <field name="variance_qty"/>
+                            <field name="unit_cost" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            <field name="variance_value" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <group string="Otomasi Pembukuan Akuntansi GL">
+                        <group>
+                            <field name="variance_account_id" readonly="state == 'adjusted'"/>
+                        </group>
+                        <group>
+                            <field name="account_move_id" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Investigasi &amp; Catatan Audit">
+                            <field name="notes" placeholder="Tuliskan penyebab selisih fisik (misal: kebocoran, vial pecah di rak, selisih dosing)..." readonly="state == 'adjusted'"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_stock_inventory_variance" model="ir.actions.act_window">
+        <field name="name">Laporan Selisih Stock Opname</field>
+        <field name="res_model">stock.inventory.variance</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{}</field>
+    </record>
+
+</odoo>

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- 1. Master Plan: Business Units & Entities -->
+        <record id="analytic_plan_adera_entities" model="account.analytic.plan">
+            <field name="name">ADERA Business Units &amp; Entities</field>
+            <field name="description">Struktur Segmentasi Multi-Entitas Klinik ADERA</field>
+            <field name="default_applicability">mandatory</field>
+        </record>
+
+        <!-- 2. Root Entity Accounts -->
+        <!-- Entity 1: Holding / Corporate -->
+        <record id="analytic_acc_holding" model="account.analytic.account">
+            <field name="name">[ACC-HOLDING] Kantor Pusat &amp; Holding PT Prosperra Medika Utama</field>
+            <field name="code">ACC-HOLDING</field>
+            <field name="plan_id" ref="analytic_plan_adera_entities"/>
+        </record>
+
+        <!-- Entity 2: Klinik Pratama -->
+        <record id="analytic_acc_pratama" model="account.analytic.account">
+            <field name="name">[ACC-PRATAMA] Klinik Pratama ADERA</field>
+            <field name="code">ACC-PRATAMA</field>
+            <field name="plan_id" ref="analytic_plan_adera_entities"/>
+        </record>
+
+        <!-- Entity 3: Klinik Utama Hemodialisis -->
+        <record id="analytic_acc_hd" model="account.analytic.account">
+            <field name="name">[ACC-HD] Klinik Utama Hemodialisis ADERA</field>
+            <field name="code">ACC-HD</field>
+            <field name="plan_id" ref="analytic_plan_adera_entities"/>
+        </record>
+
+        <!-- 3. Sub-Unit & Poliklinik Child Accounts (Linked to Parents) -->
+        <!-- Pratama Sub-Units -->
+        <record id="analytic_sub_prat_umum" model="account.analytic.account">
+            <field name="name">[PRAT-UMUM] Poli Umum &amp; Tindakan Rawat Jalan</field>
+            <field name="code">PRAT-UMUM</field>
+            <field name="plan_id" ref="analytic_plan_adera_entities"/>
+            <field name="root_plan_id" ref="analytic_plan_adera_entities"/>
+        </record>
+        <record id="analytic_sub_prat_gigi" model="account.analytic.account">
+            <field name="name">[PRAT-GIGI] Poli Gigi &amp; Mulut</field>
+            <field name="code">PRAT-GIGI</field>
+            <field name="plan_id" ref="analytic_plan_adera_entities"/>
+            <field name="root_plan_id" ref="analytic_plan_adera_entities"/>
+        </record>
+        <record id="analytic_sub_prat_kia" model="account.analytic.account">
+            <field name="name">[PRAT-KIA] Poli Kebidanan &amp; KIA</field>
+            <field name="code">PRAT-KIA</field>
+            <field name="plan_id" ref="analytic_plan_adera_entities"/>
+            <field name="root_plan_id" ref="analytic_plan_adera_entities"/>
+        </record>
+        <record id="analytic_sub_prat_lab" model="account.analytic.account">
+            <field name="name">[PRAT-LAB] Layanan Laboratorium Medis</field>
+            <field name="code">PRAT-LAB</field>
+            <field name="plan_id" ref="analytic_plan_adera_entities"/>
+            <field name="root_plan_id" ref="analytic_plan_adera_entities"/>
+        </record>
+        <record id="analytic_sub_prat_rad" model="account.analytic.account">
+            <field name="name">[PRAT-RAD] Diagnostic Imaging &amp; Radiologi</field>
+            <field name="code">PRAT-RAD</field>
+            <field name="plan_id" ref="analytic_plan_adera_entities"/>
+            <field name="root_plan_id" ref="analytic_plan_adera_entities"/>
+        </record>
+        <record id="analytic_sub_prat_farm" model="account.analytic.account">
+            <field name="name">[PRAT-FARM] Apotek &amp; Farmasi Rawat Jalan</field>
+            <field name="code">PRAT-FARM</field>
+            <field name="plan_id" ref="analytic_plan_adera_entities"/>
+            <field name="root_plan_id" ref="analytic_plan_adera_entities"/>
+        </record>
+
+        <!-- Hemodialysis Sub-Units -->
+        <record id="analytic_sub_hd_treat" model="account.analytic.account">
+            <field name="name">[HD-TREAT] Ruang Tindakan &amp; Mesin Cuci Darah</field>
+            <field name="code">HD-TREAT</field>
+            <field name="plan_id" ref="analytic_plan_adera_entities"/>
+            <field name="root_plan_id" ref="analytic_plan_adera_entities"/>
+        </record>
+        <record id="analytic_sub_hd_pharm" model="account.analytic.account">
+            <field name="name">[HD-PHARM] Depo Dialyzer &amp; Cairan Konsentrat HD</field>
+            <field name="code">HD-PHARM</field>
+            <field name="plan_id" ref="analytic_plan_adera_entities"/>
+            <field name="root_plan_id" ref="analytic_plan_adera_entities"/>
+        </record>
+        <record id="analytic_sub_hd_vip" model="account.analytic.account">
+            <field name="name">[HD-VIP] Pelayanan Hemodialisis Ruang Isolasi/VIP</field>
+            <field name="code">HD-VIP</field>
+            <field name="plan_id" ref="analytic_plan_adera_entities"/>
+            <field name="root_plan_id" ref="analytic_plan_adera_entities"/>
+        </record>
+    </data>
+</odoo>
+

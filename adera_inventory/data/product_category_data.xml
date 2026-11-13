@@ -2,67 +2,110 @@
 <odoo>
     <data noupdate="0">
         <!-- ===================================================================
-             1. KATEGORI: OBAT KERAS & ETHICAL (FIFO + PERPETUAL)
+             1. 01-PHARMA / Farmasi Rawat Jalan (cat_pharma_pratama)
              =================================================================== -->
+        <record id="cat_pharma_pratama" model="product.category">
+            <field name="name">01-PHARMA / Farmasi Rawat Jalan</field>
+            <field name="property_cost_method">fifo</field>
+            <field name="property_valuation">real_time</field>
+            <field name="property_stock_valuation_account_id" ref="adera_core.account_113010"/>
+            <field name="property_account_expense_categ_id" ref="adera_core.account_510010"/>
+            <field name="property_account_income_categ_id" ref="adera_core.account_410010"/>
+            <field name="removal_strategy_id" ref="product_expiry.removal_fefo"/>
+        </record>
+
+        <!-- ===================================================================
+             2. 02-CONSUMABLES / BMHP Medis, Gigi & Lab (cat_consumables_pratama)
+             =================================================================== -->
+        <record id="cat_consumables_pratama" model="product.category">
+            <field name="name">02-CONSUMABLES / BMHP Medis, Gigi &amp; Lab</field>
+            <field name="property_cost_method">fifo</field>
+            <field name="property_valuation">real_time</field>
+            <field name="property_stock_valuation_account_id" ref="adera_core.account_113010"/>
+            <field name="property_account_expense_categ_id" ref="adera_core.account_510010"/>
+            <field name="property_account_income_categ_id" ref="adera_core.account_410010"/>
+            <field name="removal_strategy_id" ref="product_expiry.removal_fefo"/>
+        </record>
+
+        <!-- ===================================================================
+             3. 03-HEMODIALYSIS / Konsumabel Khusus Cuci Darah (cat_hemodialysis_hd)
+             =================================================================== -->
+        <record id="cat_hemodialysis_hd" model="product.category">
+            <field name="name">03-HEMODIALYSIS / Konsumabel Khusus Cuci Darah</field>
+            <field name="property_cost_method">fifo</field>
+            <field name="property_valuation">real_time</field>
+            <field name="property_stock_valuation_account_id" ref="adera_core.account_113020"/>
+            <field name="property_account_expense_categ_id" ref="adera_core.account_510020"/>
+            <field name="property_account_income_categ_id" ref="adera_core.account_410020"/>
+            <field name="removal_strategy_id" ref="product_expiry.removal_fefo"/>
+        </record>
+
+        <!-- ===================================================================
+             4. 04-VACCINES / Vaksin & Rantai Dingin (cat_vaccines)
+             =================================================================== -->
+        <record id="cat_vaccines" model="product.category">
+            <field name="name">04-VACCINES / Vaksin &amp; Rantai Dingin</field>
+            <field name="property_cost_method">fifo</field>
+            <field name="property_valuation">real_time</field>
+            <field name="property_stock_valuation_account_id" ref="adera_core.account_113010"/>
+            <field name="property_account_expense_categ_id" ref="adera_core.account_510010"/>
+            <field name="property_account_income_categ_id" ref="adera_core.account_410010"/>
+            <field name="removal_strategy_id" ref="product_expiry.removal_fefo"/>
+        </record>
+
+        <!-- Backward Compatibility Aliases for Previously Defined Categories -->
         <record id="categ_pharma_ethical" model="product.category">
             <field name="name">Farmasi - Obat Ethical (Resep Dokter)</field>
+            <field name="parent_id" ref="cat_pharma_pratama"/>
             <field name="property_cost_method">fifo</field>
             <field name="property_valuation">real_time</field>
-            <field name="property_stock_valuation_account_id" ref="adera_core.account_114010"/>
-            <field name="property_account_income_categ_id" ref="adera_core.account_410060"/>
+            <field name="property_stock_valuation_account_id" ref="adera_core.account_113010"/>
+            <field name="property_account_income_categ_id" ref="adera_core.account_410010"/>
             <field name="property_account_expense_categ_id" ref="adera_core.account_510010"/>
             <field name="removal_strategy_id" ref="product_expiry.removal_fefo"/>
         </record>
 
-        <!-- ===================================================================
-             2. KATEGORI: OBAT BEBAS / OTC & TUSLAH (FIFO + PERPETUAL)
-             =================================================================== -->
         <record id="categ_pharma_otc" model="product.category">
             <field name="name">Farmasi - Obat Bebas (OTC)</field>
+            <field name="parent_id" ref="cat_pharma_pratama"/>
             <field name="property_cost_method">fifo</field>
             <field name="property_valuation">real_time</field>
-            <field name="property_stock_valuation_account_id" ref="adera_core.account_114010"/>
-            <field name="property_account_income_categ_id" ref="adera_core.account_410060"/>
+            <field name="property_stock_valuation_account_id" ref="adera_core.account_113010"/>
+            <field name="property_account_income_categ_id" ref="adera_core.account_410010"/>
             <field name="property_account_expense_categ_id" ref="adera_core.account_510010"/>
             <field name="removal_strategy_id" ref="product_expiry.removal_fefo"/>
         </record>
 
-        <!-- ===================================================================
-             3. KATEGORI: BHP & KONSUMABEL MEDIS RAWAT JALAN
-             =================================================================== -->
         <record id="categ_bhp_pratama" model="product.category">
             <field name="name">BHP Medis - Rawat Jalan</field>
+            <field name="parent_id" ref="cat_consumables_pratama"/>
             <field name="property_cost_method">fifo</field>
             <field name="property_valuation">real_time</field>
-            <field name="property_stock_valuation_account_id" ref="adera_core.account_114020"/>
+            <field name="property_stock_valuation_account_id" ref="adera_core.account_113010"/>
             <field name="property_account_income_categ_id" ref="adera_core.account_410010"/>
+            <field name="property_account_expense_categ_id" ref="adera_core.account_510010"/>
+            <field name="removal_strategy_id" ref="product_expiry.removal_fefo"/>
+        </record>
+
+        <record id="categ_bhp_hd_dialyzer" model="product.category">
+            <field name="name">Hemodialisis - Dialyzer &amp; Bloodline</field>
+            <field name="parent_id" ref="cat_hemodialysis_hd"/>
+            <field name="property_cost_method">fifo</field>
+            <field name="property_valuation">real_time</field>
+            <field name="property_stock_valuation_account_id" ref="adera_core.account_113020"/>
+            <field name="property_account_income_categ_id" ref="adera_core.account_410020"/>
             <field name="property_account_expense_categ_id" ref="adera_core.account_510020"/>
             <field name="removal_strategy_id" ref="product_expiry.removal_fefo"/>
         </record>
 
-        <!-- ===================================================================
-             4. KATEGORI: DIALYZER & BHP KHUSUS HEMODIALISIS
-             =================================================================== -->
-        <record id="categ_bhp_hd_dialyzer" model="product.category">
-            <field name="name">Hemodialisis - Dialyzer &amp; Bloodline</field>
-            <field name="property_cost_method">fifo</field>
-            <field name="property_valuation">real_time</field>
-            <field name="property_stock_valuation_account_id" ref="adera_core.account_114030"/>
-            <field name="property_account_income_categ_id" ref="adera_core.account_410110"/>
-            <field name="property_account_expense_categ_id" ref="adera_core.account_510030"/>
-            <field name="removal_strategy_id" ref="product_expiry.removal_fefo"/>
-        </record>
-
-        <!-- ===================================================================
-             5. KATEGORI: REAGEN & KONSUMABEL LABORATORIUM
-             =================================================================== -->
         <record id="categ_lab_reagents" model="product.category">
             <field name="name">Penunjang - Reagen Laboratorium</field>
+            <field name="parent_id" ref="cat_consumables_pratama"/>
             <field name="property_cost_method">fifo</field>
             <field name="property_valuation">real_time</field>
-            <field name="property_stock_valuation_account_id" ref="adera_core.account_114040"/>
-            <field name="property_account_income_categ_id" ref="adera_core.account_410040"/>
-            <field name="property_account_expense_categ_id" ref="adera_core.account_510040"/>
+            <field name="property_stock_valuation_account_id" ref="adera_core.account_113010"/>
+            <field name="property_account_income_categ_id" ref="adera_core.account_410010"/>
+            <field name="property_account_expense_categ_id" ref="adera_core.account_510010"/>
             <field name="removal_strategy_id" ref="product_expiry.removal_fefo"/>
         </record>
     </data>

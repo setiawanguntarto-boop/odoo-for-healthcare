@@ -23,8 +23,9 @@
                             <field name="company_id" groups="base.group_multi_company"/>
                         </group>
                         <group string="Segmentasi &amp; Filter">
+                            <field name="entity_segmentation" widget="radio"/>
                             <field name="target_move" widget="radio"/>
-                            <field name="analytic_account_id" placeholder="Semua Unit Layanan (Konsolidasi)"/>
+                            <field name="analytic_account_id" placeholder="Sub-Poli Tertentu (Opsional)"/>
                             <field name="comparison_mode"/>
                             <field name="journal_ids" widget="many2many_tags" placeholder="Seluruh Jurnal Operasional (Default)"/>
                         </group>

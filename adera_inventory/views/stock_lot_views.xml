@@ -17,7 +17,22 @@
                             type="object"
                             class="btn-outline-danger"
                             invisible="not is_opened"/>
+                    <button name="action_quarantine_batch"
+                            string="Karantina / Batch Recall"
+                            type="object"
+                            class="btn-danger"
+                            confirm="PERINGATAN: Apakah Anda yakin ingin mengkarantina nomor batch ini? Seluruh stok fisik akan dipindahkan ke Gudang Karantina dan sistem akan memblokir obat ini dari resep dokter dan kasir POS."
+                            invisible="is_quarantined"/>
+                    <button name="action_release_quarantine"
+                            string="Cabut Karantina"
+                            type="object"
+                            class="btn-secondary"
+                            confirm="Apakah Anda yakin hasil audit/investigasi menyatakan nomor batch ini aman untuk diedarkan kembali?"
+                            invisible="not is_quarantined"/>
                 </header>
+                <div class="alert alert-danger text-center fw-bold mb-0 py-2" role="alert" invisible="not is_quarantined">
+                    ⚠️ NOMOR BATCH / LOT INI SEDANG DALAM STATUS KARANTINA ATAU PENARIKAN (BATCH RECALL). DILARANG KERAS DIKELUARKAN KE PASIEN!
+                </div>
             </xpath>
             <xpath expr="//field[@name='ref']" position="after">
                 <field name="expiry_status" widget="badge"
@@ -28,6 +43,16 @@
                 <field name="is_quarantined" widget="boolean_toggle"/>
             </xpath>
             <xpath expr="//sheet" position="inside">
+                <group string="Audit Karantina &amp; Batch Recall BPOM" invisible="not is_quarantined and not quarantine_reason">
+                    <group>
+                        <field name="quarantine_reason" readonly="is_quarantined"/>
+                        <field name="quarantined_by_id"/>
+                        <field name="quarantined_datetime"/>
+                    </group>
+                    <group>
+                        <field name="quarantine_notes" placeholder="Tuliskan nomor surat edaran BPOM / evaluasi keselamatan pasien..." readonly="is_quarantined"/>
+                    </group>
+                </group>
                 <group string="Manajemen Vial Multidosis &amp; Batas Viabilitas Pasca Buka (Open-Vial FEFO)">
                     <group>
                         <field name="is_multi_dose"/>
@@ -65,7 +90,8 @@
                 <field name="is_opened" widget="badge" decoration-warning="is_opened"/>
                 <field name="doses_remaining" optional="show"/>
                 <field name="is_open_vial_expired" widget="badge" decoration-danger="is_open_vial_expired" optional="show"/>
-                <field name="is_quarantined"/>
+                <field name="is_quarantined" widget="badge" decoration-danger="is_quarantined"/>
+                <field name="quarantine_reason" optional="show"/>
             </xpath>
         </field>
     </record>

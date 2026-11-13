@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- ===================================================================
+             1. SATUAN MEDIS: TABLET, STRIP & BOX (ORAL MEDICATIONS)
+             =================================================================== -->
+        <!-- Reference Unit: Tablet / Butir / Pcs (Equivalent to Units) -->
+        <record id="uom_medical_tablet" model="uom.uom">
+            <field name="name">Tablet / Butir / Pcs</field>
+            <field name="relative_uom_id" ref="uom.product_uom_unit"/>
+            <field name="relative_factor">1.0</field>
+            <field name="rounding">1.0</field>
+            <field name="sequence">10</field>
+        </record>
+
+        <!-- Secondary Unit: Strip (10 Tablet) -->
+        <record id="uom_medical_strip" model="uom.uom">
+            <field name="name">Strip</field>
+            <field name="relative_uom_id" ref="uom_medical_tablet"/>
+            <field name="relative_factor">10.0</field>
+            <field name="rounding">1.0</field>
+            <field name="sequence">11</field>
+        </record>
+
+        <!-- Purchase Unit: Box / Dus (10 Strip = 100 Tablet) -->
+        <record id="uom_medical_box" model="uom.uom">
+            <field name="name">Box / Dus</field>
+            <field name="relative_uom_id" ref="uom_medical_strip"/>
+            <field name="relative_factor">10.0</field>
+            <field name="rounding">1.0</field>
+            <field name="sequence">12</field>
+        </record>
+
+        <!-- ===================================================================
+             2. SATUAN INJEKSI / CAIRAN: AMPUL & VIAL
+             =================================================================== -->
+        <!-- Reference Unit: Ampul / Vial -->
+        <record id="uom_medical_ampul_vial" model="uom.uom">
+            <field name="name">Ampul / Vial</field>
+            <field name="relative_uom_id" ref="uom.product_uom_unit"/>
+            <field name="relative_factor">1.0</field>
+            <field name="rounding">1.0</field>
+            <field name="sequence">20</field>
+        </record>
+
+        <!-- Secondary Purchase Unit: Box Ampul (10 Ampul) -->
+        <record id="uom_medical_box_ampul" model="uom.uom">
+            <field name="name">Box Ampul (10 Ampul)</field>
+            <field name="relative_uom_id" ref="uom_medical_ampul_vial"/>
+            <field name="relative_factor">10.0</field>
+            <field name="rounding">1.0</field>
+            <field name="sequence">21</field>
+        </record>
+
+        <!-- ===================================================================
+             3. SATUAN VAKSIN & MULTIDOSE: DOSIS & VIAL MULTIDOSIS
+             =================================================================== -->
+        <!-- Reference Unit: Dosis Pasien -->
+        <record id="uom_medical_dose" model="uom.uom">
+            <field name="name">Dosis</field>
+            <field name="relative_uom_id" ref="uom.product_uom_unit"/>
+            <field name="relative_factor">1.0</field>
+            <field name="rounding">1.0</field>
+            <field name="sequence">30</field>
+        </record>
+
+        <!-- Purchase/Extraction Unit: Vial Multidosis (5 Dosis) -->
+        <record id="uom_medical_vial_multidose_5" model="uom.uom">
+            <field name="name">Vial Multidosis (5 Dosis)</field>
+            <field name="relative_uom_id" ref="uom_medical_dose"/>
+            <field name="relative_factor">5.0</field>
+            <field name="rounding">1.0</field>
+            <field name="sequence">31</field>
+        </record>
+    </data>
+</odoo>
+

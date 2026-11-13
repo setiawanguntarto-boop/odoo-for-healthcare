@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ========================================================================= -->
+    <!-- 1. ACTION WINDOW DEFINITIONS FOR CLINICAL PRODUCTS HIERARCHY             -->
+    <!-- ========================================================================= -->
+
+    <!-- Katalog Produk Medis (Filtered by Storable Medical Items) -->
+    <record id="action_clinic_product_template" model="ir.actions.act_window">
+        <field name="name">Katalog Produk Medis</field>
+        <field name="res_model">product.template</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="context">{
+            'default_is_storable': True,
+            'default_type': 'consu',
+            'search_default_filter_to_sell': 1,
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Kelola master data obat, vaksin, dan BMHP medis Klinik ADERA.
+            </p>
+            <p>
+                Seluruh produk medis terhubung secara otomatis dengan pelacakan Batch/Lot (FEFO) dan akun akuntansi perpetual FIFO.
+            </p>
+        </field>
+    </record>
+
+    <!-- Kategori Produk (Klasifikasi Akuntansi & Penilaian HPP FIFO) -->
+    <record id="action_clinic_product_category" model="ir.actions.act_window">
+        <field name="name">Kategori Produk</field>
+        <field name="res_model">product.category</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Konfigurasi kategori produk farmasi dan alokasi akun buku besar (GL) perpetual FIFO.
+            </p>
+            <p>
+                Setiap kategori secara otomatis mendikte pembebanan HPP (510010 vs 510020) dan persediaan (113010 vs 113020).
+            </p>
+        </field>
+    </record>
+
+    <!-- Pusat Kendali Batch & Kedaluwarsa (Lots / Serial Numbers - FEFO Monitor) -->
+    <record id="action_clinic_stock_production_lot" model="ir.actions.act_window">
+        <field name="name">Pusat Kendali Batch &amp; Kedaluwarsa</field>
+        <field name="res_model">stock.lot</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{
+            'search_default_group_by_product': 1,
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Pantau seluruh batch obat, vaksin, dan dialyzer berdasarkan tanggal kedaluwarsa (FEFO) dan status karantina.
+            </p>
+        </field>
+    </record>
+
+    <!-- Satuan & Kemasan Obat (Units of Measure & Packaging Rules) -->
+    <record id="action_clinic_uom_packaging" model="ir.actions.act_window">
+        <field name="name">Satuan &amp; Kemasan Obat</field>
+        <field name="res_model">uom.uom</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Konfigurasi konversi multi-level satuan obat (Box -> Strip -> Tablet/Butir, Box Ampul -> Ampul, Vial -> Dosis).
+            </p>
+        </field>
+    </record>
+
+
+    <!-- ========================================================================= -->
+    <!-- 2. PRODUCTS SUB-MENU RESTRUCTURING (Produk)                                -->
+    <!-- ========================================================================= -->
+
+    <!-- Rename and sequence Products parent menu -->
+    <record id="stock.menu_stock_inventory_control" model="ir.ui.menu">
+        <field name="name">Produk</field>
+        <field name="sequence">30</field>
+    </record>
+
+    <!-- Hide legacy generic menus under stock.menu_stock_inventory_control -->
+    <record id="stock.menu_product_variant_config_stock" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="stock.product_product_menu" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="stock.menu_action_production_lot_form" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="stock.menu_package" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+
+    <!-- Clean Produk Sub-Menus (Strictly 3 routes) -->
+    <!-- 1. Katalog Produk Medis -->
+    <menuitem id="menu_clinic_product_template"
+              name="Katalog Produk Medis"
+              parent="stock.menu_stock_inventory_control"
+              action="action_clinic_product_template"
+              sequence="10"/>
+
+    <!-- 2. Kategori Produk -->
+    <menuitem id="menu_clinic_product_category"
+              name="Kategori Produk"
+              parent="stock.menu_stock_inventory_control"
+              action="action_clinic_product_category"
+              sequence="20"/>
+
+    <!-- 3. Pusat Kendali Batch & Kedaluwarsa (Exclusive location for stock.lot) -->
+    <menuitem id="menu_clinic_stock_production_lot"
+              name="Pusat Kendali Batch &amp; Kedaluwarsa"
+              parent="stock.menu_stock_inventory_control"
+              action="action_clinic_stock_production_lot"
+              sequence="30"/>
+
+    <!-- Keep Satuan & Kemasan Obat cleanly in Configuration menu -->
+    <menuitem id="menu_clinic_uom_packaging"
+              name="Satuan &amp; Kemasan Obat"
+              parent="stock.menu_stock_config_settings"
+              action="action_clinic_uom_packaging"
+              sequence="50"/>
+
+</odoo>

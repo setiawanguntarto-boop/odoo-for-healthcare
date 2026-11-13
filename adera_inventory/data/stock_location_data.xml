@@ -23,6 +23,27 @@
             <field name="removal_strategy_id" ref="product_expiry.removal_fefo"/>
         </record>
 
+        <record id="stock_location_dental" model="stock.location">
+            <field name="name">Dental</field>
+            <field name="usage">internal</field>
+            <field name="location_id" ref="stock.stock_location_stock"/>
+            <field name="removal_strategy_id" ref="product_expiry.removal_fefo"/>
+        </record>
+
+        <record id="stock_location_lab" model="stock.location">
+            <field name="name">Lab</field>
+            <field name="usage">internal</field>
+            <field name="location_id" ref="stock.stock_location_stock"/>
+            <field name="removal_strategy_id" ref="product_expiry.removal_fefo"/>
+        </record>
+
+        <!-- Virtual Location for Hemodialysis Procedure Patient Consumption -->
+        <record id="stock_location_hd_consumption" model="stock.location">
+            <field name="name">Konsumsi Tindakan Hemodialisis Pasien</field>
+            <field name="usage">customer</field>
+            <field name="location_id" ref="stock.stock_location_customers"/>
+        </record>
+
         <!-- Lokasi Karantina Produk Kadaluarsa / Rusak (Scrap/Quarantine) di bawah WH -->
         <record id="stock_location_pharma_quarantine" model="stock.location">
             <field name="name">Karantina Farmasi (Expired / Reject)</field>

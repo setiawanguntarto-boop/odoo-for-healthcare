@@ -243,7 +243,7 @@
         <record id="account_320020" model="account.account">
             <field name="code">320020</field>
             <field name="name">Cadangan Pengembangan Sarana, Prasarana &amp; Akreditasi (Sinking Fund)</field>
-            <field name="account_type">equity_unaffected</field>
+            <field name="account_type">equity</field>
         </record>
 
         <!-- ===================================================================
@@ -402,6 +402,33 @@
             <field name="code">619990</field>
             <field name="name">Beban Selisih Rekonsiliasi Kas Kasir (Blind Count Variance)</field>
             <field name="account_type">expense</field>
+        </record>
+
+        <!-- Akun Alokasi Biaya Bersama Holding (Inter-Entity Shared Cost Allocation) -->
+        <record id="account_619980" model="account.account">
+            <field name="code">619980</field>
+            <field name="name">Alokasi Biaya Bersama Holding (Holding Shared Cost Clearing)</field>
+            <field name="account_type">expense</field>
+        </record>
+
+        <record id="account_619981" model="account.account">
+            <field name="code">619981</field>
+            <field name="name">Beban Alokasi Manajemen Holding - Klinik Pratama</field>
+            <field name="account_type">expense</field>
+        </record>
+
+        <record id="account_619982" model="account.account">
+            <field name="code">619982</field>
+            <field name="name">Beban Alokasi Manajemen Holding - Klinik Hemodialisis</field>
+            <field name="account_type">expense</field>
+        </record>
+
+        <!-- Akun Kewajiban Antar-Entitas (Inter-Entity Related Party Liability) -->
+        <record id="account_214040" model="account.account">
+            <field name="code">214040</field>
+            <field name="name">Kewajiban Antar-Entitas / Holding (Inter-Entity Related Party Liability)</field>
+            <field name="account_type">liability_current</field>
+            <field name="reconcile" eval="True"/>
         </record>
 
         <!-- Akun Pos Penyesuaian Koreksi Fiskal Positif Form 1771 -->

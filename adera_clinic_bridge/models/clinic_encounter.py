@@ -146,9 +146,14 @@ class ClinicEncounter(models.Model):
             'hd_special': 'adera_core.analytic_account_hd_vip',
         }
         xml_id = analytic_map.get(poli_code)
-        if xml_id:
-            return self.env.ref(xml_id, raise_if_not_found=False)
-        return False
+        acc = self.env.ref(xml_id, raise_if_not_found=False) if xml_id else False
+        if not acc:
+            # Fallback by clinic_unit
+            if self.clinic_unit == 'hd':
+                acc = self.env.ref('adera_core.analytic_acc_hd', raise_if_not_found=False) or self.env.ref('adera_core.analytic_account_hd_root', raise_if_not_found=False)
+            else:
+                acc = self.env.ref('adera_core.analytic_acc_pratama', raise_if_not_found=False) or self.env.ref('adera_core.analytic_account_pratama_root', raise_if_not_found=False)
+        return acc
 
     def _generate_customer_invoice(self):
         if self.account_move_id:

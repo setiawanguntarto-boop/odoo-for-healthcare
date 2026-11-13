@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Sequence for Shared Cost Allocation -->
+    <record id="seq_clinic_shared_cost_allocation" model="ir.sequence">
+        <field name="name">Alokasi Biaya Bersama Holding</field>
+        <field name="code">clinic.shared_cost.allocation</field>
+        <field name="prefix">ALLOC/%(year)s/%(month)s/</field>
+        <field name="padding">3</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+    <!-- Tree View -->
+    <record id="view_clinic_shared_cost_allocation_tree" model="ir.ui.view">
+        <field name="name">clinic.shared_cost.allocation.tree</field>
+        <field name="model">clinic.shared_cost.allocation</field>
+        <field name="arch" type="xml">
+            <list string="Alokasi Biaya Bersama Holding" decoration-info="state == 'draft'" decoration-warning="state == 'calculated'" decoration-success="state == 'posted'">
+                <field name="name"/>
+                <field name="period_start"/>
+                <field name="period_end"/>
+                <field name="allocation_basis"/>
+                <field name="total_holding_pool" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                <field name="allocated_amount_pratama" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                <field name="allocated_amount_hd" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                <field name="account_move_id"/>
+                <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-warning="state == 'calculated'" decoration-success="state == 'posted'"/>
+                <field name="currency_id" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_clinic_shared_cost_allocation_form" model="ir.ui.view">
+        <field name="name">clinic.shared_cost.allocation.form</field>
+        <field name="model">clinic.shared_cost.allocation</field>
+        <field name="arch" type="xml">
+            <form string="Alokasi Biaya Bersama Holding">
+                <header>
+                    <button name="action_calculate"
+                            string="Kalkulasi Pool &amp; Porsi Cabang"
+                            type="object"
+                            class="btn-secondary"
+                            invisible="state not in ('draft', 'calculated')"/>
+                    <button name="action_execute_allocation"
+                            string="Eksekusi Alokasi &amp; Posting Jurnal GL"
+                            type="object"
+                            class="btn-primary"
+                            invisible="state != 'calculated'"
+                            confirm="Sistem akan membuat jurnal penyeimbang (Credit Akun 619980 Holding, Debit Akun 619981 Pratama dan 619982 HD) dengan dampak laba konsolidasi bersih Rp 0.00. Lanjutkan?"/>
+                    <button name="action_cancel"
+                            string="Batalkan Alokasi"
+                            type="object"
+                            invisible="state not in ('calculated', 'posted')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,calculated,posted"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <span class="o_form_label">Alokasi Biaya Bersama Holding</span>
+                        <h2><field name="name" readonly="1"/></h2>
+                    </div>
+                    <group>
+                        <group string="Rentang Periode Beban">
+                            <field name="period_start" readonly="state == 'posted'"/>
+                            <field name="period_end" readonly="state == 'posted'"/>
+                            <field name="company_id" readonly="1" groups="base.group_multi_company"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                        <group string="Metode &amp; Dasar Alokasi">
+                            <field name="allocation_basis" readonly="state == 'posted'"/>
+                            <field name="pratama_share_pct" readonly="state == 'posted' or allocation_basis == 'revenue_ratio'"/>
+                            <field name="hd_share_pct" readonly="state == 'posted' or allocation_basis == 'revenue_ratio'"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Hasil Perhitungan Distribusi Biaya">
+                            <group>
+                                <group string="Himpunan Biaya Holding (Pool)">
+                                    <field name="total_holding_pool" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                    <field name="holding_expense_account_ids" widget="many2many_tags" readonly="state == 'posted'" placeholder="Default: Seluruh Beban Operasional 61xxxx Kantor Pusat"/>
+                                </group>
+                                <group string="Alokasi Beban ke Unit Operasional">
+                                    <field name="allocated_amount_pratama" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                    <field name="allocated_amount_hd" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                    <field name="account_move_id" readonly="1" invisible="not account_move_id"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Catatan &amp; Justifikasi Audit">
+                            <field name="notes" placeholder="Tuliskan catatan pertimbangan manajemen atau rasio pembagian beban..." readonly="state == 'posted'"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action Window -->
+    <record id="action_clinic_shared_cost_allocation" model="ir.actions.act_window">
+        <field name="name">Alokasi Biaya Bersama Holding</field>
+        <field name="res_model">clinic.shared_cost.allocation</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Buat alokasi biaya operasional kantor pusat (Holding) ke cabang Pratama dan Hemodialisis.
+            </p>
+            <p>
+                Fitur ini mendistribusikan beban umum (overhead) secara wajar tanpa mendistorsi laporan laba rugi konsolidasian (Net Impact Rp 0.00).
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu Item under Akuntansi -> Laporan Keuangan or Dashboard Operasional -->
+    <menuitem id="menu_clinic_shared_cost_allocation"
+              name="Alokasi Biaya Bersama Holding"
+              parent="menu_clinic_financial_reports_root"
+              action="action_clinic_shared_cost_allocation"
+              sequence="45"/>
+</odoo>
+

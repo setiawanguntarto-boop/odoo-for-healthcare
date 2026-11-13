@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ========================================================================= -->
+    <!-- 1. ACTION WINDOW DEFINITIONS FOR CLINICAL SUPPLY OPERATIONS               -->
+    <!-- ========================================================================= -->
+
+    <!-- Penerimaan Barang (GRN / Pembelian PBF dengan Validasi Lot) -->
+    <record id="action_picking_pbf_receipts" model="ir.actions.act_window">
+        <field name="name">Penerimaan Barang (GRN)</field>
+        <field name="res_model">stock.picking</field>
+        <field name="view_mode">list,form,calendar</field>
+        <field name="domain">[('picking_type_id.code', '=', 'incoming')]</field>
+        <field name="context" eval="{'default_picking_type_id': ref('adera_inventory.stock_picking_type_grn_pbf'), 'contact_display': 'partner_address'}"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Catat penerimaan obat dan alat kesehatan dari Pedagang Besar Farmasi (PBF).
+            </p>
+            <p>
+                Sistem akan memverifikasi nomor batch, tanggal kadaluarsa (FEFO), dan membentuk jurnal kliring GR/IR Akun 211500.
+            </p>
+        </field>
+    </record>
+
+    <!-- Pengeluaran & Dispensing (Resep Rawat Jalan & Konsumsi Unit Hemodialisis) -->
+    <record id="action_picking_outpatient_dispensing" model="ir.actions.act_window">
+        <field name="name">Pengeluaran &amp; Dispensing</field>
+        <field name="res_model">stock.picking</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('picking_type_id.code', '=', 'outgoing')]</field>
+        <field name="context" eval="{'default_picking_type_id': ref('adera_inventory.stock_picking_type_outpatient_dispensing')}"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Daftar pengeluaran obat resep pasien rawat jalan dan sinkronisasi kasir POS.
+            </p>
+        </field>
+    </record>
+
+    <!-- Mutasi Antar Depo (Gudang Sentral ke Depo Farmasi & HD) -->
+    <record id="action_picking_internal_depo_transfers" model="ir.actions.act_window">
+        <field name="name">Mutasi Antar Depo</field>
+        <field name="res_model">stock.picking</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('picking_type_id.code', '=', 'internal')]</field>
+        <field name="context" eval="{'default_picking_type_id': ref('adera_inventory.stock_picking_type_depo_transfer')}"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Buat mutasi stok dari Gudang Medis Pusat (WH/Stock) ke Depo Farmasi, Depo HD, atau Poli.
+            </p>
+            <p>
+                Divalidasi langsung oleh Petugas Gudang saat serah terima fisik barang.
+            </p>
+        </field>
+    </record>
+
+    <!-- Karantina Batch & Penarikan Obat (Lot Quarantine & Recall) -->
+    <record id="action_stock_lot_quarantine_recall" model="ir.actions.act_window">
+        <field name="name">Karantina Batch &amp; Penarikan Obat (BPOM Recall)</field>
+        <field name="res_model">stock.lot</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('is_quarantined', '=', True)]</field>
+        <field name="context">{
+            'search_default_group_by_product': 1,
+            'default_is_quarantined': True,
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Daftar seluruh batch / lot obat yang sedang dikarantina atau ditarik (BPOM / Prinsipal).
+            </p>
+            <p>
+                Batch di dalam daftar ini secara otomatis terkunci dan diblokir dari kasir POS dan sistem rekam medis.
+            </p>
+        </field>
+    </record>
+
+
+    <!-- ========================================================================= -->
+    <!-- 2. OPERATIONAL SUB-MENU RESTRUCTURING (Operasi)                            -->
+    <!-- ========================================================================= -->
+
+    <!-- Rename and sequence Operations parent menu -->
+    <record id="stock.menu_stock_warehouse_mgmt" model="ir.ui.menu">
+        <field name="name">Operasi</field>
+        <field name="sequence">20</field>
+    </record>
+
+    <!-- Hide legacy generic menus to avoid redundancy -->
+    <record id="stock.menu_stock_transfers" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="stock.menu_stock_adjustments" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="stock.menu_stock_procurement" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="stock.menu_procurement_compute" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+
+    <!-- Clean Operasi Sub-Menus (Strictly 3 routes) -->
+    <!-- 1. Penerimaan Barang -->
+    <menuitem id="menu_clinical_pbf_receipts"
+              name="Penerimaan Barang"
+              parent="stock.menu_stock_warehouse_mgmt"
+              action="action_picking_pbf_receipts"
+              sequence="10"/>
+
+    <!-- 2. Pengeluaran & Dispensing -->
+    <menuitem id="menu_clinical_dispensing"
+              name="Pengeluaran &amp; Dispensing"
+              parent="stock.menu_stock_warehouse_mgmt"
+              action="action_picking_outpatient_dispensing"
+              sequence="20"/>
+
+    <!-- 3. Mutasi Antar Depo -->
+    <menuitem id="menu_clinical_internal_transfers"
+              name="Mutasi Antar Depo"
+              parent="stock.menu_stock_warehouse_mgmt"
+              action="action_picking_internal_depo_transfers"
+              sequence="30"/>
+
+    <!-- Deactivate any legacy custom menus from previous builds to keep IA pure -->
+    <record id="menu_clinical_stock_opname" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="menu_clinical_quarantine_root" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+
+</odoo>
