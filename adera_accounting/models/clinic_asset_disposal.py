@@ -310,6 +310,14 @@ class ClinicAssetDisposal(models.Model):
         )
         return True
 
+    def action_submit(self):
+        """Standardized Approval Alias: Submit for approval."""
+        return self.action_submit_for_approval()
+
+    def action_approve(self):
+        """Standardized Approval Alias: Approve disposal."""
+        return self.action_approve_disposal()
+
     def action_reject(self, reason=False):
         """Direktur Klinik menolak usulan penghapusan aset."""
         self.ensure_one()
@@ -317,9 +325,12 @@ class ClinicAssetDisposal(models.Model):
             "state": "rejected",
             "rejection_reason": reason or _("Ditolak oleh Direktur Klinik."),
         })
+        msg = _("Usulan penghapusan aset ditolak oleh Direktur Klinik %s.") % self.env.user.name
+        if reason:
+            msg += f"<br/><b>Alasan Penolakan:</b> {reason}"
         self.message_post(
-            body=_("Usulan penghapusan aset ditolak oleh Direktur Klinik %s.") % self.env.user.name,
-            subtype_xmlid="mail.mt_note",
+            body=msg,
+            subtype_xmlid="mail.mt_comment",
         )
         return True
 

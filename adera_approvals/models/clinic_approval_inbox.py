@@ -84,7 +84,7 @@ class ClinicApprovalInbox(models.Model):
                     'clinic_director' AS required_role,
                     '1' AS priority
                 FROM clinic_asset_disposal a
-                WHERE a.state = 'confirmed'
+                WHERE a.state IN ('to_approve', 'confirmed')
 
                 UNION ALL
 
@@ -149,7 +149,9 @@ class ClinicApprovalInbox(models.Model):
             raise exceptions.UserError(_("Dokumen asal sudah tidak ditemukan."))
 
         res = None
-        if self.res_model == 'medical.fee.settlement.batch':
+        if hasattr(record, 'action_approve'):
+            res = record.action_approve()
+        elif self.res_model == 'medical.fee.settlement.batch':
             if record.state == 'draft':
                 res = record.action_medical_manager_verify()
             elif record.state == 'verified':

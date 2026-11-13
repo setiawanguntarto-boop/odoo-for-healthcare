@@ -29,13 +29,13 @@
         <field name="arch" type="xml">
             <form string="Berita Acara Penghapusan Aset Medis">
                 <header>
-                    <button name="action_submit_for_approval" string="Ajukan Persetujuan Direksi"
+                    <button name="action_submit" string="Ajukan Otorisasi"
                             type="object" class="btn-primary" invisible="state != 'draft'"/>
-                    <button name="action_approve_disposal" string="Setujui &amp; Hapusbukukan Aset"
-                            type="object" class="btn-success" invisible="state != 'to_approve'"
+                    <button name="action_approve" string="Setujui"
+                            type="object" class="btn-success" invisible="state not in ['draft', 'to_approve']"
                             groups="adera_core.group_clinic_director"/>
-                    <button name="action_reject" string="Tolak Penghapusan"
-                            type="object" class="btn-outline-danger" invisible="state != 'to_approve'"
+                    <button name="action_reject" string="Tolak / Minta Revisi"
+                            type="object" class="btn-danger" invisible="state in ['draft', 'approved', 'rejected']"
                             groups="adera_core.group_clinic_director"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,to_approve,approved"/>
                 </header>

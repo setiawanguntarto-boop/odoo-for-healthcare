@@ -223,6 +223,27 @@ class StockScrapClinic(models.TransientModel):
         """Action alias method matching specification."""
         return self.action_confirm_scrap()
 
+    def action_submit(self):
+        """Standardized Approval Alias: Submit scrap authorization."""
+        self.ensure_one()
+        self.write({'state': 'draft'})
+        return True
+
+    def action_approve(self):
+        """Standardized Approval Alias: Approve scrap."""
+        return self.action_confirm_scrap()
+
+    def action_reject(self, reason=None):
+        """Standardized Approval Alias: Reject scrap request."""
+        self.ensure_one()
+        self.write({'state': 'draft'})
+        msg = _("Pemusnahan obat ditolak oleh %s.") % self.env.user.name
+        if reason:
+            msg += f"<br/><b>Alasan Penolakan:</b> {reason}"
+        if self.lot_id:
+            self.lot_id.message_post(body=msg)
+        return True
+
     def action_confirm_spoilage(self):
         """Standard Approval method for PJ Farmasi (<= Rp 500k)."""
         return self.action_confirm_scrap()

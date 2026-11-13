@@ -33,24 +33,17 @@
                     <button name="action_load_fee_lines" string="Tarik Jasa Medis (Load Accruals)"
                             type="object" class="btn-secondary" invisible="state != 'draft'"/>
                     
-                    <!-- Tier 1 -> Tier 2: Submit Verification -->
-                    <button name="action_submit_verification" string="Ajukan Verifikasi Medis"
-                            type="object" class="btn-primary" invisible="state != 'draft'"
-                            groups="adera_core.group_claims_admin,adera_core.group_clinic_cashier"/>
+                    <!-- Unified / Standard Action Buttons -->
+                    <button name="action_submit" string="Ajukan Otorisasi"
+                            type="object" class="btn-primary" invisible="state != 'draft'"/>
 
-                    <!-- Tier 2 -> Tier 3: Medical Manager Verify -->
-                    <button name="action_medical_manager_verify" string="Verifikasi &amp; Setujui Medis"
-                            type="object" class="btn-warning" invisible="state != 'verified'"
-                            groups="adera_doctor_remuneration.group_medical_manager,adera_core.group_medical_manager"/>
+                    <button name="action_approve" string="Setujui"
+                            type="object" class="btn-success" invisible="state not in ['draft', 'verified', 'approved']"
+                            groups="adera_core.group_clinic_director,adera_doctor_remuneration.group_medical_manager"/>
 
-                    <!-- Tier 3 -> Paid: Finance Director Approve and Disburse -->
-                    <button name="action_finance_approve_and_pay" string="Setujui &amp; Eksekusi Transfer Bank"
-                            type="object" class="btn-success" invisible="state != 'approved'"
-                            groups="adera_core.group_clinic_director"/>
-
-                    <!-- Cancel / Reject -->
-                    <button name="action_cancel" string="Tolak / Batalkan"
-                            type="object" class="btn-outline-danger" invisible="state in ('paid', 'cancelled')"/>
+                    <button name="action_reject" string="Tolak / Minta Revisi"
+                            type="object" class="btn-danger" invisible="state in ('draft', 'paid', 'cancelled')"
+                            groups="adera_core.group_clinic_director,adera_doctor_remuneration.group_medical_manager"/>
 
                     <field name="state" widget="statusbar" statusbar_visible="draft,verified,approved,paid"/>
                 </header>

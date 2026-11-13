@@ -429,6 +429,33 @@ class MedicalFeeSettlementBatch(models.Model):
         )
         return True
 
+    def action_submit(self):
+        """Standardized Approval Alias: Submit verification."""
+        return self.action_submit_verification()
+
+    def action_approve(self):
+        """Standardized Approval Alias: Approve depending on current tier."""
+        self.ensure_one()
+        if self.state == 'draft':
+            return self.action_medical_manager_verify()
+        elif self.state in ('verified', 'approved'):
+            return self.action_finance_approve_and_pay()
+        else:
+            raise UserError(_("Status dokumen tidak memerlukan persetujuan."))
+
+    def action_reject(self, reason=None):
+        """Standardized Approval Alias: Reject and log reason into chatter."""
+        self.ensure_one()
+        vals = {'state': 'draft'}
+        if reason:
+            vals['cancellation_reason'] = reason
+        self.write(vals)
+        msg = _("Dokumen ditolak / diminta revisi oleh %s.") % self.env.user.name
+        if reason:
+            msg += f"<br/><b>Alasan Revisi:</b> {reason}"
+        self.message_post(body=msg, subtype_xmlid="mail.mt_comment")
+        return True
+
 
 class MedicalFeeSettlementLine(models.Model):
     _name = "medical.fee.settlement.line"
