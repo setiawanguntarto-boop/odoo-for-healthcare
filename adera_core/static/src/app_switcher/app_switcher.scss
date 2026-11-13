@@ -16,6 +16,33 @@
         color: #ffffff !important;
     }
 
+    // Sub-menu sections and active state styling: subtle white contrast overlay
+    .o_menu_sections {
+        .o_nav_entry,
+        .dropdown-toggle,
+        .nav-link {
+            border-radius: 4px;
+            transition: background-color 0.15s ease;
+
+            &:hover {
+                background: rgba(255, 255, 255, 0.12) !important;
+                color: #ffffff !important;
+            }
+
+            &:active,
+            &.active {
+                background: rgba(255, 255, 255, 0.18) !important;
+                color: #ffffff !important;
+                box-shadow: none !important;
+            }
+        }
+
+        .dropdown.show .dropdown-toggle {
+            background: rgba(255, 255, 255, 0.18) !important;
+            color: #ffffff !important;
+        }
+    }
+
     .o_menu_brand {
         font-weight: 700;
         letter-spacing: 0.3px;

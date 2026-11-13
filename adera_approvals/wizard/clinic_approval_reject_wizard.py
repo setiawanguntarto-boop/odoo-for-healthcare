@@ -68,3 +68,4 @@ class ClinicApprovalRejectWizard(models.TransientModel):
             activities.action_feedback(feedback=_("Ditolak dengan alasan: %s") % self.rejection_reason)
 
         return {'type': 'ir.actions.act_window_close'}
+

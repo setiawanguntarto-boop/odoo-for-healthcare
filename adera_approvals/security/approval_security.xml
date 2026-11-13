@@ -11,3 +11,4 @@
         <field name="implied_ids" eval="[(4, ref('adera_core.group_pharmacy_pic'))]"/>
     </record>
 </odoo>
+

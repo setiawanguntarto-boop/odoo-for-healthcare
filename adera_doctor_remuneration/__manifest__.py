@@ -26,6 +26,11 @@
         'reports/doctor_settlement_template.xml',
         'reports/doctor_settlement_batch_report.xml',
     ],
+    'assets': {
+        'web.assets_backend': [
+            'adera_doctor_remuneration/static/src/scss/doctor_remuneration.scss',
+        ],
+    },
     'installable': True,
     'application': False,
     'auto_install': False,

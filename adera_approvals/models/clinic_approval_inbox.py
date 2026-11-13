@@ -194,3 +194,4 @@ class ClinicApprovalInbox(models.Model):
                 'default_document_name': self.name,
             }
         }
+
