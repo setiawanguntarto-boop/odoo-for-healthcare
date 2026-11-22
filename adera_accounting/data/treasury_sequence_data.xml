@@ -24,6 +24,22 @@
             <field name="padding">5</field>
             <field name="company_id" eval="False"/>
         </record>
+
+        <record id="seq_clinic_bpjs_reconciliation_batch" model="ir.sequence">
+            <field name="name">Batch Rekonsiliasi Klaim BPJS (FPK)</field>
+            <field name="code">clinic.bpjs.reconciliation.batch</field>
+            <field name="prefix">BPJS/FPK/%(year)s/%(month)s/</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <record id="seq_clinic_sinking_fund_allocation" model="ir.sequence">
+            <field name="name">Alokasi Cadangan Sinking Fund Sarpras</field>
+            <field name="code">clinic.sinking.fund.allocation</field>
+            <field name="prefix">SF/%(year)s/%(month)s/</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+        </record>
     </data>
 </odoo>
 

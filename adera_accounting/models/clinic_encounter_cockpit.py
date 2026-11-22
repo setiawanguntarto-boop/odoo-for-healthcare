@@ -45,3 +45,4 @@ class ClinicEncounterCockpit(models.Model):
                 rec.reconciliation_status = "variance_alert"
             else:
                 rec.reconciliation_status = "matched"
+

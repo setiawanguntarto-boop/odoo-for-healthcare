@@ -432,6 +432,10 @@ class ClinicDashboardKPI(models.AbstractModel):
         # 6. CLINICAL VOLUME VS. FINANCIAL REVENUE CORRELATION MATRIX
         # -------------------------------------------------------------
         poli_definitions = [
+            ('PRAT-VAKSIN', 'Poli Vaksinasi Dewasa & Anak', 'Pratama', 'vaksin'),
+            ('PRAT-USG', 'Radiologi USG Kebidanan', 'Pratama', 'usg'),
+            ('PRAT-KHITAN', 'Bedah Minor & Khitanan', 'Pratama', 'khitan'),
+            ('PRAT-HOMECARE', 'Layanan Homecare & Bidan', 'Pratama', 'homecare'),
             ('PRAT-UMUM', 'Poli Umum', 'Pratama', 'umum'),
             ('PRAT-GIGI', 'Poli Gigi & Mulut', 'Pratama', 'gigi'),
             ('PRAT-KIA', 'Poli KIA & Kebidanan', 'Pratama', 'kia'),
@@ -750,6 +754,36 @@ class ClinicDashboardKPI(models.AbstractModel):
         # -------------------------------------------------------------
         # RETURN STRUCTURED EXECUTIVE PAYLOAD
         # -------------------------------------------------------------
+        # -------------------------------------------------------------
+        # 12. SINKING FUND RESERVE (320020) & MULTI-BANK TREASURY BREAKDOWN
+        # -------------------------------------------------------------
+        sf_lines = self.env['account.move.line'].search([
+            ('company_id', '=', company_id),
+            ('parent_state', '=', 'posted'),
+            ('account_id.code', '=', '320020'),
+        ])
+        sinking_fund_reserve = float(max(0.0, sum(sf_lines.mapped('credit')) - sum(sf_lines.mapped('debit'))))
+
+        treasury_accounts = [
+            ('111010', 'Kas Besar (Vault)'),
+            ('111020', 'Kas Kecil Imprest'),
+            ('111120', 'Bank BRI 569 (Ops)'),
+            ('111121', 'Bank BRI 300 (Payroll)'),
+            ('111122', 'Bank BRI 561 (Depo)'),
+            ('111130', 'Bank Mandiri (Ops)'),
+            ('111140', 'Bank BSI 77858'),
+            ('111150', 'BPD DIY (Reserve)'),
+        ]
+        bank_treasury_breakdown = []
+        for t_code, t_label in treasury_accounts:
+            t_lines = cash_bank_lines.filtered(lambda l: l.account_id.code == t_code)
+            t_bal = float(sum(t_lines.mapped('debit')) - sum(t_lines.mapped('credit')))
+            bank_treasury_breakdown.append({
+                'code': t_code,
+                'label': t_label,
+                'balance': t_bal,
+            })
+
         return {
             'date_from': date_from,
             'date_to': date_to,
@@ -818,7 +852,9 @@ class ClinicDashboardKPI(models.AbstractModel):
                 'unsettled_doctor_fees': unsettled_doctor_fees,
                 'unsettled_doctor_alert': unsettled_doctor_alert,
                 'bpjs_dispute_allowance': bpjs_dispute_allowance,
+                'sinking_fund_reserve': sinking_fund_reserve,
             },
+            'bank_treasury_breakdown': bank_treasury_breakdown,
             'golden_ratios': {
                 'labor_cost_ratio': {
                     'value': labor_cost_ratio_pct,

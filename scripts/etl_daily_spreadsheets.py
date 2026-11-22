@@ -262,3 +262,4 @@ if __name__ == "__main__":
         print(f"ETL Error: {exc}")
         traceback.print_exc()
         sys.exit(1)
+

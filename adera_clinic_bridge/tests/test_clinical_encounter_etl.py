@@ -129,3 +129,4 @@ class TestClinicalEncounterETL(HttpCase):
         self.assertIn("Record already processed - skipped", body2.get("message", ""))
         move_count_after = self.env["account.move"].search_count([])
         self.assertEqual(move_count_before, move_count_after, "Idempotent call must not create duplicate moves")
+

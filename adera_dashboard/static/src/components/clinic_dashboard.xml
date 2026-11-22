@@ -899,6 +899,32 @@
                         </div>
                     </div>
 
+                    <!-- MULTI-BANK TREASURY & SINKING FUND RESERVE (PHASE 4) -->
+                    <div class="card border-0 shadow-sm mb-4" t-if="state.metrics.bank_treasury_breakdown">
+                        <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="fw-bold text-dark mb-0">
+                                    <i class="fa fa-university text-primary me-2"/>Posisi Kas Multi-Bank &amp; Cadangan Sinking Fund (10%)
+                                </h6>
+                            </div>
+                            <span class="badge bg-info text-dark fs-6 px-3 py-2">
+                                Sinking Fund (320020): <t t-esc="formatCurrency(state.metrics.compliance_flags.sinking_fund_reserve || 0)"/>
+                            </span>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-2">
+                                <t t-foreach="state.metrics.bank_treasury_breakdown" t-as="bank" t-key="bank.code">
+                                    <div class="col-6 col-md-3">
+                                        <div class="p-2 border rounded bg-light">
+                                            <div class="text-muted small"><t t-esc="bank.code"/> • <t t-esc="bank.label"/></div>
+                                            <div class="fw-bold text-dark"><t t-esc="formatCurrency(bank.balance)"/></div>
+                                        </div>
+                                    </div>
+                                </t>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- FOOTER METADATA -->
                     <div class="text-center py-3 text-muted small">
                         <span>Decoupled Healthcare ERP • Odoo 19 Community Edition • PT Prosperra Medika Utama</span>

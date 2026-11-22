@@ -40,6 +40,7 @@
         'views/menu_views.xml',
         'views/treasury_reconciliation_views.xml',
         'views/clinical_transaction_views.xml',
+        'views/closing_and_reporting_views.xml',
         'reports/psak_report_templates.xml',
         'reports/clinic_asset_report_templates.xml',
         'reports/clinic_asset_disposal_report.xml',

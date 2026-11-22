@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ===================================================================
+         1. REKONSILIASI KLAIM BPJS KESEHATAN (FPK / VClaim)
+         =================================================================== -->
+    <record id="view_clinic_bpjs_reconciliation_batch_list" model="ir.ui.view">
+        <field name="name">clinic.bpjs.reconciliation.batch.list</field>
+        <field name="model">clinic.bpjs.reconciliation.batch</field>
+        <field name="arch" type="xml">
+            <list string="Rekonsiliasi Klaim BPJS (FPK)">
+                <field name="name"/>
+                <field name="claim_period_start"/>
+                <field name="claim_period_end"/>
+                <field name="service_unit"/>
+                <field name="bank_journal_id"/>
+                <field name="total_claimed_amount" widget="monetary" sum="Total Diajukan"/>
+                <field name="total_approved_amount" widget="monetary" sum="Total Disetujui"/>
+                <field name="total_disputed_amount" widget="monetary" sum="Total Dispute"/>
+                <field name="total_rejected_amount" widget="monetary" sum="Total Write-Off"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state == 'verified'"
+                       decoration-success="state == 'reconciled'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_clinic_bpjs_reconciliation_batch_form" model="ir.ui.view">
+        <field name="name">clinic.bpjs.reconciliation.batch.form</field>
+        <field name="model">clinic.bpjs.reconciliation.batch</field>
+        <field name="arch" type="xml">
+            <form string="Rekonsiliasi Klaim BPJS Kesehatan (FPK)">
+                <header>
+                    <button name="action_verify" string="Verifikasi FPK"
+                            type="object" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_reconcile" string="Posting Rekonsiliasi &amp; Write-Off"
+                            type="object" class="btn-success" invisible="state != 'verified'"
+                            groups="adera_core.group_clinic_director,adera_core.group_clinic_finance_manager"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,verified,reconciled"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <span class="o_form_label text-muted">Form Pengajuan Klaim (FPK) BPJS Kesehatan</span>
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Periode &amp; Bank Pencairan">
+                            <field name="service_unit" readonly="state != 'draft'"/>
+                            <field name="claim_period_start" readonly="state != 'draft'"/>
+                            <field name="claim_period_end" readonly="state != 'draft'"/>
+                            <field name="bank_journal_id" readonly="state == 'reconciled'"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                        <group string="Ringkasan Klaim (Akun 112020 &amp; 112990)">
+                            <field name="total_claimed_amount" widget="monetary" readonly="state != 'draft'"/>
+                            <field name="total_approved_amount" widget="monetary" readonly="state != 'draft'" class="text-success fw-bold"/>
+                            <field name="total_disputed_amount" widget="monetary" readonly="state != 'draft'" class="text-warning fw-bold"/>
+                            <field name="total_rejected_amount" widget="monetary" readonly="state != 'draft'" class="text-danger fw-bold"/>
+                            <field name="settlement_move_id" readonly="1" invisible="not settlement_move_id"/>
+                            <field name="writeoff_move_id" readonly="1" invisible="not writeoff_move_id"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Rincian SEP &amp; Dispute">
+                            <field name="dispute_line_ids" readonly="state == 'reconciled'">
+                                <list editable="bottom">
+                                    <field name="sep_number"/>
+                                    <field name="patient_id"/>
+                                    <field name="claimed_amount" widget="monetary" sum="Total"/>
+                                    <field name="approved_amount" widget="monetary" sum="Disetujui"/>
+                                    <field name="disputed_amount" widget="monetary" sum="Dispute"/>
+                                    <field name="rejected_amount" widget="monetary" sum="Ditolak"/>
+                                    <field name="status" widget="badge"/>
+                                    <field name="notes"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_clinic_bpjs_reconciliation_batch" model="ir.actions.act_window">
+        <field name="name">Rekonsiliasi Klaim BPJS (FPK)</field>
+        <field name="res_model">clinic.bpjs.reconciliation.batch</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ===================================================================
+         2. ALOKASI SINKING FUND & SARPRAS (clinic.sinking.fund.allocation)
+         =================================================================== -->
+    <record id="view_clinic_sinking_fund_allocation_list" model="ir.ui.view">
+        <field name="name">clinic.sinking.fund.allocation.list</field>
+        <field name="model">clinic.sinking.fund.allocation</field>
+        <field name="arch" type="xml">
+            <list string="Alokasi Sinking Fund &amp; Sarpras Alkes">
+                <field name="name"/>
+                <field name="date"/>
+                <field name="net_profit" widget="monetary"/>
+                <field name="reserve_rate"/>
+                <field name="reserve_amount" widget="monetary" sum="Total Cadangan"/>
+                <field name="move_id"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-success="state == 'posted'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_clinic_sinking_fund_allocation_form" model="ir.ui.view">
+        <field name="name">clinic.sinking.fund.allocation.form</field>
+        <field name="model">clinic.sinking.fund.allocation</field>
+        <field name="arch" type="xml">
+            <form string="Alokasi Cadangan Sinking Fund &amp; Sarpras (10%)">
+                <header>
+                    <button name="action_post_allocation" string="Posting Alokasi Cadangan (320010 -> 320020)"
+                            type="object" class="btn-primary" invisible="state != 'draft'"
+                            groups="adera_core.group_clinic_director,adera_core.group_clinic_finance_manager"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,posted"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <span class="o_form_label text-muted">Cadangan Pemeliharaan Alkes &amp; Mesin HD</span>
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Periode &amp; Kalkulasi Laba">
+                            <field name="date" readonly="state == 'posted'"/>
+                            <field name="date_from" readonly="state == 'posted'"/>
+                            <field name="date_to" readonly="state == 'posted'"/>
+                            <field name="net_profit" widget="monetary" readonly="state == 'posted'"/>
+                            <field name="reserve_rate" readonly="state == 'posted'"/>
+                            <field name="reserve_amount" widget="monetary" readonly="1" class="fw-bold text-primary"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                        <group string="Transfer Likuiditas &amp; Jurnal">
+                            <field name="transfer_liquidity" readonly="state == 'posted'"/>
+                            <field name="source_bank_journal_id" invisible="not transfer_liquidity" readonly="state == 'posted'"/>
+                            <field name="target_reserve_bank_id" invisible="not transfer_liquidity" readonly="state == 'posted'"/>
+                            <field name="move_id" readonly="1" invisible="not move_id"/>
+                            <field name="liquidity_move_id" readonly="1" invisible="not liquidity_move_id"/>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_clinic_sinking_fund_allocation" model="ir.actions.act_window">
+        <field name="name">Alokasi Sinking Fund Sarpras</field>
+        <field name="res_model">clinic.sinking.fund.allocation</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ===================================================================
+         3. LABA RUGI TERSEGMENTASI & ARUS KAS TIDAK LANGSUNG
+         =================================================================== -->
+    <record id="view_clinic_segmented_pnl_report_form" model="ir.ui.view">
+        <field name="name">clinic.segmented.pnl.report.form</field>
+        <field name="model">clinic.segmented.pnl.report</field>
+        <field name="arch" type="xml">
+            <form string="Laba Rugi Tersegmentasi Unit Bisnis">
+                <sheet>
+                    <div class="oe_title">
+                        <h2>Laba Rugi Tersegmentasi (ACC-PRATAMA | ACC-HD | ACC-HOLDING)</h2>
+                    </div>
+                    <group>
+                        <field name="date_from"/>
+                        <field name="date_to"/>
+                        <field name="currency_id" invisible="1"/>
+                    </group>
+                    <group string="Ringkasan Profitabilitas per Entitas">
+                        <field name="pratama_net_profit" widget="monetary"/>
+                        <field name="hd_net_profit" widget="monetary"/>
+                        <field name="holding_net_profit" widget="monetary"/>
+                        <field name="inter_entity_elimination_net" widget="monetary"/>
+                        <field name="consolidated_net_profit" widget="monetary" class="fw-bold text-success"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_clinic_segmented_pnl_report" model="ir.actions.act_window">
+        <field name="name">Laba Rugi Tersegmentasi Unit Bisnis</field>
+        <field name="res_model">clinic.segmented.pnl.report</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <record id="view_clinic_indirect_cash_flow_report_form" model="ir.ui.view">
+        <field name="name">clinic.indirect.cash.flow.report.form</field>
+        <field name="model">clinic.indirect.cash.flow.report</field>
+        <field name="arch" type="xml">
+            <form string="Laporan Arus Kas Metode Tidak Langsung (PSAK 2)">
+                <sheet>
+                    <div class="oe_title">
+                        <h2>Arus Kas Tidak Langsung (Indirect Cash Flow)</h2>
+                    </div>
+                    <group>
+                        <field name="date_from"/>
+                        <field name="date_to"/>
+                        <field name="currency_id" invisible="1"/>
+                    </group>
+                    <group string="Aktivitas Operasi, Investasi &amp; Pendanaan">
+                        <field name="net_operating_income" widget="monetary"/>
+                        <field name="depreciation_addback" widget="monetary"/>
+                        <field name="impairment_addback" widget="monetary"/>
+                        <field name="delta_receivables" widget="monetary"/>
+                        <field name="delta_inventory" widget="monetary"/>
+                        <field name="delta_payables_and_fees" widget="monetary"/>
+                        <field name="net_operating_cash_flow" widget="monetary" class="fw-bold text-primary"/>
+                        <field name="net_investing_cash_flow" widget="monetary"/>
+                        <field name="net_financing_cash_flow" widget="monetary"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_clinic_indirect_cash_flow_report" model="ir.actions.act_window">
+        <field name="name">Laporan Arus Kas Tidak Langsung (PSAK 2)</field>
+        <field name="res_model">clinic.indirect.cash.flow.report</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- ===================================================================
+         4. MENU DECLARATIONS (Under Laporan Keuangan)
+         =================================================================== -->
+    <menuitem id="menu_clinic_bpjs_reconciliation_batch"
+              name="Rekonsiliasi Klaim BPJS (FPK)"
+              parent="menu_clinic_financial_reports_root"
+              action="action_clinic_bpjs_reconciliation_batch"
+              sequence="32"/>
+
+    <menuitem id="menu_clinic_sinking_fund_allocation"
+              name="Alokasi Sinking Fund Sarpras"
+              parent="menu_clinic_financial_reports_root"
+              action="action_clinic_sinking_fund_allocation"
+              sequence="34"/>
+
+    <menuitem id="menu_clinic_segmented_pnl_report"
+              name="Laba Rugi Tersegmentasi Unit Bisnis"
+              parent="menu_clinic_financial_reports_root"
+              action="action_clinic_segmented_pnl_report"
+              sequence="36"/>
+
+    <menuitem id="menu_clinic_indirect_cash_flow_report"
+              name="Arus Kas Tidak Langsung (PSAK 2)"
+              parent="menu_clinic_financial_reports_root"
+              action="action_clinic_indirect_cash_flow_report"
+              sequence="38"/>
+</odoo>

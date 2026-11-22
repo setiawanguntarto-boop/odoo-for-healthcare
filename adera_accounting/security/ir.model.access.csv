@@ -22,3 +22,8 @@ access_clinic_shared_cost_allocation_user,clinic.shared_cost.allocation.user,mod
 access_clinic_cash_deposit_user,clinic.cash.deposit.user,model_clinic_cash_deposit,base.group_user,1,1,1,1
 access_clinic_petty_cash_replenishment_user,clinic.petty.cash.replenishment.user,model_clinic_petty_cash_replenishment,base.group_user,1,1,1,1
 access_clinic_pg_settlement_reconcile_user,clinic.pg.settlement.reconcile.user,model_clinic_pg_settlement_reconcile,base.group_user,1,1,1,1
+access_clinic_bpjs_reconciliation_batch_user,clinic.bpjs.reconciliation.batch.user,model_clinic_bpjs_reconciliation_batch,base.group_user,1,1,1,1
+access_clinic_bpjs_reconciliation_line_user,clinic.bpjs.reconciliation.line.user,model_clinic_bpjs_reconciliation_line,base.group_user,1,1,1,1
+access_clinic_sinking_fund_allocation_user,clinic.sinking.fund.allocation.user,model_clinic_sinking_fund_allocation,base.group_user,1,1,1,1
+access_clinic_segmented_pnl_report_user,clinic.segmented.pnl.report.user,model_clinic_segmented_pnl_report,base.group_user,1,1,1,1
+access_clinic_indirect_cash_flow_report_user,clinic.indirect.cash.flow.report.user,model_clinic_indirect_cash_flow_report,base.group_user,1,1,1,1

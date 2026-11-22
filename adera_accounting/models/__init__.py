@@ -15,3 +15,5 @@ from . import clinic_cash_deposit
 from . import clinic_petty_cash
 from . import account_reconciliation
 from . import clinic_encounter_cockpit
+from . import bpjs_reconciliation
+from . import clinic_sinking_fund
