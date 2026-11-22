@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ===================================================================
+         REKAPITULASI BILLING KLINIS HARIAN (Operational Cockpit View)
+         =================================================================== -->
+    <record id="view_clinic_billing_cockpit_list" model="ir.ui.view">
+        <field name="name">clinic.encounter.billing.cockpit.list</field>
+        <field name="model">clinic.encounter</field>
+        <field name="arch" type="xml">
+            <list string="Rekapitulasi Billing Klinis Harian" create="false">
+                <field name="encounter_date"/>
+                <field name="name"/>
+                <field name="external_encounter_id"/>
+                <field name="patient_name"/>
+                <field name="service_unit_code"/>
+                <field name="poli_code"/>
+                <field name="doctor_id"/>
+                <field name="payer_type" widget="badge"/>
+                <field name="total_billing_amount" widget="monetary" sum="Total Billing Bruto"/>
+                <field name="total_doctor_fee" widget="monetary" sum="Total Akrual Jasa Medis"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="reconciliation_status" widget="badge"
+                       decoration-success="reconciliation_status == 'matched'"
+                       decoration-danger="reconciliation_status == 'variance_alert'"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'posted'"
+                       decoration-danger="state == 'error'"
+                       decoration-info="state in ('draft', 'received', 'staged')"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_clinic_billing_cockpit_pivot" model="ir.ui.view">
+        <field name="name">clinic.encounter.billing.cockpit.pivot</field>
+        <field name="model">clinic.encounter</field>
+        <field name="arch" type="xml">
+            <pivot string="Analisis Pendapatan &amp; Jasa Medis per Layanan">
+                <field name="service_unit_code" type="row"/>
+                <field name="payer_type" type="col"/>
+                <field name="total_billing_amount" type="measure"/>
+                <field name="total_doctor_fee" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_clinic_billing_cockpit_search" model="ir.ui.view">
+        <field name="name">clinic.encounter.billing.cockpit.search</field>
+        <field name="model">clinic.encounter</field>
+        <field name="arch" type="xml">
+            <search string="Filter Billing Klinis Harian">
+                <field name="name"/>
+                <field name="external_encounter_id"/>
+                <field name="patient_name"/>
+                <field name="service_unit_code"/>
+                <field name="doctor_id"/>
+                <separator/>
+                <filter string="Poli Vaksinasi (PRAT-VAKSIN)" name="filter_vaksin" domain="[('service_unit_code', '=', 'PRAT-VAKSIN')]"/>
+                <filter string="USG Kebidanan (PRAT-USG)" name="filter_usg" domain="[('service_unit_code', '=', 'PRAT-USG')]"/>
+                <filter string="Bedah Khitan (PRAT-KHITAN)" name="filter_khitan" domain="[('service_unit_code', '=', 'PRAT-KHITAN')]"/>
+                <filter string="Poli Gigi (PRAT-GIGI)" name="filter_gigi" domain="[('poli_code', '=', 'gigi')]"/>
+                <filter string="Hemodialisis (ACC-HD)" name="filter_hd" domain="[('clinic_unit', '=', 'hd')]"/>
+                <separator/>
+                <filter string="Selisih Kas &gt; Rp 50.000" name="filter_variance" domain="[('reconciliation_status', '=', 'variance_alert')]"/>
+                <group>
+                    <filter string="Tanggal Kunjungan (Hari)" name="group_date_day" context="{'group_by': 'encounter_date:day'}"/>
+                    <filter string="Sub-Unit Analitik" name="group_service_unit" context="{'group_by': 'service_unit_code'}"/>
+                    <filter string="Tipe Penjamin" name="group_payer" context="{'group_by': 'payer_type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_clinic_billing_cockpit" model="ir.actions.act_window">
+        <field name="name">Rekapitulasi Billing Klinis Harian</field>
+        <field name="res_model">clinic.encounter</field>
+        <field name="view_mode">list,pivot,form</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_clinic_billing_cockpit_list')}),
+            (0, 0, {'view_mode': 'pivot', 'view_id': ref('view_clinic_billing_cockpit_pivot')})]"/>
+        <field name="search_view_id" ref="view_clinic_billing_cockpit_search"/>
+        <field name="context">{'search_default_group_service_unit': 1}</field>
+    </record>
+
+    <menuitem id="menu_clinic_billing_cockpit"
+              name="Rekapitulasi Billing Klinis Harian"
+              parent="menu_clinic_receivables_root"
+              action="action_clinic_billing_cockpit"
+              sequence="15"/>
+</odoo>

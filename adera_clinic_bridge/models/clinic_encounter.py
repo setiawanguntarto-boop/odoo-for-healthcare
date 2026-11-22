@@ -31,9 +31,14 @@ class ClinicEncounter(models.Model):
         ('lab', 'Laboratorium'),
         ('rad', 'Radiologi'),
         ('farmasi', 'Farmasi Rawat Jalan'),
+        ('vaksin', 'Poli Vaksinasi'),
+        ('usg', 'Radiologi USG'),
+        ('khitan', 'Bedah Minor & Khitan'),
+        ('homecare', 'Layanan Homecare'),
         ('hd_routine', 'Tindakan HD Rutin'),
         ('hd_special', 'Tindakan HD Khusus / VIP'),
     ], string='Poli / Sub-Unit', required=True, default='umum')
+    service_unit_code = fields.Char(string='Kode Sub-Unit Analitik', index=True)
 
     doctor_id = fields.Many2one('res.partner', string='Dokter Pemeriksa / Penanggung Jawab', domain="[('is_doctor', '=', True)]")
     doctor_role = fields.Selection([
@@ -135,6 +140,31 @@ class ClinicEncounter(models.Model):
             self.patient_id.property_account_receivable_id = rec_acc.id
 
     def _resolve_analytic_account(self, poli_code):
+        if self.service_unit_code:
+            aa = self.env['account.analytic.account'].search([('code', '=', self.service_unit_code)], limit=1)
+            if aa:
+                return aa
+
+        code_map = {
+            'umum': 'PRAT-UMUM',
+            'gigi': 'PRAT-GIGI',
+            'kia': 'PRAT-KIA',
+            'lab': 'PRAT-LAB',
+            'rad': 'PRAT-RAD',
+            'farmasi': 'PRAT-FARM',
+            'vaksin': 'PRAT-VAKSIN',
+            'usg': 'PRAT-USG',
+            'khitan': 'PRAT-KHITAN',
+            'homecare': 'PRAT-HOMECARE',
+            'hd_routine': 'HD-TREAT',
+            'hd_special': 'HD-VIP',
+        }
+        target_code = code_map.get(poli_code)
+        if target_code:
+            aa = self.env['account.analytic.account'].search([('code', '=', target_code)], limit=1)
+            if aa:
+                return aa
+
         analytic_map = {
             'umum': 'adera_core.analytic_account_prat_umum',
             'gigi': 'adera_core.analytic_account_prat_gigi',
@@ -142,13 +172,16 @@ class ClinicEncounter(models.Model):
             'lab': 'adera_core.analytic_account_prat_lab',
             'rad': 'adera_core.analytic_account_prat_rad',
             'farmasi': 'adera_core.analytic_account_prat_farm',
+            'vaksin': 'adera_core.analytic_sub_prat_vaksin',
+            'usg': 'adera_core.analytic_sub_prat_usg',
+            'khitan': 'adera_core.analytic_sub_prat_khitan',
+            'homecare': 'adera_core.analytic_sub_prat_homecare',
             'hd_routine': 'adera_core.analytic_account_hd_treat',
             'hd_special': 'adera_core.analytic_account_hd_vip',
         }
         xml_id = analytic_map.get(poli_code)
         acc = self.env.ref(xml_id, raise_if_not_found=False) if xml_id else False
         if not acc:
-            # Fallback by clinic_unit
             if self.clinic_unit == 'hd':
                 acc = self.env.ref('adera_core.analytic_acc_hd', raise_if_not_found=False) or self.env.ref('adera_core.analytic_account_hd_root', raise_if_not_found=False)
             else:
@@ -219,13 +252,39 @@ class ClinicEncounter(models.Model):
         if self.raw_payload:
             try:
                 payload = json.loads(self.raw_payload)
-                splits = payload.get('payment_split', [])
+                data_node = payload.get('data') if isinstance(payload.get('data'), dict) else payload
+                splits = (
+                    data_node.get('payments')
+                    or data_node.get('payment_split')
+                    or (data_node.get('billing') or {}).get('payment_split')
+                    or payload.get('payment_split')
+                    or []
+                )
+                method_journal_map = {
+                    'qris_gopay': ['GOPAY', 'QRIS', 'PGATE'],
+                    'gopay': ['GOPAY', 'QRIS', 'PGATE'],
+                    'qris': ['GOPAY', 'QRIS', 'PGATE'],
+                    'cash': ['KKSR', 'CSH1'],
+                    'tunai': ['KKSR', 'CSH1'],
+                    'transfer': ['BR569', 'BMDRI', 'BBCA'],
+                    'bri': ['BR569'],
+                    'mandiri': ['BMDRI'],
+                    'bsi': ['BSI78'],
+                    'edc': ['QRIS', 'BR569', 'BBCA'],
+                    'card': ['QRIS', 'BR569', 'BBCA'],
+                }
                 for sp in splits:
-                    method = sp.get('method')
+                    method = str(sp.get('method') or sp.get('payment_method') or '').lower().strip()
                     amt = float(sp.get('amount', 0.0))
-                    jcode = sp.get('journal_code', 'PGATE')
-                    if method in ('qris', 'cash', 'edc', 'transfer') and amt > 0:
-                        pay_journal = self.env['account.journal'].search([('code', '=', jcode)], limit=1)
+                    explicit_jcode = sp.get('journal_code')
+                    pay_ref = sp.get('ref') or f"Co-Pay {method.upper()}: {self.name}"
+                    if amt > 0 and method not in ('bpjs', 'insurance', 'asuransi'):
+                        pay_journal = False
+                        candidate_codes = ([explicit_jcode] if explicit_jcode else []) + method_journal_map.get(method, ['GOPAY', 'KKSR'])
+                        for jc in candidate_codes:
+                            pay_journal = self.env['account.journal'].search([('code', '=', jc)], limit=1)
+                            if pay_journal:
+                                break
                         if not pay_journal:
                             pay_journal = self.env['account.journal'].search([('type', 'in', ('bank', 'cash'))], limit=1)
                         if pay_journal:
@@ -236,7 +295,7 @@ class ClinicEncounter(models.Model):
                                 'payment_type': 'inbound',
                                 'partner_type': 'customer',
                                 'date': invoice.invoice_date,
-                                'memo': f"Co-Pay QRIS/Kasir: {self.name}",
+                                'memo': pay_ref,
                             })
                             payment.action_post()
                             lines_to_rec = (invoice.line_ids + payment.move_id.line_ids).filtered(
@@ -310,6 +369,53 @@ class ClinicEncounter(models.Model):
             _logger.warning("Could not immediately validate picking: %s", str(e))
         self.stock_picking_id = picking.id
 
+        # Ensure Anglo-Saxon COGS (510010/510020) is tagged with Encounter Analytic Account
+        analytic_acc = self._resolve_analytic_account(self.poli_code)
+        if analytic_acc:
+            dist = {str(analytic_acc.id): 100.0}
+            val_moves = self.env['account.move']
+            for sm in picking.move_ids:
+                if hasattr(sm, 'account_move_id') and sm.account_move_id:
+                    val_moves |= sm.account_move_id
+                elif hasattr(sm, 'account_move_ids') and sm.account_move_ids:
+                    val_moves |= sm.account_move_ids
+            cogs_lines = val_moves.mapped('line_ids').filtered(
+                lambda l: l.account_id.account_type == 'expense_direct_cost'
+            )
+            if cogs_lines:
+                cogs_lines.write({'analytic_distribution': dist})
+            else:
+                # If real-time stock valuation move didn't fire (e.g., standard_price > 0 without automated categ),
+                # post Anglo-Saxon COGS entry explicitly
+                cogs_total = sum((l.product_id.standard_price or 0.0) * l.qty for l in med_lines)
+                if cogs_total > 0:
+                    cogs_acc = self.env.ref('adera_core.account_510010', raise_if_not_found=False)
+                    inv_acc = self.env.ref('adera_core.account_113010', raise_if_not_found=False)
+                    misc_j = self.env.ref('adera_core.journal_misc_clinic', raise_if_not_found=False) or self.env['account.journal'].search([('type', '=', 'general')], limit=1)
+                    if cogs_acc and inv_acc and misc_j:
+                        cogs_move = self.env['account.move'].create({
+                            'journal_id': misc_j.id,
+                            'date': fields.Date.to_date(self.encounter_date),
+                            'ref': f"COGS {self.external_encounter_id}",
+                            'move_type': 'entry',
+                            'line_ids': [
+                                (0, 0, {
+                                    'name': f"HPP BHP/Farmasi: {self.external_encounter_id}",
+                                    'account_id': cogs_acc.id,
+                                    'debit': cogs_total,
+                                    'credit': 0.0,
+                                    'analytic_distribution': dist,
+                                }),
+                                (0, 0, {
+                                    'name': f"Pengurangan Persediaan: {self.external_encounter_id}",
+                                    'account_id': inv_acc.id,
+                                    'debit': 0.0,
+                                    'credit': cogs_total,
+                                }),
+                            ],
+                        })
+                        cogs_move.action_post()
+
     def _accrue_doctor_fees(self):
         service_lines = self.line_ids.filtered(lambda l: l.line_type in ('consultation', 'procedure'))
         for line in service_lines:
@@ -317,16 +423,18 @@ class ClinicEncounter(models.Model):
             if not doc:
                 continue
 
-            # Cari fee rule
-            rule = self.env['medical.fee.rule'].search([
-                ('product_id', '=', line.product_id.id),
-                ('doctor_type', '=', doc.doctor_type)
-            ], limit=1)
-
-            if rule:
-                fee = (line.unit_price * line.qty * (rule.doctor_share_rate / 100.0)) if rule.doctor_share_type == 'percentage' else rule.fixed_amount
+            if line.doctor_fee_amount and line.doctor_fee_amount > 0:
+                fee = line.doctor_fee_amount
             else:
-                fee = line.unit_price * line.qty * 0.70  # Default 70% jika belum diatur
+                rule = self.env['medical.fee.rule'].search([
+                    ('product_id', '=', line.product_id.id),
+                    ('doctor_type', '=', doc.doctor_type)
+                ], limit=1)
+
+                if rule:
+                    fee = (line.unit_price * line.qty * (rule.doctor_share_rate / 100.0)) if rule.doctor_share_type == 'percentage' else rule.fixed_amount
+                else:
+                    fee = line.unit_price * line.qty * 0.70  # Default 70% jika belum diatur
 
             analytic_acc = line.analytic_account_id or self._resolve_analytic_account(self.poli_code)
             dist = {str(analytic_acc.id): 100.0} if analytic_acc else False
@@ -360,6 +468,7 @@ class ClinicEncounterLine(models.Model):
 
     qty = fields.Float(string='Jumlah (Qty)', default=1.0)
     unit_price = fields.Monetary(string='Tarif / Harga Satuan', currency_field='currency_id')
+    doctor_fee_amount = fields.Monetary(string='Jasa Medis Eksplisit', currency_field='currency_id', default=0.0)
     currency_id = fields.Many2one('res.currency', string='Mata Uang', default=lambda self: self.env.company.currency_id)
 
     lot_id = fields.Many2one('stock.lot', string='Lot / Batch ID (FEFO)')

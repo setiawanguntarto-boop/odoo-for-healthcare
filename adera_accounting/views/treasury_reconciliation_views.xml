@@ -264,3 +264,4 @@
               action="action_clinic_pg_settlement_reconcile"
               sequence="18"/>
 </odoo>
+

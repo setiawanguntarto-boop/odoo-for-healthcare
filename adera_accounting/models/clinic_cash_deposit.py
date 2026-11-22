@@ -194,3 +194,4 @@ class ClinicCashDeposit(models.Model):
                 raise UserError(_("Setoran yang sudah terjurnal tidak dapat dikembalikan ke Draft."))
             rec.write({"state": "draft"})
         return True
+

@@ -39,6 +39,7 @@
         'views/clinic_shared_cost_allocation_views.xml',
         'views/menu_views.xml',
         'views/treasury_reconciliation_views.xml',
+        'views/clinical_transaction_views.xml',
         'reports/psak_report_templates.xml',
         'reports/clinic_asset_report_templates.xml',
         'reports/clinic_asset_disposal_report.xml',

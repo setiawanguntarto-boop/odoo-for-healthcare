@@ -45,7 +45,7 @@ class ClinicApiController(http.Controller):
         # Fallback default key
         return token == sys_token
 
-    @http.route('/api/v1/clinic/encounter/sync', type='http', auth='none', methods=['POST'], csrf=False)
+    @http.route('/api/v1/clinic/encounter/sync', type='http', auth='none', methods=['POST'], csrf=False, readonly=False, save_session=False)
     def sync_clinic_encounter(self, **kwargs):
         """Inbound webhook receiver untuk kunjungan pasien dari Electronic Health Record (EHR)."""
         # 1. Parsing Payload & Raw Body
@@ -77,15 +77,15 @@ class ClinicApiController(http.Controller):
             data_block.get('encounter_ref') or
             payload.get('external_encounter_id')
         )
-        patient_block = data_block.get('patient', {})
-        patient_mrn = patient_block.get('mrn') or data_block.get('patient_mrn')
+        patient_block = data_block.get('patient') if isinstance(data_block.get('patient'), dict) else {}
+        patient_mrn = patient_block.get('mrn') or data_block.get('patient_mrn') or (data_block.get('patient_id') if isinstance(data_block.get('patient_id'), str) else False)
         patient_name = patient_block.get('name') or data_block.get('patient_name')
 
         if not ext_id or not patient_mrn:
             return request.make_json_response({
                 'status': 'error',
                 'code': 400,
-                'message': 'Bad Request: Key encounter_id (atau external_encounter_id) dan patient.mrn wajib disertakan.'
+                'message': 'Bad Request: Key encounter_id (atau external_encounter_id) dan patient.mrn / patient_id wajib disertakan.'
             }, status=400)
 
         env = request.env(user=SUPERUSER_ID)
@@ -97,7 +97,7 @@ class ClinicApiController(http.Controller):
                 return request.make_json_response({
                     'status': 'success',
                     'code': 200,
-                    'message': 'Idempotent: Encounter ini telah diproses dan diposting sebelumnya.',
+                    'message': 'Record already processed - skipped',
                     'encounter_ref': existing.name,
                     'external_encounter_id': existing.external_encounter_id,
                     'state': existing.state,
@@ -116,13 +116,22 @@ class ClinicApiController(http.Controller):
         # 4. Ingest ke Staging Ledger
         try:
             # Service unit / business unit mapping
-            service_unit_val = data_block.get('service_unit') or data_block.get('business_unit', '')
-            unit = 'hd' if service_unit_val in ('hemodialysis', 'KLINIK_UTAMA_HD', 'hd') else 'pratama'
-            
+            service_unit_val = str(data_block.get('service_unit') or data_block.get('business_unit') or '').strip()
+            su_upper = service_unit_val.upper()
+            unit = 'hd' if (su_upper in ('HEMODIALYSIS', 'KLINIK_UTAMA_HD', 'HD') or su_upper.startswith('ACC-HD') or su_upper.startswith('HD-')) else 'pratama'
+
             # Poli code mapping
-            poli_val = data_block.get('poli_code', 'umum').lower()
+            poli_val = str(data_block.get('poli_code') or service_unit_val or 'umum').lower()
             if 'hd' in poli_val or unit == 'hd':
                 poli = 'hd_special' if 'special' in poli_val or 'vip' in poli_val else 'hd_routine'
+            elif 'vaksin' in poli_val:
+                poli = 'vaksin'
+            elif 'usg' in poli_val:
+                poli = 'usg'
+            elif 'khitan' in poli_val:
+                poli = 'khitan'
+            elif 'homecare' in poli_val:
+                poli = 'homecare'
             elif 'gigi' in poli_val or 'dental' in poli_val:
                 poli = 'gigi'
             elif 'kia' in poli_val:
@@ -138,21 +147,21 @@ class ClinicApiController(http.Controller):
 
             # Payer type & split payment resolution
             billing_block = data_block.get('billing', {})
-            payment_splits = billing_block.get('payment_split', [])
+            payment_splits = data_block.get('payments') or billing_block.get('payment_split') or data_block.get('payment_split') or []
             sep = data_block.get('sep_claim_number') or data_block.get('claim_number')
 
             if payment_splits:
                 if len(payment_splits) > 1:
                     payer = 'split'
                 else:
-                    pm = payment_splits[0].get('payment_method', '').lower()
+                    pm = str(payment_splits[0].get('method') or payment_splits[0].get('payment_method') or '').lower()
                     if 'bpjs' in pm:
                         payer = 'bpjs'
-                    elif 'qris' in pm or 'bank' in pm or 'transfer' in pm:
+                    elif any(k in pm for k in ('qris', 'gopay', 'bank', 'transfer')):
                         payer = 'qris'
                     else:
                         payer = 'cash'
-                
+
                 # Check for claim number in split payment
                 for ps in payment_splits:
                     if ps.get('claim_number') and not sep:
@@ -162,9 +171,13 @@ class ClinicApiController(http.Controller):
 
             # Doctor resolution
             doctor_rec = False
-            doc_data = data_block.get('attending_physician') or data_block.get('doctor', {})
-            doc_sip = doc_data.get('sip_number') or doc_data.get('doctor_id')
-            doc_name = doc_data.get('name')
+            doc_raw = data_block.get('attending_physician') or data_block.get('doctor')
+            if isinstance(doc_raw, dict):
+                doc_data = doc_raw
+            else:
+                doc_data = {'doctor_id': data_block.get('doctor_id')} if data_block.get('doctor_id') else {}
+            doc_sip = doc_data.get('sip_number') or doc_data.get('doctor_id') or (data_block.get('doctor_id') if isinstance(data_block.get('doctor_id'), str) else False)
+            doc_name = doc_data.get('name') or data_block.get('doctor_name')
             doc_nik = doc_data.get('nik')
             doc_npwp = doc_data.get('npwp') or doc_data.get('vat')
             doc_role_raw = doc_data.get('specialty') or doc_data.get('role') or data_block.get('doctor_role', '')
@@ -209,7 +222,7 @@ class ClinicApiController(http.Controller):
                         doctor_rec.ref = doc_nik
 
             # Safe parse ISO encounter_datetime
-            raw_dt = data_block.get('encounter_date') or data_block.get('encounter_datetime')
+            raw_dt = data_block.get('date') or data_block.get('encounter_date') or data_block.get('encounter_datetime')
             encounter_dt = fields.Datetime.now()
             if raw_dt:
                 try:
@@ -234,6 +247,7 @@ class ClinicApiController(http.Controller):
                 'encounter_date': encounter_dt,
                 'clinic_unit': unit,
                 'poli_code': poli,
+                'service_unit_code': service_unit_val if service_unit_val else False,
                 'doctor_id': doctor_rec.id if doctor_rec else False,
                 'doctor_role': doc_role if doc_role else False,
                 'payer_type': payer,
@@ -242,11 +256,11 @@ class ClinicApiController(http.Controller):
                 'state': 'received',
             })
 
-            # Line Items resolution (support both 'billing.lines' and 'billing_items')
-            items = billing_block.get('lines', []) or data_block.get('billing_items', [])
+            # Line Items resolution (support 'items', 'billing.lines', and 'billing_items')
+            items = data_block.get('items', []) or billing_block.get('lines', []) or data_block.get('billing_items', [])
             for item in items:
-                item_code = item.get('item_code') or item.get('code')
-                item_type = item.get('line_type') or item.get('item_type', 'procedure')
+                item_code = item.get('product_code') or item.get('item_code') or item.get('code')
+                item_type = str(item.get('line_type') or item.get('category') or item.get('item_type') or 'procedure').lower()
                 
                 # Normalize line_type to clinic.encounter.line selection
                 line_type_norm = 'procedure'
@@ -254,7 +268,7 @@ class ClinicApiController(http.Controller):
                     line_type_norm = 'medication'
                 elif item_type in ('consumable', 'bhp'):
                     line_type_norm = 'bhp'
-                elif item_type in ('consultation', 'konsul'):
+                elif item_type in ('consultation', 'konsul', 'service'):
                     line_type_norm = 'consultation'
                 elif item_type in ('lab', 'laboratory'):
                     line_type_norm = 'lab'
@@ -263,25 +277,26 @@ class ClinicApiController(http.Controller):
 
                 prod = env['product.product'].search([('default_code', '=', item_code)], limit=1) if item_code else False
                 if not prod and item_code:
-                    prod_type = 'consu' if line_type_norm in ('medication', 'bhp') else 'service'
+                    prod_type = 'consu'
                     is_storable = True if line_type_norm in ('medication', 'bhp') else False
                     prod = env['product.product'].create({
                         'name': item.get('item_name') or item.get('name', item_code),
                         'default_code': item_code,
-                        'type': prod_type,
+                        'type': prod_type if is_storable else 'service',
                         'is_storable': is_storable,
                         'list_price': item.get('unit_price', 0.0),
                     })
 
                 lot = False
-                if item.get('lot_number') and prod:
+                lot_ref = item.get('lot_id') or item.get('lot_number')
+                if lot_ref and prod:
                     lot = env['stock.lot'].search([
-                        ('name', '=', item.get('lot_number')),
+                        ('name', '=', lot_ref),
                         ('product_id', '=', prod.id)
                     ], limit=1)
                     if not lot and prod.is_storable:
                         lot = env['stock.lot'].create({
-                            'name': item.get('lot_number'),
+                            'name': lot_ref,
                             'product_id': prod.id,
                         })
 
@@ -311,6 +326,7 @@ class ClinicApiController(http.Controller):
                     'line_type': line_type_norm,
                     'qty': item.get('quantity') or item.get('qty', 1.0),
                     'unit_price': item.get('unit_price', 0.0),
+                    'doctor_fee_amount': float(item.get('doctor_fee_amount', 0.0)),
                     'lot_id': lot.id if lot else False,
                     'doctor_id': doctor_rec.id if doctor_rec else False,
                     'analytic_account_id': analytic_acc.id if analytic_acc else False,

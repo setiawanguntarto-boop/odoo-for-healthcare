@@ -14,3 +14,4 @@ from . import account_move_inter_entity
 from . import clinic_cash_deposit
 from . import clinic_petty_cash
 from . import account_reconciliation
+from . import clinic_encounter_cockpit

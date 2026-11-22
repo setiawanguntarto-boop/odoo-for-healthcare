@@ -106,3 +106,4 @@ class TestTreasuryPipeline(TransactionCase):
         self.assertAlmostEqual(dr_bank, 993000.0, places=2)
         self.assertAlmostEqual(dr_mdr, 7000.0, places=2)
         self.assertAlmostEqual(cr_clearing, 1000000.0, places=2)
+

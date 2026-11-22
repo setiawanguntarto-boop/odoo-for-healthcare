@@ -239,3 +239,4 @@ class ClinicPettyCashReplenishment(models.Model):
             if reason:
                 rec.message_post(body=_("Pengajuan ditolak: %s") % reason, subtype_xmlid="mail.mt_note")
         return True
+

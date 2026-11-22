@@ -214,3 +214,4 @@ class ClinicPaymentGatewayReconcile(models.Model):
                 subtype_xmlid="mail.mt_note",
             )
         return True
+
