@@ -45,6 +45,10 @@
                             type="object" class="btn-primary" invisible="state != 'approved'"
                             groups="adera_core.group_clinic_director"/>
 
+                    <button name="action_post_adhoc_voucher" string="Cairkan Voucher Ad-Hoc"
+                            type="object" class="btn-warning" invisible="not is_adhoc_voucher or state in ('paid', 'cancelled')"
+                            groups="adera_core.group_clinic_director"/>
+
                     <button name="action_reject" string="Tolak / Minta Revisi"
                             type="object" class="btn-danger" invisible="state in ('draft', 'paid', 'cancelled')"
                             groups="adera_core.group_clinic_director,adera_doctor_remuneration.group_medical_manager"/>
@@ -65,6 +69,9 @@
                             <field name="period_start" readonly="state != 'draft'"/>
                             <field name="period_end" readonly="state != 'draft'"/>
                             <field name="bank_journal_id" readonly="state in ('paid', 'cancelled')"/>
+                            <field name="is_adhoc_voucher" readonly="state != 'draft'"/>
+                            <field name="adhoc_description" invisible="not is_adhoc_voucher" readonly="state != 'draft'" required="is_adhoc_voucher"/>
+                            <field name="adhoc_amount" widget="monetary" invisible="not is_adhoc_voucher" readonly="state != 'draft'" required="is_adhoc_voucher"/>
                         </group>
                         <group string="Otorisasi &amp; Pemisahan Tugas (SoD)">
                             <field name="claim_admin_id" readonly="1"/>

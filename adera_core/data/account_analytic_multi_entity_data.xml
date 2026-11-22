@@ -69,6 +69,32 @@
             <field name="root_plan_id" ref="analytic_plan_adera_entities"/>
         </record>
 
+        <!-- Phase 1 Calibration: High-Margin Clinical Service Channels -->
+        <record id="analytic_sub_prat_vaksin" model="account.analytic.account">
+            <field name="name">[PRAT-VAKSIN] Layanan Poli Vaksinasi Dewasa &amp; Anak (HPV, Booster, Influenza)</field>
+            <field name="code">PRAT-VAKSIN</field>
+            <field name="plan_id" ref="analytic_plan_adera_entities"/>
+            <field name="root_plan_id" ref="analytic_plan_adera_entities"/>
+        </record>
+        <record id="analytic_sub_prat_usg" model="account.analytic.account">
+            <field name="name">[PRAT-USG] Layanan Radiologi USG Kebidanan &amp; Senam Hamil</field>
+            <field name="code">PRAT-USG</field>
+            <field name="plan_id" ref="analytic_plan_adera_entities"/>
+            <field name="root_plan_id" ref="analytic_plan_adera_entities"/>
+        </record>
+        <record id="analytic_sub_prat_khitan" model="account.analytic.account">
+            <field name="name">[PRAT-KHITAN] Layanan Bedah Minor &amp; Khitanan</field>
+            <field name="code">PRAT-KHITAN</field>
+            <field name="plan_id" ref="analytic_plan_adera_entities"/>
+            <field name="root_plan_id" ref="analytic_plan_adera_entities"/>
+        </record>
+        <record id="analytic_sub_prat_homecare" model="account.analytic.account">
+            <field name="name">[PRAT-HOMECARE] Layanan Kunjungan Medis &amp; Bidan ke Rumah Pasien</field>
+            <field name="code">PRAT-HOMECARE</field>
+            <field name="plan_id" ref="analytic_plan_adera_entities"/>
+            <field name="root_plan_id" ref="analytic_plan_adera_entities"/>
+        </record>
+
         <!-- Hemodialysis Sub-Units -->
         <record id="analytic_sub_hd_treat" model="account.analytic.account">
             <field name="name">[HD-TREAT] Ruang Tindakan &amp; Mesin Cuci Darah</field>

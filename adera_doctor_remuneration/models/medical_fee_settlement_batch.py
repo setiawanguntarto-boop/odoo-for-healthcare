@@ -149,8 +149,24 @@ class MedicalFeeSettlementBatch(models.Model):
         tracking=True,
     )
 
+    is_adhoc_voucher = fields.Boolean(
+        string="Voucher Ad-Hoc / Harian",
+        default=False,
+        tracking=True,
+        help="Aktifkan untuk pencairan cepat (Upah Harian Dokter Jaga / Bagi Hasil Khitan / Insentif Bidan) tanpa menunggu siklus tutup buku tanggal 25.",
+    )
+    adhoc_description = fields.Char(
+        string="Keterangan Tindakan / Duty Ad-Hoc",
+        tracking=True,
+    )
+    adhoc_amount = fields.Monetary(
+        string="Nominal Jasa Ad-Hoc Bruto",
+        currency_field="currency_id",
+        tracking=True,
+    )
+
     def _default_bank_journal(self):
-        j = self.env["account.journal"].search([("code", "in", ["BCA", "BBCA"])], limit=1)
+        j = self.env["account.journal"].search([("code", "in", ["BR569", "BCA", "BBCA"])], limit=1)
         if not j:
             j = self.env["account.journal"].search([("type", "=", "bank")], limit=1)
         return j
@@ -194,10 +210,13 @@ class MedicalFeeSettlementBatch(models.Model):
         self.write({"line_ids": new_lines})
         return True
 
-    @api.depends("line_ids.doctor_fee_amount", "doctor_id", "period_end")
+    @api.depends("line_ids.doctor_fee_amount", "doctor_id", "period_end", "is_adhoc_voucher", "adhoc_amount")
     def _compute_financial_totals(self):
         for rec in self:
-            gross = sum(rec.line_ids.mapped("doctor_fee_amount"))
+            if rec.is_adhoc_voucher and not rec.line_ids:
+                gross = rec.adhoc_amount or 0.0
+            else:
+                gross = sum(rec.line_ids.mapped("doctor_fee_amount"))
             rec.total_gross_fee = gross
             dpp = gross * 0.50
             rec.dpp_amount = dpp
@@ -275,14 +294,15 @@ class MedicalFeeSettlementBatch(models.Model):
     def action_submit_verification(self):
         """Tier 1: Claims Admin mengajukan ke Manajer Medis (draft -> verified)."""
         self.ensure_one()
-        if not self.line_ids:
-            raise UserError(_("Tidak ada rincian jasa medis yang dimuat! Tekan 'Tarik Jasa Medis' terlebih dahulu."))
+        if not self.line_ids and not (self.is_adhoc_voucher and self.adhoc_amount > 0):
+            raise UserError(_("Tidak ada rincian jasa medis yang dimuat! Tekan 'Tarik Jasa Medis' atau isi Nominal Jasa Ad-Hoc terlebih dahulu."))
         if self.total_gross_fee <= 0:
             raise UserError(_("Total jasa medis bruto harus lebih besar dari 0!"))
 
         # Tandai akrual dalam proses
-        accruals = self.line_ids.mapped("accrual_id")
-        accruals.write({"state": "in_settlement"})
+        if self.line_ids:
+            accruals = self.line_ids.mapped("accrual_id")
+            accruals.write({"state": "in_settlement"})
 
         self.write({
             "state": "verified",
@@ -321,16 +341,23 @@ class MedicalFeeSettlementBatch(models.Model):
         if self.payment_move_id:
             raise UserError(_("Entri jurnal pembayaran sudah pernah dibukukan!"))
 
-        # Tentukan akun hutang berdasarkan spesialisasi dokter
-        doc_type = getattr(self.doctor_id, "doctor_type", False)
-        if doc_type == "specialist_hd":
-            payable_acc = self.env.ref("adera_core.account_213020", raise_if_not_found=False)
-            if not payable_acc:
-                payable_acc = self.env["account.account"].search([("code", "=", "213020")], limit=1)
+        # Tentukan akun debit: 510110 (Beban Jasa Medis Langsung) jika Ad-Hoc tanpa akrual, atau 213010/213020 jika pelunasan akrual
+        if self.is_adhoc_voucher and not self.line_ids:
+            debit_acc = self.env.ref("adera_core.account_510110", raise_if_not_found=False)
+            if not debit_acc:
+                debit_acc = self.env["account.account"].search([("code", "=", "510110")], limit=1)
+            debit_label = f"Beban Jasa Medis Ad-Hoc ({self.adhoc_description or 'Tindakan / Duty'}): {self.doctor_id.name} ({self.name})"
         else:
-            payable_acc = self.env.ref("adera_core.account_213010", raise_if_not_found=False)
-            if not payable_acc:
-                payable_acc = self.env["account.account"].search([("code", "=", "213010")], limit=1)
+            doc_type = getattr(self.doctor_id, "doctor_type", False)
+            if doc_type == "specialist_hd":
+                debit_acc = self.env.ref("adera_core.account_213020", raise_if_not_found=False)
+                if not debit_acc:
+                    debit_acc = self.env["account.account"].search([("code", "=", "213020")], limit=1)
+            else:
+                debit_acc = self.env.ref("adera_core.account_213010", raise_if_not_found=False)
+                if not debit_acc:
+                    debit_acc = self.env["account.account"].search([("code", "=", "213010")], limit=1)
+            debit_label = f"Pelunasan Akrual Jasa Medis: {self.doctor_id.name} ({self.name})"
 
         tax_acc = self.env.ref("adera_core.account_212030", raise_if_not_found=False)
         if not tax_acc:
@@ -338,16 +365,16 @@ class MedicalFeeSettlementBatch(models.Model):
 
         bank_acc = self.bank_journal_id.default_account_id
         if not bank_acc:
-            bank_acc = self.env["account.account"].search([("code", "=", "111110")], limit=1)
+            bank_acc = self.env["account.account"].search([("code", "in", ["111120", "111110"])], limit=1)
 
-        if not payable_acc or not tax_acc or not bank_acc:
-            raise UserError(_("Konfigurasi Akun Utang Jasa Medis (213010/213020), Utang PPh 21 (212030), atau Akun Bank belum lengkap!"))
+        if not debit_acc or not tax_acc or not bank_acc:
+            raise UserError(_("Konfigurasi Akun Jasa Medis (510110/213010/213020), Utang PPh 21 (212030), atau Akun Bank belum lengkap!"))
 
         move_lines = [
-            # 1. Debit Utang Jasa Medis (Gross)
+            # 1. Debit Beban/Utang Jasa Medis (Gross)
             (0, 0, {
-                "name": f"Pelunasan Akrual Jasa Medis: {self.doctor_id.name} ({self.name})",
-                "account_id": payable_acc.id,
+                "name": debit_label,
+                "account_id": debit_acc.id,
                 "partner_id": self.doctor_id.id,
                 "debit": self.total_gross_fee,
                 "credit": 0.0,
@@ -410,6 +437,29 @@ class MedicalFeeSettlementBatch(models.Model):
             subtype_xmlid="mail.mt_note",
         )
         return True
+
+    def action_post_adhoc_voucher(self):
+        """Pencairan cepat satu langkah untuk Voucher Ad-Hoc (Upah Harian / Khitan / Insentif Bidan)."""
+        self.ensure_one()
+        if not self.is_adhoc_voucher:
+            raise UserError(_("Fitur pencairan cepat ini hanya berlaku untuk Voucher Ad-Hoc!"))
+        if self.total_gross_fee <= 0:
+            raise UserError(_("Nominal Jasa Ad-Hoc Bruto harus lebih besar dari 0!"))
+        if self.state == "draft":
+            self.write({
+                "state": "approved",
+                "verified_by_id": self.env.user.id,
+                "verified_datetime": fields.Datetime.now(),
+                "approved_by_id": self.env.user.id,
+                "approved_datetime": fields.Datetime.now(),
+            })
+        elif self.state == "verified":
+            self.write({
+                "state": "approved",
+                "approved_by_id": self.env.user.id,
+                "approved_datetime": fields.Datetime.now(),
+            })
+        return self.action_finance_approve_and_pay()
 
     def action_cancel(self):
         """Membatalkan batch settlement dengan mencatat alasan di chatter."""

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- ===================================================================
+             RECURRING CLINICAL VENDORS & OPERATIONAL PARTNERS
+             =================================================================== -->
+        <record id="partner_vendor_riffa_limbah_b3" model="res.partner">
+            <field name="name">PT Riffa Utama Mandiri</field>
+            <field name="company_type">company</field>
+            <field name="supplier_rank">1</field>
+            <field name="ref">VEND-LIMBAH-B3</field>
+            <field name="property_account_payable_id" ref="adera_core.account_211010"/>
+            <field name="comment">Vendor Pemusnahan Limbah Medis B3. Default Expense Account: 610040 (Beban Pemusnahan Limbah Medis B3 / Operasional).</field>
+        </record>
+
+        <record id="partner_vendor_omnicare_simklinik" model="res.partner">
+            <field name="name">Heng Sui Phin / Omnicare System</field>
+            <field name="company_type">company</field>
+            <field name="supplier_rank">1</field>
+            <field name="ref">VEND-SIMKLINIK</field>
+            <field name="property_account_payable_id" ref="adera_core.account_211010"/>
+            <field name="comment">Lisensi SIMKlinik / EMR System. Default Expense Account: 610050 (Beban Lisensi Perangkat Lunak &amp; TI).</field>
+        </record>
+
+        <record id="partner_vendor_toko_merah_atk" model="res.partner">
+            <field name="name">Toko Merah / ATK Logistik</field>
+            <field name="company_type">company</field>
+            <field name="supplier_rank">1</field>
+            <field name="ref">VEND-ATK-LOGISTIK</field>
+            <field name="property_account_payable_id" ref="adera_core.account_211010"/>
+            <field name="comment">Vendor ATK &amp; Kertas Rekam Medis. Default Expense Account: 610060 (Beban Alat Tulis Kantor &amp; Kertas Rekam Medis).</field>
+        </record>
+    </data>
+</odoo>

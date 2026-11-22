@@ -22,6 +22,42 @@
             <field name="account_type">asset_cash</field>
         </record>
 
+        <record id="account_111120" model="account.account">
+            <field name="code">111120</field>
+            <field name="name">Kas di Bank - BRI 569 - Operasional Utama</field>
+            <field name="account_type">asset_cash</field>
+        </record>
+
+        <record id="account_111121" model="account.account">
+            <field name="code">111121</field>
+            <field name="name">Kas di Bank - BRI 300 - Payroll &amp; Reserve</field>
+            <field name="account_type">asset_cash</field>
+        </record>
+
+        <record id="account_111122" model="account.account">
+            <field name="code">111122</field>
+            <field name="name">Kas di Bank - BRI 561 - Depo / Penampung</field>
+            <field name="account_type">asset_cash</field>
+        </record>
+
+        <record id="account_111130" model="account.account">
+            <field name="code">111130</field>
+            <field name="name">Kas di Bank - Mandiri Operasional</field>
+            <field name="account_type">asset_cash</field>
+        </record>
+
+        <record id="account_111140" model="account.account">
+            <field name="code">111140</field>
+            <field name="name">Kas di Bank - BSI 77858</field>
+            <field name="account_type">asset_cash</field>
+        </record>
+
+        <record id="account_111150" model="account.account">
+            <field name="code">111150</field>
+            <field name="name">Kas di Bank - BPD DIY Liquidity Reserve</field>
+            <field name="account_type">asset_cash</field>
+        </record>
+
         <record id="account_111210" model="account.account">
             <field name="code">111210</field>
             <field name="name">Kliring Payment Gateway Midtrans / Doku</field>
@@ -447,6 +483,45 @@
         <record id="account_619300" model="account.account">
             <field name="code">619300</field>
             <field name="name">Beban Sanksi Administrasi &amp; Denda Pajak</field>
+            <field name="account_type">expense</field>
+        </record>
+
+        <!-- ===================================================================
+             PHASE 1 CALIBRATION: RECURRING EXPENSES, LOAN LIABILITIES & EQUITY
+             =================================================================== -->
+        <record id="account_221010" model="account.account">
+            <field name="code">221010</field>
+            <field name="name">Utang Pokok Pinjaman Bank Jangka Panjang</field>
+            <field name="account_type">liability_non_current</field>
+        </record>
+
+        <record id="account_310020" model="account.account">
+            <field name="code">310020</field>
+            <field name="name">Prive &amp; Penarikan Ekuitas Pemilik</field>
+            <field name="account_type">equity</field>
+        </record>
+
+        <record id="account_610050" model="account.account">
+            <field name="code">610050</field>
+            <field name="name">Beban Lisensi Perangkat Lunak &amp; TI</field>
+            <field name="account_type">expense</field>
+        </record>
+
+        <record id="account_610060" model="account.account">
+            <field name="code">610060</field>
+            <field name="name">Beban Alat Tulis Kantor &amp; Kertas Rekam Medis</field>
+            <field name="account_type">expense</field>
+        </record>
+
+        <record id="account_610090" model="account.account">
+            <field name="code">610090</field>
+            <field name="name">Beban Merchant &amp; Administrasi Payment Gateway</field>
+            <field name="account_type">expense</field>
+        </record>
+
+        <record id="account_611010" model="account.account">
+            <field name="code">611010</field>
+            <field name="name">Beban Bunga Pinjaman Bank</field>
             <field name="account_type">expense</field>
         </record>
     </data>

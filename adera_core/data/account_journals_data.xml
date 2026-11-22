@@ -70,5 +70,77 @@
             <field name="code">MISCL</field>
             <field name="type">general</field>
         </record>
+
+        <!-- ===================================================================
+             PHASE 1 CALIBRATION: MULTI-BANK, PETTY CASH & PAYMENT GATEWAY
+             =================================================================== -->
+        <record id="journal_bank_bri_569" model="account.journal">
+            <field name="name">Bank BRI Operasional (BANK-BRI-569)</field>
+            <field name="code">BR569</field>
+            <field name="type">bank</field>
+            <field name="default_account_id" ref="account_111120"/>
+        </record>
+
+        <record id="journal_bank_bri_300" model="account.journal">
+            <field name="name">Bank BRI Payroll &amp; Reserve (BANK-BRI-300)</field>
+            <field name="code">BR300</field>
+            <field name="type">bank</field>
+            <field name="default_account_id" ref="account_111121"/>
+        </record>
+
+        <record id="journal_bank_bri_561" model="account.journal">
+            <field name="name">Bank BRI Depo / Penampung (BANK-BRI-561)</field>
+            <field name="code">BR561</field>
+            <field name="type">bank</field>
+            <field name="default_account_id" ref="account_111122"/>
+        </record>
+
+        <record id="journal_bank_mandiri" model="account.journal">
+            <field name="name">Bank Mandiri Operasional (BANK-MANDIRI)</field>
+            <field name="code">BMDRI</field>
+            <field name="type">bank</field>
+            <field name="default_account_id" ref="account_111130"/>
+        </record>
+
+        <record id="journal_bank_bsi_778" model="account.journal">
+            <field name="name">Bank Syariah Indonesia (BANK-BSI-778)</field>
+            <field name="code">BSI78</field>
+            <field name="type">bank</field>
+            <field name="default_account_id" ref="account_111140"/>
+        </record>
+
+        <record id="journal_bank_bpd" model="account.journal">
+            <field name="name">BPD DIY Liquidity Reserve (BANK-BPD)</field>
+            <field name="code">BPDIY</field>
+            <field name="type">bank</field>
+            <field name="default_account_id" ref="account_111150"/>
+        </record>
+
+        <record id="journal_petty_cash_imprest" model="account.journal">
+            <field name="name">Kas Kecil Imprest (Plafon Rp 2.000.000)</field>
+            <field name="code">KKCIL</field>
+            <field name="type">cash</field>
+            <field name="default_account_id" ref="account_111020"/>
+        </record>
+
+        <record id="journal_pg_gopay" model="account.journal">
+            <field name="name">Payment Gateway GoPay / QRIS (PG-GOPAY)</field>
+            <field name="code">GOPAY</field>
+            <field name="type">bank</field>
+            <field name="default_account_id" ref="account_111220"/>
+        </record>
+
+        <!-- Automated MDR Reconciliation Rule for PG-GOPAY -->
+        <record id="reconcile_model_pg_gopay_mdr" model="account.reconcile.model">
+            <field name="name">Biaya MDR Payment Gateway GoPay/QRIS (0.7%)</field>
+            <field name="trigger">manual</field>
+            <field name="match_journal_ids" eval="[(6, 0, [ref('journal_pg_gopay')])]"/>
+            <field name="line_ids" eval="[(0, 0, {
+                'account_id': ref('account_610090'),
+                'label': 'Beban MDR Payment Gateway GoPay/QRIS',
+                'amount_type': 'percentage',
+                'amount_string': '0.7',
+            })]"/>
+        </record>
     </data>
 </odoo>
