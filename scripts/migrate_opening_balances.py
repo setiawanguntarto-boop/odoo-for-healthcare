@@ -139,6 +139,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Klinik ADERA Opening Balance Calibration")
     parser.add_argument("--config", default="/etc/odoo/odoo.conf", help="Path to odoo.conf")
     parser.add_argument("-d", "--database", default="klinik-adera", help="Target database")
+    parser.add_argument("--data-dir", default="/mnt/extra-addons/adera_data", help="Path to adera_data directory")
     parser.add_argument("--verify-zero-clearing", action="store_true", help="Verify Account 999999 == 0.00")
     parser.add_argument("--dry-run", action="store_true", help="Validate without committing")
     args = parser.parse_args()
