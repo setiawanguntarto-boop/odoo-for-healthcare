@@ -19,3 +19,6 @@ access_clinic_prepaid_lease_line_user,clinic.prepaid.lease.line.user,model_clini
 access_clinic_sinking_fund_wizard_user,clinic.sinking.fund.wizard.user,model_clinic_sinking_fund_wizard,base.group_user,1,1,1,1
 access_clinic_asset_disposal_user,clinic.asset.disposal.user,model_clinic_asset_disposal,base.group_user,1,1,1,1
 access_clinic_shared_cost_allocation_user,clinic.shared_cost.allocation.user,model_clinic_shared_cost_allocation,base.group_user,1,1,1,1
+access_clinic_cash_deposit_user,clinic.cash.deposit.user,model_clinic_cash_deposit,base.group_user,1,1,1,1
+access_clinic_petty_cash_replenishment_user,clinic.petty.cash.replenishment.user,model_clinic_petty_cash_replenishment,base.group_user,1,1,1,1
+access_clinic_pg_settlement_reconcile_user,clinic.pg.settlement.reconcile.user,model_clinic_pg_settlement_reconcile,base.group_user,1,1,1,1

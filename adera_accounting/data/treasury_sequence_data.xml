@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="seq_clinic_cash_deposit" model="ir.sequence">
+            <field name="name">Setoran Tunai Kas Besar ke Bank</field>
+            <field name="code">clinic.cash.deposit</field>
+            <field name="prefix">DEP/CASH/%(year)s/%(month)s/</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <record id="seq_clinic_petty_cash_replenishment" model="ir.sequence">
+            <field name="name">Pengisian Kas Kecil Imprest</field>
+            <field name="code">clinic.petty.cash.replenishment</field>
+            <field name="prefix">PC/%(year)s/%(month)s/</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <record id="seq_clinic_pg_settlement_reconcile" model="ir.sequence">
+            <field name="name">Rekonsiliasi Payment Gateway MDR</field>
+            <field name="code">clinic.pg.settlement.reconcile</field>
+            <field name="prefix">PG/%(year)s/%(month)s/</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+        </record>
+    </data>
+</odoo>

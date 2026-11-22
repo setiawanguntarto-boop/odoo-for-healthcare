@@ -11,3 +11,6 @@ from . import prepaid_amortization
 from . import clinic_asset_disposal
 from . import clinic_shared_cost_allocation
 from . import account_move_inter_entity
+from . import clinic_cash_deposit
+from . import clinic_petty_cash
+from . import account_reconciliation

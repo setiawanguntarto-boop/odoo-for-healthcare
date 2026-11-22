@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ===================================================================
+         1. SETORAN TUNAI KAS BESAR KE BANK (clinic.cash.deposit)
+         =================================================================== -->
+    <record id="view_clinic_cash_deposit_list" model="ir.ui.view">
+        <field name="name">clinic.cash.deposit.list</field>
+        <field name="model">clinic.cash.deposit</field>
+        <field name="arch" type="xml">
+            <list string="Setoran Tunai Kas Besar ke Bank">
+                <field name="name"/>
+                <field name="date"/>
+                <field name="source_journal_id"/>
+                <field name="destination_bank_id"/>
+                <field name="amount" widget="monetary" sum="Total Setoran"/>
+                <field name="prepared_by_id"/>
+                <field name="confirmed_by_id" optional="show"/>
+                <field name="move_id" optional="show"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state == 'confirmed'"
+                       decoration-success="state == 'posted'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_clinic_cash_deposit_kanban" model="ir.ui.view">
+        <field name="name">clinic.cash.deposit.kanban</field>
+        <field name="model">clinic.cash.deposit</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" class="o_kanban_small_column">
+                <field name="name"/>
+                <field name="date"/>
+                <field name="destination_bank_id"/>
+                <field name="amount"/>
+                <field name="currency_id"/>
+                <field name="state"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_global_click">
+                            <div class="fw-bold"><field name="name"/></div>
+                            <div class="text-muted small"><field name="date"/> - <field name="destination_bank_id"/></div>
+                            <div class="mt-2 fw-bold text-primary">
+                                <field name="amount" widget="monetary"/>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_clinic_cash_deposit_form" model="ir.ui.view">
+        <field name="name">clinic.cash.deposit.form</field>
+        <field name="model">clinic.cash.deposit</field>
+        <field name="arch" type="xml">
+            <form string="Setoran Tunai Kas Besar ke Bank">
+                <header>
+                    <button name="action_confirm" string="Konfirmasi Setoran"
+                            type="object" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_post" string="Posting Jurnal Bank"
+                            type="object" class="btn-success" invisible="state != 'confirmed'"
+                            groups="adera_core.group_clinic_director,adera_core.group_clinic_finance_manager"/>
+                    <button name="action_reset_draft" string="Kembalikan ke Draft"
+                            type="object" class="btn-secondary" invisible="state != 'confirmed'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,posted"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <span class="o_form_label text-muted">Berita Acara Setoran Tunai ke Bank</span>
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Rincian Penyetoran">
+                            <field name="date" readonly="state != 'draft'"/>
+                            <field name="source_journal_id" readonly="state != 'draft'"/>
+                            <field name="destination_bank_id" readonly="state != 'draft'"/>
+                            <field name="amount" widget="monetary" readonly="state != 'draft'"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="company_id" groups="base.group_multi_company" readonly="1"/>
+                        </group>
+                        <group string="Bukti Slip &amp; Otorisasi">
+                            <field name="bank_deposit_slip" filename="bank_deposit_slip_filename" readonly="state == 'posted'"/>
+                            <field name="bank_deposit_slip_filename" invisible="1"/>
+                            <field name="prepared_by_id" readonly="1"/>
+                            <field name="confirmed_by_id" readonly="1" invisible="not confirmed_by_id"/>
+                            <field name="move_id" readonly="1" invisible="not move_id"/>
+                        </group>
+                    </group>
+                    <group string="Catatan Shift Kasir">
+                        <field name="notes" nolabel="1" placeholder="Contoh: Setoran tunai shift pagi &amp; sore tanggal ..."/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_clinic_cash_deposit" model="ir.actions.act_window">
+        <field name="name">Setoran Kas ke Bank</field>
+        <field name="res_model">clinic.cash.deposit</field>
+        <field name="view_mode">list,kanban,form</field>
+    </record>
+
+    <!-- ===================================================================
+         2. PENGELOLAAN KAS KECIL IMPREST (clinic.petty.cash.replenishment)
+         =================================================================== -->
+    <record id="view_clinic_petty_cash_replenishment_list" model="ir.ui.view">
+        <field name="name">clinic.petty.cash.replenishment.list</field>
+        <field name="model">clinic.petty.cash.replenishment</field>
+        <field name="arch" type="xml">
+            <list string="Pengisian Kembali Kas Kecil (Imprest)">
+                <field name="name"/>
+                <field name="date"/>
+                <field name="petty_cash_journal_id"/>
+                <field name="funding_journal_id"/>
+                <field name="imprest_ceiling" widget="monetary"/>
+                <field name="requested_amount" widget="monetary" sum="Total Pengisian"/>
+                <field name="move_id" optional="show"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state == 'confirmed'"
+                       decoration-success="state == 'posted'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_clinic_petty_cash_replenishment_form" model="ir.ui.view">
+        <field name="name">clinic.petty.cash.replenishment.form</field>
+        <field name="model">clinic.petty.cash.replenishment</field>
+        <field name="arch" type="xml">
+            <form string="Pengisian Kas Kecil (Imprest Rp 2.000.000)">
+                <header>
+                    <button name="action_request_replenishment" string="Ajukan Pengisian Kas Kecil"
+                            type="object" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_disburse_tranche" string="Cairkan Kas Kecil"
+                            type="object" class="btn-success" invisible="state != 'confirmed'"
+                            groups="adera_core.group_clinic_director,adera_core.group_clinic_finance_manager"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,posted"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <span class="o_form_label text-muted">Voucher Imprest Kas Kecil (Plafon Rp 2.000.000)</span>
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Parameter Imprest">
+                            <field name="date" readonly="state != 'draft'"/>
+                            <field name="petty_cash_journal_id" readonly="state != 'draft'"/>
+                            <field name="funding_journal_id" readonly="state != 'draft'"/>
+                            <field name="imprest_ceiling" widget="monetary" readonly="1"/>
+                            <field name="current_balance" widget="monetary" readonly="1"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                        <group string="Pengajuan &amp; Persetujuan">
+                            <field name="requested_amount" widget="monetary" readonly="state != 'draft'"/>
+                            <field name="director_override" groups="adera_core.group_clinic_director" readonly="state == 'posted'"/>
+                            <field name="requested_by_id" readonly="1"/>
+                            <field name="approved_by_id" readonly="1" invisible="not approved_by_id"/>
+                            <field name="move_id" readonly="1" invisible="not move_id"/>
+                        </group>
+                    </group>
+                    <group string="Rincian Voucher Pengeluaran Kas Kecil">
+                        <field name="notes" nolabel="1" placeholder="Daftar pengeluaran kas kecil yang dimintakan penggantian..."/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_clinic_petty_cash_replenishment" model="ir.actions.act_window">
+        <field name="name">Pengelolaan Kas Kecil (Imprest)</field>
+        <field name="res_model">clinic.petty.cash.replenishment</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ===================================================================
+         3. REKONSILIASI PAYMENT GATEWAY GOPAY/QRIS MDR
+         =================================================================== -->
+    <record id="view_clinic_pg_settlement_reconcile_list" model="ir.ui.view">
+        <field name="name">clinic.pg.settlement.reconcile.list</field>
+        <field name="model">clinic.pg.settlement.reconcile</field>
+        <field name="arch" type="xml">
+            <list string="Rekonsiliasi Settlement Payment Gateway (GoPay/QRIS)">
+                <field name="name"/>
+                <field name="date"/>
+                <field name="pg_journal_id"/>
+                <field name="bank_journal_id"/>
+                <field name="gross_amount" widget="monetary" sum="Total Bruto"/>
+                <field name="mdr_amount" widget="monetary" sum="Total MDR"/>
+                <field name="net_bank_amount" widget="monetary" sum="Total Net"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state == 'confirmed'"
+                       decoration-success="state == 'posted'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_clinic_pg_settlement_reconcile_form" model="ir.ui.view">
+        <field name="name">clinic.pg.settlement.reconcile.form</field>
+        <field name="model">clinic.pg.settlement.reconcile</field>
+        <field name="arch" type="xml">
+            <form string="Rekonsiliasi Settlement GoPay / QRIS &amp; Beban MDR">
+                <header>
+                    <button name="action_confirm" string="Konfirmasi Settlement"
+                            type="object" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_reconcile_pg_settlement" string="Posting Rekonsiliasi MDR"
+                            type="object" class="btn-success" invisible="state == 'posted'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,posted"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <span class="o_form_label text-muted">Settlement Batch Payment Gateway (QRIS / GoPay)</span>
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Akun Clearing &amp; Bank Penerima">
+                            <field name="date" readonly="state == 'posted'"/>
+                            <field name="pg_journal_id" readonly="state == 'posted'"/>
+                            <field name="bank_journal_id" readonly="state == 'posted'"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                        <group string="Kalkulasi Bruto, MDR (610090) &amp; Net Bank">
+                            <field name="gross_amount" widget="monetary" readonly="state == 'posted'"/>
+                            <field name="mdr_rate" readonly="state == 'posted'"/>
+                            <field name="use_manual_mdr" readonly="state == 'posted'"/>
+                            <field name="mdr_amount" widget="monetary" readonly="state == 'posted'"/>
+                            <field name="net_bank_amount" widget="monetary" readonly="1" class="fw-bold text-success"/>
+                            <field name="move_id" readonly="1" invisible="not move_id"/>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_clinic_pg_settlement_reconcile" model="ir.actions.act_window">
+        <field name="name">Rekonsiliasi Payment Gateway (GoPay/QRIS MDR)</field>
+        <field name="res_model">clinic.pg.settlement.reconcile</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ===================================================================
+         4. MENU PLACEMENT (Under Akuntansi & Keuangan -> Kas & Bank)
+         =================================================================== -->
+    <menuitem id="menu_clinic_cash_deposit"
+              name="Setoran Kas ke Bank"
+              parent="menu_clinic_cash_bank_root"
+              action="action_clinic_cash_deposit"
+              sequence="12"/>
+
+    <menuitem id="menu_clinic_petty_cash_replenishment"
+              name="Pengelolaan Kas Kecil (Imprest)"
+              parent="menu_clinic_cash_bank_root"
+              action="action_clinic_petty_cash_replenishment"
+              sequence="15"/>
+
+    <menuitem id="menu_clinic_pg_settlement_reconcile"
+              name="Rekonsiliasi Payment Gateway (MDR)"
+              parent="menu_clinic_cash_bank_root"
+              action="action_clinic_pg_settlement_reconcile"
+              sequence="18"/>
+</odoo>
