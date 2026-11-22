@@ -64,3 +64,4 @@ class ClinicIndirectCashFlowReport(models.TransientModel):
             rec.net_operating_cash_flow = cfo
             rec.net_investing_cash_flow = cfi
             rec.net_financing_cash_flow = cff
+

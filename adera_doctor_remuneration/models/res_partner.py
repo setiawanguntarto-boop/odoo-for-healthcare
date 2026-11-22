@@ -19,7 +19,7 @@ class ResPartner(models.Model):
     pph21_method = fields.Selection([
         ('berkesinambungan', 'Tenaga Ahli Berkesinambungan (Pasal 17 Progressive)'),
         ('flat', 'Tarif Efektif Rata-Rata (TER) / Flat Rate'),
-    ], string='Metode Pemotongan PPh 21', default='berkesinambungan', required=True)
+    ], string='Metode Pemotongan PPh 21', default='berkesinambungan')
 
     ytd_gross_fee = fields.Monetary(
         string='Akumulasi Bruto Tahunan (YTD)',

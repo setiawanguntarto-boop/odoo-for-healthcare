@@ -124,3 +124,4 @@ class TestMonthEndClosing(TransactionCase):
         )
         self.assertIn("bank_treasury_breakdown", metrics)
         self.assertIn("sinking_fund_reserve", metrics["compliance_flags"])
+

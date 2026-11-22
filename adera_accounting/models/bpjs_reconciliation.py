@@ -279,3 +279,4 @@ class ClinicBpjsReconciliationLine(models.Model):
         required=True,
     )
     notes = fields.Char(string="Catatan Verifikator BPJS")
+

@@ -218,6 +218,44 @@ def run_cutover_verification(env):
         rel_party_bal,
     )
 
+    # Assertion 7: General Ledger Global Equilibrium (sum(Debits) == sum(Credits))
+    all_posted_lines = env['account.move.line'].search([('parent_state', '=', 'posted')])
+    total_gl_debit = round(sum(all_posted_lines.mapped('debit')), 2)
+    total_gl_credit = round(sum(all_posted_lines.mapped('credit')), 2)
+    assert_test(
+        "AUDIT-07",
+        "General Ledger Global Equilibrium (Sum Debits == Sum Credits)",
+        total_gl_debit,
+        total_gl_credit,
+    )
+
+    # Assertion 8: GR/IR Clearing Account (211500) == Rp 0.00
+    grir_lines = env['account.move.line'].search([
+        ('account_id.code', '=', '211500'),
+        ('parent_state', '=', 'posted'),
+    ])
+    grir_bal = round(sum(grir_lines.mapped('balance')), 2)
+    assert_test(
+        "AUDIT-08",
+        "GR/IR Goods Received Not Invoiced Clearing (211500) == Rp 0.00",
+        0.00,
+        grir_bal,
+    )
+
+    # Assertion 9: Current-Period Inter-Entity Clearing (112040/214040 in Nov 2026) == Rp 0.00
+    nov_inter_lines = env['account.move.line'].search([
+        ('account_id.code', 'in', ['112040', '214040']),
+        ('date', '>=', '2026-11-01'),
+        ('parent_state', '=', 'posted'),
+    ])
+    nov_inter_bal = round(sum(nov_inter_lines.mapped('balance')), 2)
+    assert_test(
+        "AUDIT-09",
+        "Current-Period Inter-Entity Clearing (112040 / 214040) == Rp 0.00",
+        0.00,
+        nov_inter_bal,
+    )
+
     # 4. SUMMARY SCORECARD
     all_passed = all(a['passed'] for a in assertions)
     print("\n" + "=" * 96)
